@@ -8,8 +8,40 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+<<<<<<< HEAD
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+=======
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'Roboto Mono', 'Courier New', monospace;
+  
+  /* Brand Colors */
+  --color-primary-50: #f0f9eb;
+  --color-primary-100: #d9f0d0;
+  --color-primary-200: #b8e2a8;
+  --color-primary-300: #8bcf75;
+  --color-primary-400: #5fba4c;
+  --color-primary-500: #448a33;
+  --color-primary-600: #367028;
+  --color-primary-700: #2c5720;
+  --color-primary-800: #234419;
+  --color-primary-900: #1b3614;
+
+  --color-blue-50: #f0f5f6;
+  --color-blue-100: #d5e4e7;
+  --color-blue-200: #b3cdd4;
+  --color-blue-300: #8ab1bc;
+  --color-blue-400: #6395a3;
+  --color-blue-500: #3b5a65;
+  --color-blue-600: #314c55;
+  --color-blue-700: #273e45;
+  --color-blue-800: #1e3137;
+  --color-blue-900: #16252a;
+
+  /* Semantic */
+  --color-success-main: #28a745;
+  --color-error-main: #dc3545;
+>>>>>>> origin/auth
 }
 
 @media (prefers-color-scheme: dark) {
