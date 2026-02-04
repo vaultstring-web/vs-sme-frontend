@@ -7,6 +7,8 @@ interface User {
     id: string;
     email: string;
     name: string;
+    fullName: string;
+    role: string;
 }
 
 interface AuthState {
@@ -17,9 +19,9 @@ interface AuthState {
 }
 
 interface AuthContextType extends AuthState {
-    login: (data: any) => Promise<void>;
+    login: (data: { email: string; password: string }) => Promise<void>;
     register: (data: any) => Promise<void>;
-    logout: () => void;
+    logout: () => Promise<void>;
     resetPasswordRequest: (email: string) => Promise<void>;
     resetPasswordConfirm: (data: any) => Promise<void>;
 }
@@ -34,23 +36,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         error: null,
     });
 
-    // Initialize session from storage
     useEffect(() => {
-        const { token, user } = getSession();
-        if (token && user) {
-            // Validate token validity if needed, for now just trust storage
+        const { accessToken, user } = getSession();
+        if (accessToken && user) {
             setState(prev => ({ ...prev, user, isAuthenticated: true, isLoading: false }));
-
-            // Setup axios interceptor dynamically? 
-            // Ideally apiClient should read from storage, or we update it here.
         } else {
             setState(prev => ({ ...prev, isLoading: false }));
         }
 
-        // Sync across tabs
         return initializeSessionSync(() => {
-            const { token, user } = getSession();
-            if (token && user) {
+            const { accessToken, user } = getSession();
+            if (accessToken && user) {
                 setState(prev => ({ ...prev, user, isAuthenticated: true }));
             } else {
                 setState(prev => ({ ...prev, user: null, isAuthenticated: false }));
@@ -58,23 +54,26 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         });
     }, []);
 
-    const login = async (data: any) => {
+    const login = async (data: { email: string; password: string }) => {
         setState(prev => ({ ...prev, isLoading: true, error: null }));
         try {
-            // Mock API call for demonstration if real API is not ready
-            // In real app: const res = await apiClient.post('/auth/login', data);
-            await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate delay
-
-            if (data.email === 'test@example.com' || data.email) { // Accept any email for demo
-                const mockUser = { id: '1', email: data.email, name: 'Test User' };
-                const mockToken = 'mock-jwt-token';
-                setSession(mockToken, mockUser);
-                setState({ user: mockUser, isAuthenticated: true, isLoading: false, error: null });
-            } else {
-                throw new Error('Invalid credentials');
-            }
+            const response = await apiClient.post('/auth/login', data);
+            const { accessToken, refreshToken, profile } = response.data;
+            
+            // Map backend profile to frontend user structure
+            const user: User = {
+                id: profile.id,
+                email: profile.email,
+                name: profile.fullName, // Using fullName as name
+                fullName: profile.fullName,
+                role: profile.role
+            };
+            
+            setSession(accessToken, refreshToken, user);
+            setState({ user, isAuthenticated: true, isLoading: false, error: null });
         } catch (err: any) {
-            setState(prev => ({ ...prev, isLoading: false, error: err.message || 'Login failed' }));
+            const errorMessage = err.response?.data?.message || err.message || 'Login failed';
+            setState(prev => ({ ...prev, isLoading: false, error: errorMessage }));
             throw err;
         }
     };
@@ -82,45 +81,60 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const register = async (data: any) => {
         setState(prev => ({ ...prev, isLoading: true, error: null }));
         try {
-            // Mock API
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            const mockUser = { id: '2', email: data.email, name: 'New User' };
-            const mockToken = 'mock-jwt-token-reg';
-            setSession(mockToken, mockUser);
-            setState({ user: mockUser, isAuthenticated: true, isLoading: false, error: null });
+            const response = await apiClient.post('/auth/register', data);
+            const { accessToken, refreshToken, profile } = response.data;
+            
+            const user: User = {
+                id: profile.id,
+                email: profile.email,
+                name: profile.fullName,
+                fullName: profile.fullName,
+                role: profile.role
+            };
+            
+            setSession(accessToken, refreshToken, user);
+            setState({ user, isAuthenticated: true, isLoading: false, error: null });
         } catch (err: any) {
-            setState(prev => ({ ...prev, isLoading: false, error: err.message || 'Registration failed' }));
+            const errorMessage = err.response?.data?.message || err.message || 'Registration failed';
+            setState(prev => ({ ...prev, isLoading: false, error: errorMessage }));
             throw err;
         }
     };
 
-    const logout = () => {
-        clearSession();
-        setState({ user: null, isAuthenticated: false, isLoading: false, error: null });
-        // Redirect logic usually handled by the component calling logout or ProtectedRoute
+    const logout = async () => {
+        try {
+            await apiClient.post('/auth/logout');
+        } catch (err) {
+            console.error('Logout error:', err);
+        } finally {
+            clearSession();
+            setState({ user: null, isAuthenticated: false, isLoading: false, error: null });
+        }
     };
 
     const resetPasswordRequest = async (email: string) => {
         setState(prev => ({ ...prev, isLoading: true, error: null }));
         try {
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            await apiClient.post('/auth/password-reset/request', { email });
             setState(prev => ({ ...prev, isLoading: false }));
         } catch (err: any) {
-            setState(prev => ({ ...prev, isLoading: false, error: err.message }));
+            const errorMessage = err.response?.data?.message || err.message || 'Password reset request failed';
+            setState(prev => ({ ...prev, isLoading: false, error: errorMessage }));
             throw err;
         }
     };
 
-    const resetPasswordConfirm = async (data: any) => {
+    const resetPasswordConfirm = async (data: { token: string; newPassword: string }) => {
         setState(prev => ({ ...prev, isLoading: true, error: null }));
         try {
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            await apiClient.post('/auth/password-reset/confirm', data);
             setState(prev => ({ ...prev, isLoading: false }));
         } catch (err: any) {
-            setState(prev => ({ ...prev, isLoading: false, error: err.message }));
+            const errorMessage = err.response?.data?.message || err.message || 'Password reset failed';
+            setState(prev => ({ ...prev, isLoading: false, error: errorMessage }));
             throw err;
         }
-    }
+    };
 
     return (
         <AuthContext.Provider value={{ ...state, login, register, logout, resetPasswordRequest, resetPasswordConfirm }}>

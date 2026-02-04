@@ -1,3 +1,4 @@
+// src/components/auth/LoginForm
 'use client';
 import React, { useState } from 'react';
 import Link from 'next/link';
@@ -9,6 +10,11 @@ const LoginForm = () => {
     const { login, error: authError, isLoading } = useAuth();
     const router = useRouter();
     const searchParams = useSearchParams();
+
+     if (!searchParams) {
+        return null;
+    }
+
     const returnUrl = searchParams.get('returnUrl') || '/dashboard';
 
     const [email, setEmail] = useState('');
@@ -142,7 +148,7 @@ const LoginForm = () => {
                     <button
                         type="submit"
                         disabled={isLoading}
-                        className="flex w-full justify-center rounded-md bg-primary-600 px-4 py-3 text-sm font-semibold text-white shadow-sm hover:bg-primary-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+                        className="flex w-full justify-center rounded-md bg-primary-600 px-4 py-3 text-sm font-semibold text-white shadow-sm hover:bg-primary-500 focus-visible:outline focus-visible:outline-offset-2 focus-visible:outline-primary-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
                     >
                         {isLoading ? (
                             <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />

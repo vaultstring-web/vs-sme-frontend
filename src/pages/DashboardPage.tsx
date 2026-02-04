@@ -1,5 +1,4 @@
 "use client";
-import React from "react";
 import Image from "next/image";
 import ProtectedRoute from "../components/shared/ProtectedRoute";
 import LogoutButton from "../components/auth/LogoutButton";
@@ -15,7 +14,7 @@ const DashboardContent = () => {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 justify-between">
             <div className="flex">
-              <div className="flex flex-shrink-0 items-center">
+              <div className="flex shrink-0 items-center">
                 <Image
                   src={logo}
                   alt="Vaultstring Thrive"
@@ -44,7 +43,7 @@ const DashboardContent = () => {
             <div className="overflow-hidden rounded-lg bg-white shadow">
               <div className="p-5">
                 <div className="flex items-center">
-                  <div className="flex-shrink-0">
+                  <div className="shrink-0">
                     <div className="h-10 w-10 rounded-md bg-primary-100 flex items-center justify-center text-primary-600">
                       $
                     </div>
@@ -66,7 +65,7 @@ const DashboardContent = () => {
             <div className="overflow-hidden rounded-lg bg-white shadow">
               <div className="p-5">
                 <div className="flex items-center">
-                  <div className="flex-shrink-0">
+                  <div className="shrink-0">
                     <div className="h-10 w-10 rounded-md bg-blue-100 flex items-center justify-center text-blue-600">
                       Fn
                     </div>

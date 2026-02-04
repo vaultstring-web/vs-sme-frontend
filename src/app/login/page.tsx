@@ -1,3 +1,5 @@
+//src/app/login
+
 import LoginPage from '@/pages/LoginPage';
 
 export default function Page() {

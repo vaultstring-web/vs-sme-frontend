@@ -1,3 +1,5 @@
+// src/pages/login
+
 import Image from 'next/image';
 import LoginForm from '../components/auth/LoginForm';
 import logo from '../vaultlogo.png';
