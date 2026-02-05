@@ -1,25 +1,51 @@
 @import "tailwindcss";
 
+/* 1. Define Variables for Light Mode (Default) */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f8fafc;
+  --foreground: #0f172a;
+  --card: #ffffff;
+  --accent: #84cc16;
+  --border: #e2e8f0;
+  --scrollbar-track: #f1f1f1;
+  --scrollbar-thumb: #cbd5e1;
+  --scrollbar-hover: #94a3b8;
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2rem;
+}
+
+/* 2. Dark mode variables - SINGLE SOURCE OF TRUTH */
+:root.dark {
+  --background: #09090b;
+  --foreground: #fafafa;
+  --card: #121214;
+  --accent: #84cc16;
+  --border: #27272a;
+  --scrollbar-track: #111111;
+  --scrollbar-thumb: #3f3f46;
+  --scrollbar-hover: #52525b;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-border: var(--border);
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-mono: 'Roboto Mono', 'Courier New', monospace;
   
   /* Brand Colors */
-  --color-primary-50: #f0f9eb;
+  --color-primary-50: #f0fdf4;
   --color-primary-100: #d9f0d0;
   --color-primary-200: #b8e2a8;
   --color-primary-300: #8bcf75;
   --color-primary-400: #5fba4c;
-  --color-primary-500: #448a33;
-  --color-primary-600: #367028;
-  --color-primary-700: #2c5720;
+  --color-primary-500: #22c55e;
+  --color-primary-600: #16a34a;
+  --color-primary-700: #15803d;
   --color-primary-800: #234419;
   --color-primary-900: #1b3614;
 
@@ -39,15 +65,54 @@
   --color-error-main: #dc3545;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
+/* --- Base Styles --- */
 
 body {
-  background: var(--background);
+  background-color: var(--background);
+  background-image: 
+    radial-gradient(at 0% 0%, rgba(132, 204, 22, 0.03) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(34, 197, 94, 0.03) 0px, transparent 50%);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  min-height: 100vh;
+}
+
+/* Global Transitions */
+* {
+  transition: background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
+              border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
+              color 0.2s ease;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 20px;
+}
+
+.bento-card {
+  @apply bg-card border border-border rounded-2xl shadow-sm hover:shadow-md transition-all duration-300;
+}
+
+/* Better scrollbar for sidebar */
+.sidebar-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) transparent;
+}
+
+.sidebar-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.sidebar-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sidebar-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 20px;
 }

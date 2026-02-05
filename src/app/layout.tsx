@@ -2,25 +2,30 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
+import { AuthProvider } from '../context/AuthContext';
+import { ThemeProvider } from '../context/ThemeContext';
 
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'VaultString SME Loans',
-  description: 'Apply for business or payroll loans',
+  title: 'VaultString SME Loans | Thrive MFI',
+  description: 'Accessible, tech-enabled loans for salaried workers and SMEs in Malawi',
+  icons: {
+    icon: "/icons/favicon.svg",
+    shortcut: "/icons/favicon.svg",
+    apple: "/icons/favicon.svg",
+  },
 };
 
-import { AuthProvider } from '../context/AuthContext';
-
-export default function RootLayout({
-  children,
-}: Readonly<{ children: React.ReactNode }>) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <body className={inter.className}>
-        <AuthProvider>
-          {children}
-        </AuthProvider>
+    <html lang="en" className="antialiased" suppressHydrationWarning>
+      <body className={`${inter.className} bg-background text-foreground`}>
+        <ThemeProvider>
+          <AuthProvider>
+            {children}
+          </AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
