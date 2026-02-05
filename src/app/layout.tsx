@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   },
   description: 'VaultString SME Portal – Secure Loan Management Platform',
   icons: {
-    icon: '/vs4.png', // or '/favicon.ico'
+    icon: '/vs4.png',
   },
 };
 
