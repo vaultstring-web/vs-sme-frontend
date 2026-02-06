@@ -1,0 +1,35 @@
+// src/app/dashboard/components/HeaderSection.tsx
+'use client';
+import { useContext } from 'react';
+import { AuthContext } from '@/context/AuthContext'; // Adjust path if needed
+import { ApplicationTypeSelector } from '@/components/dashboard/ApplicationTypeSelector';
+
+interface HeaderSectionProps {
+  applicationType: 'sme' | 'payroll';
+  onTypeChange: (type: 'sme' | 'payroll') => void;
+}
+
+export default function HeaderSection({ applicationType, onTypeChange }: HeaderSectionProps) {
+  const { user } = useContext(AuthContext)!;
+
+  return (
+    <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6">
+      <div>
+        {user ? (
+          <>
+            <p className="text-lg">Welcome back, {user.fullName}</p>
+            <p className="text-sm text-gray-500">{user.email}</p>
+          </>
+        ) : (
+          <p className="text-lg">Welcome back!</p>
+        )}
+      </div>
+      <div className="lg:w-auto">
+        <ApplicationTypeSelector 
+          selectedType={applicationType}
+          onTypeChange={onTypeChange}
+        />
+      </div>
+    </div>
+  );
+}

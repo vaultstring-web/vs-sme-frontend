@@ -4,17 +4,24 @@
 import { Bell, Menu } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useTheme } from '@/context/ThemeContext';
+import { useContext } from 'react';
+import { AuthContext } from '@/context/AuthContext';
+
 
 export const Header = ({ toggleSidebar }: { toggleSidebar: () => void }) => {
   const [scrolled, setScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { theme, toggleTheme } = useTheme();
+  const { user } = useContext(AuthContext)!;
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 10);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  const displayName = user?.fullName || 'Guest';
+  const displayRole = user?.role || 'Customer';
 
   return (
     <header
@@ -57,11 +64,13 @@ export const Header = ({ toggleSidebar }: { toggleSidebar: () => void }) => {
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
         >
           <div className="w-8 h-8 rounded-full bg-linear-to-br from-primary-500 to-primary-700 flex items-center justify-center">
-            <span className="text-white text-sm font-bold">U</span>
+            <span className="text-white text-sm font-bold">
+              {user?.fullName?.charAt(0).toUpperCase() || 'U'}
+            </span>
           </div>
           <div className="hidden sm:block text-left">
-            <p className="text-sm font-medium">User Profile</p>
-            <p className="text-xs text-foreground/60">Customer</p>
+            <p className="text-sm font-medium">{displayName}</p>
+            <p className="text-xs text-foreground/60">{displayRole}</p>
           </div>
         </button>
       </div>
