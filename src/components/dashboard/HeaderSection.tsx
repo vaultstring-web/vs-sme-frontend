@@ -1,7 +1,7 @@
 // src/app/dashboard/components/HeaderSection.tsx
 'use client';
 import { useContext } from 'react';
-import { AuthContext } from '@/context/AuthContext'; // Adjust path if needed
+import { AuthContext } from '@/context/AuthContext';
 import { ApplicationTypeSelector } from '@/components/dashboard/ApplicationTypeSelector';
 
 interface HeaderSectionProps {

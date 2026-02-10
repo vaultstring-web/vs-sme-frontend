@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { getSession } from '@/utils/sessionStorage';
+import { getSession, setSession, clearSession } from '@/utils/sessionStorage';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000';
 
@@ -44,12 +44,22 @@ apiClient.interceptors.response.use(
           { refreshToken }
         );
         
-        const { accessToken: newAccessToken, refreshToken: newRefreshToken, profile } = response.data;
+        const { accessToken: newAccessToken, profile } = response.data;
         
-        // Update session
+        // Update session with new access token (keep the same refresh token)
         if (typeof window !== 'undefined') {
-          // Need to update setSession function to handle both tokens
-          // We'll update this in sessionStorage.ts
+          const { user } = getSession();
+          
+          // Update user profile if provided in response
+          const updatedUser = profile ? {
+            id: profile.id,
+            email: profile.email,
+            name: profile.fullName || profile.name,
+            fullName: profile.fullName,
+            role: profile.role
+          } : user;
+          
+          setSession(newAccessToken, refreshToken, updatedUser);
         }
         
         // Update the failed request with new token
@@ -58,7 +68,9 @@ apiClient.interceptors.response.use(
       } catch (refreshError) {
         // Refresh failed - logout user
         if (typeof window !== 'undefined') {
-          // Clear session and redirect to login
+          clearSession();
+          // Redirect to login page
+          window.location.href = '/login';
         }
         return Promise.reject(refreshError);
       }
