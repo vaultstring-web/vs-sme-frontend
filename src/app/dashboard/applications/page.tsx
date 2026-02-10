@@ -38,19 +38,23 @@ import {
   CheckCircle,
   Upload,
   User,
-  Mail,
+  Calendar,
+  Users,
   Phone,
-  MapPin,
   Building2,
+  Briefcase,
   FileText,
   DollarSign,
-  Users,
   History,
   FileUp,
   Shield,
-  TrendingUp,
-  Calendar,
-  Briefcase
+  MapPin,
+  Mail,
+  CreditCard,
+  UserCog,
+  FileCheck,
+  ClipboardCheck,
+  Target
 } from 'lucide-react';
 import { styled } from '@mui/material/styles';
 import { useTheme } from '@/context/ThemeContext';
@@ -67,33 +71,33 @@ const VisuallyHiddenInput = styled('input')({
   width: 1,
 });
 
-interface SmeFormData {
-  // Personal & Contact Info
-  fullName: string;
-  email: string;
-  phone: string;
-  address: string;
-  city: string;
+interface PayrollApplicationData {
+  // Personal & Demographic Info
+  dateOfBirth: string;
+  gender: string;
+  maritalStatus: string;
   
-  // Business Details
-  businessName: string;
-  registrationNo: string;
-  businessType: string;
-  yearsInOperation: number;
+  // Next of Kin Details
+  nextOfKinName: string;
+  nextOfKinRelationship: string;
+  nextOfKinPhone: string;
+  
+  // Employment & Income Information
+  employerName: string;
+  employerAddress: string;
+  jobTitle: string;
+  employeeNumber: string;
+  dateOfEmployment: string;
+  grossMonthlySalary: number;
+  netMonthlySalary: number;
   
   // Loan Request
-  loanProduct: string;
   loanAmount: number;
   paybackPeriodMonths: number;
-  purposeOfLoan: string;
-  repaymentMethod: string;
-  estimatedMonthlyTurnover: number;
-  estimatedMonthlyProfit: number;
   
-  // Group Lending
-  isGroupLending: boolean;
-  groupName: string;
-  groupMemberCount: number;
+  // Payroll Deduction Confirmation
+  payrollDeductionConfirmed: boolean;
+  employerLetter: File | null;
   
   // Credit History
   hasOutstandingLoans: boolean;
@@ -101,31 +105,33 @@ interface SmeFormData {
   hasDefaulted: boolean;
   defaultExplanation: string;
   
-  // Documents
+  // Document Upload
   idDocument: File | null;
-  businessRegistrationDoc: File | null;
-  financialStatementDoc: File | null;
+  payslip1: File | null;
+  payslip2: File | null;
+  payslip3: File | null;
   
-  // Declarations
+  // Declarations & Consent
   agreeToTerms: boolean;
   consentToCreditCheck: boolean;
 }
 
-const businessTypes = ['Sole Proprietorship', 'Partnership', 'Private Limited Company', 'Cooperative', 'Other'];
-const loanProducts = ['Working Capital Loan', 'Asset Financing', 'Invoice Financing', 'Trade Finance', 'Equipment Loan', 'Other'];
-const repaymentMethods = ['Monthly', 'Quarterly', 'Bi-Annually', 'Bullet Payment', 'Custom Schedule'];
+const genders = ['Male', 'Female', 'Other'];
+const maritalStatuses = ['Single', 'Married', 'Divorced', 'Widowed'];
+const relationships = ['Spouse', 'Parent', 'Sibling', 'Child', 'Relative', 'Friend'];
 
 const steps = [
   { label: 'Personal Info', icon: User },
-  { label: 'Business', icon: Building2 },
+  { label: 'Next of Kin', icon: Users },
+  { label: 'Employment', icon: Building2 },
   { label: 'Loan Details', icon: DollarSign },
-  { label: 'Group Lending', icon: Users },
+  { label: 'Payroll Deduction', icon: CreditCard },
   { label: 'Credit History', icon: History },
   { label: 'Documents', icon: FileUp },
   { label: 'Review', icon: Shield }
 ];
 
-export default function SMELoanApplicationPage() {
+export default function PayrollLoanApplicationPage() {
   const [activeStep, setActiveStep] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
@@ -135,33 +141,32 @@ export default function SMELoanApplicationPage() {
   const { theme } = useTheme();
   const isDarkMode = theme === 'dark';
   
-  const [formData, setFormData] = useState<SmeFormData>({
-    fullName: '',
-    email: '',
-    phone: '',
-    address: '',
-    city: '',
-    businessName: '',
-    registrationNo: '',
-    businessType: '',
-    yearsInOperation: 0,
-    loanProduct: '',
+  const [formData, setFormData] = useState<PayrollApplicationData>({
+    dateOfBirth: '',
+    gender: '',
+    maritalStatus: '',
+    nextOfKinName: '',
+    nextOfKinRelationship: '',
+    nextOfKinPhone: '',
+    employerName: '',
+    employerAddress: '',
+    jobTitle: '',
+    employeeNumber: '',
+    dateOfEmployment: '',
+    grossMonthlySalary: 0,
+    netMonthlySalary: 0,
     loanAmount: 0,
     paybackPeriodMonths: 0,
-    purposeOfLoan: '',
-    repaymentMethod: '',
-    estimatedMonthlyTurnover: 0,
-    estimatedMonthlyProfit: 0,
-    isGroupLending: false,
-    groupName: '',
-    groupMemberCount: 0,
+    payrollDeductionConfirmed: false,
+    employerLetter: null,
     hasOutstandingLoans: false,
     outstandingLoanDetails: '',
     hasDefaulted: false,
     defaultExplanation: '',
     idDocument: null,
-    businessRegistrationDoc: null,
-    financialStatementDoc: null,
+    payslip1: null,
+    payslip2: null,
+    payslip3: null,
     agreeToTerms: false,
     consentToCreditCheck: false,
   });
@@ -173,45 +178,76 @@ export default function SMELoanApplicationPage() {
     
     switch (step) {
       case 0:
-        if (!formData.fullName.trim()) newErrors.fullName = 'Full name is required';
-        if (!formData.email.trim()) newErrors.email = 'Email is required';
-        if (!formData.phone.trim()) newErrors.phone = 'Phone number is required';
-        break;
-      case 1:
-        if (!formData.businessName.trim()) newErrors.businessName = 'Business name is required';
-        if (!formData.businessType) newErrors.businessType = 'Business type is required';
-        if (!formData.yearsInOperation) newErrors.yearsInOperation = 'Years in operation is required';
-        break;
-      case 2:
-        if (!formData.loanProduct) newErrors.loanProduct = 'Loan product is required';
-        if (!formData.loanAmount) newErrors.loanAmount = 'Loan amount is required';
-        else if (formData.loanAmount < 100000 || formData.loanAmount > 5000000)
-          newErrors.loanAmount = 'Loan amount must be between MK100,000 and MK5,000,000';
-        if (!formData.paybackPeriodMonths) newErrors.paybackPeriodMonths = 'Payback period is required';
-        else if (formData.paybackPeriodMonths < 1 || formData.paybackPeriodMonths > 120)
-          newErrors.paybackPeriodMonths = 'Payback period must be 1-120 months';
-        if (!formData.purposeOfLoan.trim()) newErrors.purposeOfLoan = 'Purpose of loan is required';
-        if (!formData.repaymentMethod) newErrors.repaymentMethod = 'Repayment method is required';
-        break;
-      case 3:
-        if (formData.isGroupLending) {
-          if (!formData.groupName.trim()) newErrors.groupName = 'Group name is required';
-          if (!formData.groupMemberCount) newErrors.groupMemberCount = 'Number of members is required';
-          else if (formData.groupMemberCount < 2 || formData.groupMemberCount > 20)
-            newErrors.groupMemberCount = 'Group must have 2-20 members';
+        if (!formData.dateOfBirth) newErrors.dateOfBirth = 'Date of birth is required';
+        else {
+          const dob = new Date(formData.dateOfBirth);
+          const today = new Date();
+          const age = today.getFullYear() - dob.getFullYear();
+          if (age < 18) newErrors.dateOfBirth = 'Must be at least 18 years old';
+          if (age > 65) newErrors.dateOfBirth = 'Maximum age is 65 years';
         }
+        if (!formData.gender) newErrors.gender = 'Gender is required';
+        if (!formData.maritalStatus) newErrors.maritalStatus = 'Marital status is required';
         break;
+      
+      case 1:
+        if (!formData.nextOfKinName.trim()) newErrors.nextOfKinName = 'Next of kin name is required';
+        if (!formData.nextOfKinRelationship) newErrors.nextOfKinRelationship = 'Relationship is required';
+        if (!formData.nextOfKinPhone.trim()) newErrors.nextOfKinPhone = 'Phone number is required';
+        break;
+      
+      case 2:
+        if (!formData.employerName.trim()) newErrors.employerName = 'Employer name is required';
+        if (!formData.employerAddress.trim()) newErrors.employerAddress = 'Employer address is required';
+        if (!formData.jobTitle.trim()) newErrors.jobTitle = 'Job title is required';
+        if (!formData.dateOfEmployment) newErrors.dateOfEmployment = 'Date of employment is required';
+        else {
+          const employmentDate = new Date(formData.dateOfEmployment);
+          const today = new Date();
+          const monthsEmployed = (today.getFullYear() - employmentDate.getFullYear()) * 12 + 
+                                 (today.getMonth() - employmentDate.getMonth());
+          if (monthsEmployed < 6) newErrors.dateOfEmployment = 'Must be employed for at least 6 months';
+        }
+        if (!formData.grossMonthlySalary) newErrors.grossMonthlySalary = 'Gross monthly salary is required';
+        else if (formData.grossMonthlySalary <= 0) newErrors.grossMonthlySalary = 'Salary must be greater than 0';
+        if (!formData.netMonthlySalary) newErrors.netMonthlySalary = 'Net monthly salary is required';
+        else if (formData.netMonthlySalary <= 0) newErrors.netMonthlySalary = 'Salary must be greater than 0';
+        else if (formData.netMonthlySalary > formData.grossMonthlySalary) 
+          newErrors.netMonthlySalary = 'Net salary cannot exceed gross salary';
+        break;
+      
+      case 3:
+        if (!formData.loanAmount) newErrors.loanAmount = 'Loan amount is required';
+        else if (formData.loanAmount < 50000 || formData.loanAmount > 3000000)
+          newErrors.loanAmount = 'Loan amount must be between MK50,000 and MK3,000,000';
+        else if (formData.loanAmount > formData.netMonthlySalary * 24)
+          newErrors.loanAmount = 'Loan cannot exceed 24x your net monthly salary';
+        
+        if (!formData.paybackPeriodMonths) newErrors.paybackPeriodMonths = 'Payback period is required';
+        else if (formData.paybackPeriodMonths < 3 || formData.paybackPeriodMonths > 60)
+          newErrors.paybackPeriodMonths = 'Payback period must be 3-60 months';
+        break;
+      
       case 4:
+        if (!formData.payrollDeductionConfirmed)
+          newErrors.payrollDeductionConfirmed = 'Payroll deduction confirmation is required for approval';
+        if (formData.payrollDeductionConfirmed && !formData.employerLetter)
+          newErrors.employerLetter = 'Employer letter is required for payroll deduction';
+        break;
+      
+      case 5:
         if (formData.hasOutstandingLoans && !formData.outstandingLoanDetails.trim())
           newErrors.outstandingLoanDetails = 'Please provide details of outstanding loans';
         if (formData.hasDefaulted && !formData.defaultExplanation.trim())
           newErrors.defaultExplanation = 'Please explain the default';
         break;
-      case 5:
-        if (!formData.idDocument) newErrors.idDocument = 'ID document is required';
-        if (!formData.businessRegistrationDoc) newErrors.businessRegistrationDoc = 'Business registration document is required';
-        break;
+      
       case 6:
+        if (!formData.idDocument) newErrors.idDocument = 'ID document is required';
+        if (!formData.payslip1) newErrors.payslip1 = 'Recent payslip is required';
+        break;
+      
+      case 7:
         if (!formData.agreeToTerms) newErrors.agreeToTerms = 'You must agree to the terms and conditions';
         if (!formData.consentToCreditCheck) newErrors.consentToCreditCheck = 'You must consent to credit check';
         break;
@@ -288,19 +324,19 @@ export default function SMELoanApplicationPage() {
       step: activeStep
     };
     
-    localStorage.setItem('smeLoanDraft', JSON.stringify(draft));
+    localStorage.setItem('payrollLoanDraft', JSON.stringify(draft));
     setSnackbarMessage('Draft saved successfully!');
     setShowSnackbar(true);
   };
 
   const handleSubmit = async () => {
-    if (validateStep(6)) {
+    if (validateStep(7)) {
       setIsSubmitting(true);
       
       try {
         await new Promise(resolve => setTimeout(resolve, 1500));
         setSubmitSuccess(true);
-        localStorage.removeItem('smeLoanDraft');
+        localStorage.removeItem('payrollLoanDraft');
       } catch (error) {
         setSnackbarMessage('Submission failed. Please try again.');
         setShowSnackbar(true);
@@ -402,10 +438,10 @@ export default function SMELoanApplicationPage() {
               </Box>
               <Box>
                 <Typography variant="h5" sx={{ color: isDarkMode ? 'white' : '#18181b', fontWeight: 600 }}>
-                  Personal Information
+                  Personal & Demographic Information
                 </Typography>
                 <Typography variant="body2" sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a' }}>
-                  Tell us about yourself
+                  Basic personal details
                 </Typography>
               </Box>
             </Box>
@@ -413,87 +449,55 @@ export default function SMELoanApplicationPage() {
               <TextField 
                 required 
                 fullWidth 
-                label="Full Name" 
-                name="fullName" 
-                value={formData.fullName} 
+                label="Date of Birth" 
+                name="dateOfBirth" 
+                type="date" 
+                value={formData.dateOfBirth} 
                 onChange={handleInputChange} 
-                error={!!errors.fullName} 
-                helperText={errors.fullName}
+                error={!!errors.dateOfBirth} 
+                helperText={errors.dateOfBirth}
+                InputLabelProps={{ shrink: true }}
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
-                      <User size={20} color={isDarkMode ? '#a1a1aa' : '#71717a'} />
+                      <Calendar size={20} color={isDarkMode ? '#a1a1aa' : '#71717a'} />
                     </InputAdornment>
                   ),
                 }}
                 {...baseTextFieldProps}
               />
               <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3 }}>
-                <TextField 
-                  required 
-                  fullWidth 
-                  label="Email Address" 
-                  name="email" 
-                  type="email" 
-                  value={formData.email} 
-                  onChange={handleInputChange} 
-                  error={!!errors.email} 
-                  helperText={errors.email}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <Mail size={20} color={isDarkMode ? '#a1a1aa' : '#71717a'} />
-                      </InputAdornment>
-                    ),
-                  }}
-                  {...baseTextFieldProps}
-                />
-                <TextField 
-                  required 
-                  fullWidth 
-                  label="Phone Number" 
-                  name="phone" 
-                  value={formData.phone} 
-                  onChange={handleInputChange} 
-                  error={!!errors.phone} 
-                  helperText={errors.phone}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <Phone size={20} color={isDarkMode ? '#a1a1aa' : '#71717a'} />
-                      </InputAdornment>
-                    ),
-                  }}
-                  {...baseTextFieldProps}
-                />
+                <FormControl fullWidth required error={!!errors.gender}>
+                  <InputLabel>Gender</InputLabel>
+                  <Select 
+                    name="gender" 
+                    value={formData.gender} 
+                    onChange={handleSelectChange('gender')} 
+                    label="Gender"
+                    {...baseSelectProps}
+                  >
+                    {genders.map((gender) => (
+                      <MenuItem key={gender} value={gender}>{gender}</MenuItem>
+                    ))}
+                  </Select>
+                  {errors.gender && <FormHelperText>{errors.gender}</FormHelperText>}
+                </FormControl>
+                <FormControl fullWidth required error={!!errors.maritalStatus}>
+                  <InputLabel>Marital Status</InputLabel>
+                  <Select 
+                    name="maritalStatus" 
+                    value={formData.maritalStatus} 
+                    onChange={handleSelectChange('maritalStatus')} 
+                    label="Marital Status"
+                    {...baseSelectProps}
+                  >
+                    {maritalStatuses.map((status) => (
+                      <MenuItem key={status} value={status}>{status}</MenuItem>
+                    ))}
+                  </Select>
+                  {errors.maritalStatus && <FormHelperText>{errors.maritalStatus}</FormHelperText>}
+                </FormControl>
               </Box>
-              <TextField 
-                required 
-                fullWidth 
-                label="Physical Address" 
-                name="address" 
-                multiline 
-                rows={2} 
-                value={formData.address} 
-                onChange={handleInputChange}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start" sx={{ alignSelf: 'flex-start', mt: 2 }}>
-                      <MapPin size={20} color={isDarkMode ? '#a1a1aa' : '#71717a'} />
-                    </InputAdornment>
-                  ),
-                }}
-                {...baseTextFieldProps}
-              />
-              <TextField 
-                required 
-                fullWidth 
-                label="City/Town" 
-                name="city" 
-                value={formData.city} 
-                onChange={handleInputChange}
-                {...baseTextFieldProps}
-              />
             </Box>
           </Box>
         );
@@ -510,14 +514,14 @@ export default function SMELoanApplicationPage() {
                 alignItems: 'center',
                 justifyContent: 'center'
               }}>
-                <Building2 size={24} color={limeColors[500]} />
+                <Users size={24} color={limeColors[500]} />
               </Box>
               <Box>
                 <Typography variant="h5" sx={{ color: isDarkMode ? 'white' : '#18181b', fontWeight: 600 }}>
-                  Business Details
+                  Next of Kin Details
                 </Typography>
                 <Typography variant="body2" sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a' }}>
-                  Information about your business
+                  Emergency contact information
                 </Typography>
               </Box>
             </Box>
@@ -525,72 +529,56 @@ export default function SMELoanApplicationPage() {
               <TextField 
                 required 
                 fullWidth 
-                label="Business Name" 
-                name="businessName" 
-                value={formData.businessName} 
+                label="Next of Kin Name" 
+                name="nextOfKinName" 
+                value={formData.nextOfKinName} 
                 onChange={handleInputChange} 
-                error={!!errors.businessName} 
-                helperText={errors.businessName}
+                error={!!errors.nextOfKinName} 
+                helperText={errors.nextOfKinName}
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
-                      <Briefcase size={20} color={isDarkMode ? '#a1a1aa' : '#71717a'} />
+                      <UserCog size={20} color={isDarkMode ? '#a1a1aa' : '#71717a'} />
                     </InputAdornment>
                   ),
                 }}
                 {...baseTextFieldProps}
               />
               <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3 }}>
+                <FormControl fullWidth required error={!!errors.nextOfKinRelationship}>
+                  <InputLabel>Relationship</InputLabel>
+                  <Select 
+                    name="nextOfKinRelationship" 
+                    value={formData.nextOfKinRelationship} 
+                    onChange={handleSelectChange('nextOfKinRelationship')} 
+                    label="Relationship"
+                    {...baseSelectProps}
+                  >
+                    {relationships.map((rel) => (
+                      <MenuItem key={rel} value={rel}>{rel}</MenuItem>
+                    ))}
+                  </Select>
+                  {errors.nextOfKinRelationship && <FormHelperText>{errors.nextOfKinRelationship}</FormHelperText>}
+                </FormControl>
                 <TextField 
+                  required 
                   fullWidth 
-                  label="Registration Number" 
-                  name="registrationNo" 
-                  value={formData.registrationNo} 
-                  onChange={handleInputChange}
+                  label="Phone Number" 
+                  name="nextOfKinPhone" 
+                  value={formData.nextOfKinPhone} 
+                  onChange={handleInputChange} 
+                  error={!!errors.nextOfKinPhone} 
+                  helperText={errors.nextOfKinPhone}
                   InputProps={{
                     startAdornment: (
                       <InputAdornment position="start">
-                        <FileText size={20} color={isDarkMode ? '#a1a1aa' : '#71717a'} />
+                        <Phone size={20} color={isDarkMode ? '#a1a1aa' : '#71717a'} />
                       </InputAdornment>
                     ),
                   }}
                   {...baseTextFieldProps}
                 />
-                <FormControl fullWidth required error={!!errors.businessType}>
-                  <InputLabel>Business Type</InputLabel>
-                  <Select 
-                    name="businessType" 
-                    value={formData.businessType} 
-                    onChange={handleSelectChange('businessType')} 
-                    label="Business Type"
-                    {...baseSelectProps}
-                  >
-                    {businessTypes.map((type) => (
-                      <MenuItem key={type} value={type}>{type}</MenuItem>
-                    ))}
-                  </Select>
-                  {errors.businessType && <FormHelperText>{errors.businessType}</FormHelperText>}
-                </FormControl>
               </Box>
-              <TextField 
-                required 
-                fullWidth 
-                label="Years in Operation" 
-                name="yearsInOperation" 
-                type="number" 
-                value={formData.yearsInOperation || ''} 
-                onChange={handleInputChange} 
-                error={!!errors.yearsInOperation} 
-                helperText={errors.yearsInOperation}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <Calendar size={20} color={isDarkMode ? '#a1a1aa' : '#71717a'} />
-                    </InputAdornment>
-                  ),
-                }}
-                {...baseTextFieldProps}
-              />
             </Box>
           </Box>
         );
@@ -607,118 +595,136 @@ export default function SMELoanApplicationPage() {
                 alignItems: 'center',
                 justifyContent: 'center'
               }}>
-                <DollarSign size={24} color={limeColors[500]} />
+                <Building2 size={24} color={limeColors[500]} />
               </Box>
               <Box>
                 <Typography variant="h5" sx={{ color: isDarkMode ? 'white' : '#18181b', fontWeight: 600 }}>
-                  Loan Request
+                  Employment & Income Information
                 </Typography>
                 <Typography variant="body2" sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a' }}>
-                  Financial details and requirements
+                  Current employment details
                 </Typography>
               </Box>
             </Box>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3 }}>
-                <FormControl fullWidth required error={!!errors.loanProduct}>
-                  <InputLabel>Loan Product</InputLabel>
-                  <Select 
-                    name="loanProduct" 
-                    value={formData.loanProduct} 
-                    onChange={handleSelectChange('loanProduct')} 
-                    label="Loan Product"
-                    {...baseSelectProps}
-                  >
-                    {loanProducts.map((product) => (
-                      <MenuItem key={product} value={product}>{product}</MenuItem>
-                    ))}
-                  </Select>
-                  {errors.loanProduct && <FormHelperText>{errors.loanProduct}</FormHelperText>}
-                </FormControl>
-                <TextField 
-                  required 
-                  fullWidth 
-                  label="Loan Amount (MWK)" 
-                  name="loanAmount" 
-                  type="number" 
-                  value={formData.loanAmount || ''} 
-                  onChange={handleInputChange} 
-                  error={!!errors.loanAmount} 
-                  helperText={errors.loanAmount || 'Range: MK100,000 - MK5,000,000'} 
-                  InputProps={{ 
-                    startAdornment: <InputAdornment position="start">MK</InputAdornment>, 
-                    inputProps: { min: 100000, max: 5000000, step: 1000 } 
-                  }}
-                  {...baseTextFieldProps}
-                />
-              </Box>
-              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3 }}>
-                <TextField 
-                  required 
-                  fullWidth 
-                  label="Payback Period (Months)" 
-                  name="paybackPeriodMonths" 
-                  type="number" 
-                  value={formData.paybackPeriodMonths || ''} 
-                  onChange={handleInputChange} 
-                  error={!!errors.paybackPeriodMonths} 
-                  helperText={errors.paybackPeriodMonths || '1-120 months'} 
-                  InputProps={{ inputProps: { min: 1, max: 120 } }}
-                  {...baseTextFieldProps}
-                />
-                <FormControl fullWidth required error={!!errors.repaymentMethod}>
-                  <InputLabel>Repayment Method</InputLabel>
-                  <Select 
-                    name="repaymentMethod" 
-                    value={formData.repaymentMethod} 
-                    onChange={handleSelectChange('repaymentMethod')} 
-                    label="Repayment Method"
-                    {...baseSelectProps}
-                  >
-                    {repaymentMethods.map((method) => (
-                      <MenuItem key={method} value={method}>{method}</MenuItem>
-                    ))}
-                  </Select>
-                  {errors.repaymentMethod && <FormHelperText>{errors.repaymentMethod}</FormHelperText>}
-                </FormControl>
-              </Box>
               <TextField 
                 required 
                 fullWidth 
-                label="Purpose of Loan" 
-                name="purposeOfLoan" 
-                multiline 
-                rows={3} 
-                value={formData.purposeOfLoan} 
+                label="Employer Name" 
+                name="employerName" 
+                value={formData.employerName} 
                 onChange={handleInputChange} 
-                error={!!errors.purposeOfLoan} 
-                helperText={errors.purposeOfLoan}
+                error={!!errors.employerName} 
+                helperText={errors.employerName}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <Building2 size={20} color={isDarkMode ? '#a1a1aa' : '#71717a'} />
+                    </InputAdornment>
+                  ),
+                }}
+                {...baseTextFieldProps}
+              />
+              <TextField 
+                required 
+                fullWidth 
+                label="Employer Address" 
+                name="employerAddress" 
+                multiline 
+                rows={2} 
+                value={formData.employerAddress} 
+                onChange={handleInputChange} 
+                error={!!errors.employerAddress} 
+                helperText={errors.employerAddress}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start" sx={{ alignSelf: 'flex-start', mt: 2 }}>
+                      <MapPin size={20} color={isDarkMode ? '#a1a1aa' : '#71717a'} />
+                    </InputAdornment>
+                  ),
+                }}
                 {...baseTextFieldProps}
               />
               <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3 }}>
                 <TextField 
+                  required 
                   fullWidth 
-                  label="Estimated Monthly Turnover (MWK)" 
-                  name="estimatedMonthlyTurnover" 
-                  type="number" 
-                  value={formData.estimatedMonthlyTurnover || ''} 
+                  label="Job Title" 
+                  name="jobTitle" 
+                  value={formData.jobTitle} 
                   onChange={handleInputChange} 
-                  InputProps={{ 
-                    startAdornment: <InputAdornment position="start">
-                      <TrendingUp size={20} color={isDarkMode ? '#a1a1aa' : '#71717a'} />
-                    </InputAdornment> 
+                  error={!!errors.jobTitle} 
+                  helperText={errors.jobTitle}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <Briefcase size={20} color={isDarkMode ? '#a1a1aa' : '#71717a'} />
+                      </InputAdornment>
+                    ),
                   }}
                   {...baseTextFieldProps}
                 />
                 <TextField 
                   fullWidth 
-                  label="Estimated Monthly Profit (MWK)" 
-                  name="estimatedMonthlyProfit" 
-                  type="number" 
-                  value={formData.estimatedMonthlyProfit || ''} 
+                  label="Employee Number" 
+                  name="employeeNumber" 
+                  value={formData.employeeNumber} 
+                  onChange={handleInputChange}
+                  {...baseTextFieldProps}
+                />
+              </Box>
+              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3 }}>
+                <TextField 
+                  required 
+                  fullWidth 
+                  label="Date of Employment" 
+                  name="dateOfEmployment" 
+                  type="date" 
+                  value={formData.dateOfEmployment} 
                   onChange={handleInputChange} 
+                  error={!!errors.dateOfEmployment} 
+                  helperText={errors.dateOfEmployment}
+                  InputLabelProps={{ shrink: true }}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <Calendar size={20} color={isDarkMode ? '#a1a1aa' : '#71717a'} />
+                      </InputAdornment>
+                    ),
+                  }}
+                  {...baseTextFieldProps}
+                />
+              </Box>
+              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3 }}>
+                <TextField 
+                  required 
+                  fullWidth 
+                  label="Gross Monthly Salary (MWK)" 
+                  name="grossMonthlySalary" 
+                  type="number" 
+                  value={formData.grossMonthlySalary || ''} 
+                  onChange={handleInputChange} 
+                  error={!!errors.grossMonthlySalary} 
+                  helperText={errors.grossMonthlySalary}
                   InputProps={{ 
-                    startAdornment: <InputAdornment position="start">MK</InputAdornment> 
+                    startAdornment: <InputAdornment position="start">MK</InputAdornment>, 
+                    inputProps: { min: 0 } 
+                  }}
+                  {...baseTextFieldProps}
+                />
+                <TextField 
+                  required 
+                  fullWidth 
+                  label="Net Monthly Salary (MWK)" 
+                  name="netMonthlySalary" 
+                  type="number" 
+                  value={formData.netMonthlySalary || ''} 
+                  onChange={handleInputChange} 
+                  error={!!errors.netMonthlySalary} 
+                  helperText={errors.netMonthlySalary}
+                  InputProps={{ 
+                    startAdornment: <InputAdornment position="start">MK</InputAdornment>, 
+                    inputProps: { min: 0 } 
                   }}
                   {...baseTextFieldProps}
                 />
@@ -739,14 +745,104 @@ export default function SMELoanApplicationPage() {
                 alignItems: 'center',
                 justifyContent: 'center'
               }}>
-                <Users size={24} color={limeColors[500]} />
+                <DollarSign size={24} color={limeColors[500]} />
               </Box>
               <Box>
                 <Typography variant="h5" sx={{ color: isDarkMode ? 'white' : '#18181b', fontWeight: 600 }}>
-                  Group Lending
+                  Loan Request
                 </Typography>
                 <Typography variant="body2" sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a' }}>
-                  Optional group lending information
+                  Loan amount and repayment terms
+                </Typography>
+              </Box>
+            </Box>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+              <Box sx={{ 
+                p: 3, 
+                borderRadius: '16px', 
+                bgcolor: isDarkMode ? 'rgba(255, 255, 255, 0.02)' : 'rgba(255, 255, 255, 0.5)',
+                border: `1.5px solid ${isDarkMode ? 'rgba(132, 204, 22, 0.2)' : 'rgba(132, 204, 22, 0.15)'}`,
+              }}>
+                <Typography variant="subtitle2" sx={{ color: limeColors[500], fontWeight: 600, mb: 1 }}>
+                  Salary-based Limit: MK {(formData.netMonthlySalary * 24).toLocaleString()}
+                </Typography>
+                <Typography variant="caption" sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a' }}>
+                  Maximum loan amount based on 24x your net monthly salary
+                </Typography>
+              </Box>
+              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3 }}>
+                <TextField 
+                  required 
+                  fullWidth 
+                  label="Loan Amount (MWK)" 
+                  name="loanAmount" 
+                  type="number" 
+                  value={formData.loanAmount || ''} 
+                  onChange={handleInputChange} 
+                  error={!!errors.loanAmount} 
+                  helperText={errors.loanAmount || 'Range: MK50,000 - MK3,000,000'} 
+                  InputProps={{ 
+                    startAdornment: <InputAdornment position="start">MK</InputAdornment>, 
+                    inputProps: { min: 50000, max: 3000000, step: 1000 } 
+                  }}
+                  {...baseTextFieldProps}
+                />
+                <TextField 
+                  required 
+                  fullWidth 
+                  label="Payback Period (Months)" 
+                  name="paybackPeriodMonths" 
+                  type="number" 
+                  value={formData.paybackPeriodMonths || ''} 
+                  onChange={handleInputChange} 
+                  error={!!errors.paybackPeriodMonths} 
+                  helperText={errors.paybackPeriodMonths || '3-60 months'} 
+                  InputProps={{ inputProps: { min: 3, max: 60 } }}
+                  {...baseTextFieldProps}
+                />
+              </Box>
+              <Box sx={{ 
+                p: 3, 
+                borderRadius: '16px', 
+                bgcolor: alpha(limeColors[500], 0.05),
+                border: `1.5px solid ${alpha(limeColors[500], 0.2)}`,
+              }}>
+                <Typography variant="subtitle1" sx={{ color: isDarkMode ? 'white' : '#18181b', fontWeight: 600, mb: 1 }}>
+                  Estimated Monthly Repayment
+                </Typography>
+                <Typography variant="h4" sx={{ color: limeColors[500], fontWeight: 700 }}>
+                  MK {formData.loanAmount && formData.paybackPeriodMonths 
+                    ? ((formData.loanAmount * 1.18) / formData.paybackPeriodMonths).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })
+                    : '0'}
+                </Typography>
+                <Typography variant="caption" sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a' }}>
+                  Based on 18% annual interest rate
+                </Typography>
+              </Box>
+            </Box>
+          </Box>
+        );
+
+      case 4:
+        return (
+          <Box sx={{ mt: 2 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 4 }}>
+              <Box sx={{ 
+                p: 1.5, 
+                borderRadius: '12px', 
+                bgcolor: alpha(limeColors[500], 0.1),
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                <CreditCard size={24} color={limeColors[500]} />
+              </Box>
+              <Box>
+                <Typography variant="h5" sx={{ color: isDarkMode ? 'white' : '#18181b', fontWeight: 600 }}>
+                  Payroll Deduction Confirmation
+                </Typography>
+                <Typography variant="body2" sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a' }}>
+                  Required for loan approval
                 </Typography>
               </Box>
             </Box>
@@ -756,72 +852,91 @@ export default function SMELoanApplicationPage() {
                 borderRadius: '16px', 
                 bgcolor: isDarkMode ? 'rgba(132, 204, 22, 0.05)' : 'rgba(132, 204, 22, 0.03)',
                 border: `1.5px solid ${isDarkMode ? 'rgba(132, 204, 22, 0.2)' : 'rgba(132, 204, 22, 0.15)'}`,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between'
               }}>
-                <Box>
-                  <Typography variant="subtitle1" sx={{ color: isDarkMode ? 'white' : '#18181b', fontWeight: 600, mb: 0.5 }}>
-                    Group Lending Application
-                  </Typography>
-                  <Typography variant="body2" sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a' }}>
-                    Apply as part of a lending group
-                  </Typography>
-                </Box>
-                <Switch 
-                  checked={formData.isGroupLending} 
-                  onChange={(e) => setFormData(prev => ({ ...prev, isGroupLending: e.target.checked }))} 
-                  sx={{
-                    '& .MuiSwitch-switchBase.Mui-checked': {
-                      color: limeColors[500],
-                      '& + .MuiSwitch-track': {
-                        backgroundColor: limeColors[500],
-                      },
-                    },
-                  }}
+                <FormControlLabel 
+                  control={
+                    <Checkbox 
+                      checked={formData.payrollDeductionConfirmed} 
+                      onChange={(e) => setFormData(prev => ({ ...prev, payrollDeductionConfirmed: e.target.checked }))} 
+                      sx={{
+                        color: limeColors[500],
+                        '&.Mui-checked': {
+                          color: limeColors[500],
+                        },
+                      }}
+                    />
+                  } 
+                  label={
+                    <Box>
+                      <Typography sx={{ color: isDarkMode ? 'white' : '#18181b', fontWeight: 600, mb: 0.5 }}>
+                        I authorize payroll deduction for loan repayment *
+                      </Typography>
+                      <Typography variant="caption" sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a' }}>
+                        This authorization allows your employer to deduct loan repayments directly from your salary
+                      </Typography>
+                    </Box>
+                  } 
                 />
+                {errors.payrollDeductionConfirmed && <Typography color="error" variant="caption" sx={{ ml: 4, display: 'block' }}>{errors.payrollDeductionConfirmed}</Typography>}
               </Box>
-              {formData.isGroupLending && (
+              
+              {formData.payrollDeductionConfirmed && (
                 <Box sx={{ 
-                  p: 3, 
+                  p: 4, 
                   borderRadius: '16px', 
                   bgcolor: isDarkMode ? 'rgba(255, 255, 255, 0.02)' : 'rgba(255, 255, 255, 0.5)',
-                  border: `1.5px solid ${isDarkMode ? 'rgba(132, 204, 22, 0.2)' : 'rgba(132, 204, 22, 0.15)'}`,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 3
+                  border: `2px dashed ${isDarkMode ? 'rgba(132, 204, 22, 0.3)' : 'rgba(132, 204, 22, 0.2)'}`,
+                  textAlign: 'center',
+                  transition: 'all 0.3s ease',
+                  '&:hover': {
+                    borderColor: limeColors[500],
+                    bgcolor: alpha(limeColors[500], 0.05),
+                  }
                 }}>
-                  <TextField 
-                    required 
-                    fullWidth 
-                    label="Group Name" 
-                    name="groupName" 
-                    value={formData.groupName} 
-                    onChange={handleInputChange} 
-                    error={!!errors.groupName} 
-                    helperText={errors.groupName}
-                    {...baseTextFieldProps}
-                  />
-                  <TextField 
-                    required 
-                    fullWidth 
-                    label="Number of Group Members" 
-                    name="groupMemberCount" 
-                    type="number" 
-                    value={formData.groupMemberCount || ''} 
-                    onChange={handleInputChange} 
-                    error={!!errors.groupMemberCount} 
-                    helperText={errors.groupMemberCount || '2-20 members'} 
-                    InputProps={{ inputProps: { min: 2, max: 20 } }}
-                    {...baseTextFieldProps}
-                  />
+                  <FileCheck size={32} color={limeColors[500]} style={{ margin: '0 auto 12px' }} />
+                  <Typography variant="subtitle1" sx={{ color: isDarkMode ? 'white' : '#18181b', fontWeight: 600, mb: 0.5 }}>
+                    Employer Authorization Letter *
+                  </Typography>
+                  <Typography variant="body2" sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a', mb: 2 }}>
+                    Letter from employer confirming payroll deduction authorization
+                  </Typography>
+                  <Button 
+                    component="label" 
+                    variant="contained" 
+                    startIcon={<Upload size={18} />}
+                    sx={{ 
+                      bgcolor: limeColors[500],
+                      color: 'white',
+                      borderRadius: '10px',
+                      textTransform: 'none',
+                      fontWeight: 600,
+                      px: 3,
+                      py: 1,
+                      '&:hover': {
+                        bgcolor: limeColors[600]
+                      }
+                    }}
+                  >
+                    {formData.employerLetter ? 'Change File' : 'Upload Letter'}
+                    <VisuallyHiddenInput type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={handleFileUpload('employerLetter')} />
+                  </Button>
+                  {formData.employerLetter && (
+                    <Typography variant="caption" sx={{ display: 'block', mt: 2, color: limeColors[500] }}>
+                      ✓ {formData.employerLetter.name}
+                    </Typography>
+                  )}
+                  {errors.employerLetter && (
+                    <Typography color="error" variant="caption" sx={{ display: 'block', mt: 1 }}>
+                      {errors.employerLetter}
+                    </Typography>
+                  )}
                 </Box>
               )}
             </Box>
           </Box>
         );
 
-      case 4:
+      case 5:
         return (
           <Box sx={{ mt: 2 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 4 }}>
@@ -879,6 +994,7 @@ export default function SMELoanApplicationPage() {
                       required 
                       fullWidth 
                       label="Details of Outstanding Loans" 
+                      placeholder="Please include lender name, loan amount, current balance, and monthly repayment"
                       name="outstandingLoanDetails" 
                       multiline 
                       rows={4} 
@@ -925,6 +1041,7 @@ export default function SMELoanApplicationPage() {
                       required 
                       fullWidth 
                       label="Default Explanation" 
+                      placeholder="Please explain the circumstances and resolution"
                       name="defaultExplanation" 
                       multiline 
                       rows={4} 
@@ -941,7 +1058,7 @@ export default function SMELoanApplicationPage() {
           </Box>
         );
 
-      case 5:
+      case 6:
         return (
           <Box sx={{ mt: 2 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 4 }}>
@@ -1016,6 +1133,7 @@ export default function SMELoanApplicationPage() {
                     </Typography>
                   )}
                 </Box>
+                
                 <Box sx={{ 
                   p: 4, 
                   borderRadius: '16px', 
@@ -1028,12 +1146,12 @@ export default function SMELoanApplicationPage() {
                     bgcolor: alpha(limeColors[500], 0.05),
                   }
                 }}>
-                  <Building2 size={32} color={limeColors[500]} style={{ margin: '0 auto 12px' }} />
+                  <FileText size={32} color={limeColors[500]} style={{ margin: '0 auto 12px' }} />
                   <Typography variant="subtitle1" sx={{ color: isDarkMode ? 'white' : '#18181b', fontWeight: 600, mb: 0.5 }}>
-                    Business Registration *
+                    Recent Payslip 1 *
                   </Typography>
                   <Typography variant="body2" sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a', mb: 2 }}>
-                    Registration certificate
+                    Most recent payslip
                   </Typography>
                   <Button 
                     component="label" 
@@ -1052,72 +1170,133 @@ export default function SMELoanApplicationPage() {
                       }
                     }}
                   >
-                    {formData.businessRegistrationDoc ? 'Change File' : 'Upload'}
-                    <VisuallyHiddenInput type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={handleFileUpload('businessRegistrationDoc')} />
+                    {formData.payslip1 ? 'Change File' : 'Upload'}
+                    <VisuallyHiddenInput type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={handleFileUpload('payslip1')} />
                   </Button>
-                  {formData.businessRegistrationDoc && (
+                  {formData.payslip1 && (
                     <Typography variant="caption" sx={{ display: 'block', mt: 2, color: limeColors[500] }}>
-                      ✓ {formData.businessRegistrationDoc.name}
+                      ✓ {formData.payslip1.name}
                     </Typography>
                   )}
-                  {errors.businessRegistrationDoc && (
+                  {errors.payslip1 && (
                     <Typography color="error" variant="caption" sx={{ display: 'block', mt: 1 }}>
-                      {errors.businessRegistrationDoc}
+                      {errors.payslip1}
                     </Typography>
                   )}
                 </Box>
               </Box>
-              <Box sx={{ 
-                p: 4, 
-                borderRadius: '16px', 
-                bgcolor: isDarkMode ? 'rgba(255, 255, 255, 0.02)' : 'rgba(255, 255, 255, 0.5)',
-                border: `2px dashed ${isDarkMode ? 'rgba(132, 204, 22, 0.3)' : 'rgba(132, 204, 22, 0.2)'}`,
-                textAlign: 'center',
-                transition: 'all 0.3s ease',
-                '&:hover': {
-                  borderColor: limeColors[500],
-                  bgcolor: alpha(limeColors[500], 0.05),
-                }
-              }}>
-                <FileText size={32} color={limeColors[500]} style={{ margin: '0 auto 12px' }} />
-                <Typography variant="subtitle1" sx={{ color: isDarkMode ? 'white' : '#18181b', fontWeight: 600, mb: 0.5 }}>
-                  Financial Statements (Optional)
-                </Typography>
-                <Typography variant="body2" sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a', mb: 2 }}>
-                  Recent financial statements
-                </Typography>
-                <Button 
-                  component="label" 
-                  variant="outlined" 
-                  startIcon={<Upload size={18} />}
-                  sx={{ 
+              
+              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3 }}>
+                <Box sx={{ 
+                  p: 4, 
+                  borderRadius: '16px', 
+                  bgcolor: isDarkMode ? 'rgba(255, 255, 255, 0.02)' : 'rgba(255, 255, 255, 0.5)',
+                  border: `2px dashed ${isDarkMode ? 'rgba(132, 204, 22, 0.3)' : 'rgba(132, 204, 22, 0.2)'}`,
+                  textAlign: 'center',
+                  transition: 'all 0.3s ease',
+                  '&:hover': {
                     borderColor: limeColors[500],
-                    color: limeColors[500],
-                    borderRadius: '10px',
-                    textTransform: 'none',
-                    fontWeight: 600,
-                    px: 3,
-                    py: 1,
-                    '&:hover': {
-                      borderColor: limeColors[600],
-                      bgcolor: alpha(limeColors[500], 0.1)
-                    }
-                  }}
-                >
-                  {formData.financialStatementDoc ? 'Change File' : 'Upload'}
-                  <VisuallyHiddenInput type="file" accept=".pdf,.xlsx,.xls" onChange={handleFileUpload('financialStatementDoc')} />
-                </Button>
-                {formData.financialStatementDoc && (
-                  <Typography variant="caption" sx={{ display: 'block', mt: 2, color: limeColors[500] }}>
-                    ✓ {formData.financialStatementDoc.name}
+                    bgcolor: alpha(limeColors[500], 0.05),
+                  }
+                }}>
+                  <FileText size={32} color={limeColors[500]} style={{ margin: '0 auto 12px' }} />
+                  <Typography variant="subtitle1" sx={{ color: isDarkMode ? 'white' : '#18181b', fontWeight: 600, mb: 0.5 }}>
+                    Recent Payslip 2
                   </Typography>
-                )}
+                  <Typography variant="body2" sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a', mb: 2 }}>
+                    Second most recent payslip
+                  </Typography>
+                  <Button 
+                    component="label" 
+                    variant="outlined" 
+                    startIcon={<Upload size={18} />}
+                    sx={{ 
+                      borderColor: limeColors[500],
+                      color: limeColors[500],
+                      borderRadius: '10px',
+                      textTransform: 'none',
+                      fontWeight: 600,
+                      px: 3,
+                      py: 1,
+                      '&:hover': {
+                        borderColor: limeColors[600],
+                        bgcolor: alpha(limeColors[500], 0.1)
+                      }
+                    }}
+                  >
+                    {formData.payslip2 ? 'Change File' : 'Upload'}
+                    <VisuallyHiddenInput type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={handleFileUpload('payslip2')} />
+                  </Button>
+                  {formData.payslip2 && (
+                    <Typography variant="caption" sx={{ display: 'block', mt: 2, color: limeColors[500] }}>
+                      ✓ {formData.payslip2.name}
+                    </Typography>
+                  )}
+                </Box>
+                
+                <Box sx={{ 
+                  p: 4, 
+                  borderRadius: '16px', 
+                  bgcolor: isDarkMode ? 'rgba(255, 255, 255, 0.02)' : 'rgba(255, 255, 255, 0.5)',
+                  border: `2px dashed ${isDarkMode ? 'rgba(132, 204, 22, 0.3)' : 'rgba(132, 204, 22, 0.2)'}`,
+                  textAlign: 'center',
+                  transition: 'all 0.3s ease',
+                  '&:hover': {
+                    borderColor: limeColors[500],
+                    bgcolor: alpha(limeColors[500], 0.05),
+                  }
+                }}>
+                  <FileText size={32} color={limeColors[500]} style={{ margin: '0 auto 12px' }} />
+                  <Typography variant="subtitle1" sx={{ color: isDarkMode ? 'white' : '#18181b', fontWeight: 600, mb: 0.5 }}>
+                    Recent Payslip 3
+                  </Typography>
+                  <Typography variant="body2" sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a', mb: 2 }}>
+                    Third most recent payslip
+                  </Typography>
+                  <Button 
+                    component="label" 
+                    variant="outlined" 
+                    startIcon={<Upload size={18} />}
+                    sx={{ 
+                      borderColor: limeColors[500],
+                      color: limeColors[500],
+                      borderRadius: '10px',
+                      textTransform: 'none',
+                      fontWeight: 600,
+                      px: 3,
+                      py: 1,
+                      '&:hover': {
+                        borderColor: limeColors[600],
+                        bgcolor: alpha(limeColors[500], 0.1)
+                      }
+                    }}
+                  >
+                    {formData.payslip3 ? 'Change File' : 'Upload'}
+                    <VisuallyHiddenInput type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={handleFileUpload('payslip3')} />
+                  </Button>
+                  {formData.payslip3 && (
+                    <Typography variant="caption" sx={{ display: 'block', mt: 2, color: limeColors[500] }}>
+                      ✓ {formData.payslip3.name}
+                    </Typography>
+                  )}
+                </Box>
               </Box>
+              
+              <Alert severity="info" sx={{ 
+                borderRadius: '12px',
+                bgcolor: isDarkMode ? 'rgba(132, 204, 22, 0.1)' : 'rgba(132, 204, 22, 0.05)',
+                border: `1px solid ${alpha(limeColors[500], 0.2)}`,
+              }}>
+                <Typography variant="body2" sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a' }}>
+                  <strong>Note:</strong> Upload clear scans/photos of documents. Allowed formats: PDF, JPG, PNG. 
+                  Maximum file size: 5MB each.
+                </Typography>
+              </Alert>
             </Box>
           </Box>
         );
 
-      case 6:
+      case 7:
         return (
           <Box sx={{ mt: 2 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 4 }}>
@@ -1162,17 +1341,20 @@ export default function SMELoanApplicationPage() {
               }}
             >
               <Typography variant="h6" sx={{ color: isDarkMode ? 'white' : '#18181b', fontWeight: 700, mb: 3 }}>
-                Loan Application Terms and Conditions
+                Payroll Loan Application Terms and Conditions
               </Typography>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                 {[
-                  'I hereby apply for the loan facility indicated in this application form and declare that the information provided is true, complete, and accurate to the best of my knowledge.',
-                  'I understand that any false or misleading information may result in the rejection of my application and/or legal action.',
-                  'I authorize the financial institution to conduct credit checks and verify the information provided with relevant authorities and credit bureaus.',
-                  'I consent to the processing of my personal data for the purpose of assessing this loan application and for related administrative purposes.',
-                  'I understand that approval of this loan is subject to the institution\'s credit policies and I am not guaranteed approval.',
-                  'I agree to repay the loan according to the terms and conditions that will be specified in the loan agreement.',
-                  'I understand that defaulting on repayment may affect my credit rating and may result in legal action for recovery of the outstanding amount.'
+                  'I hereby apply for the payroll loan facility and declare that all information provided is true, complete, and accurate.',
+                  'I authorize the financial institution to conduct credit checks and verify my employment and income details with my employer.',
+                  'I consent to the processing of my personal data for loan assessment, administration, and regulatory purposes.',
+                  'I authorize my employer to deduct loan repayments directly from my salary as per the agreed schedule.',
+                  'I understand that loan approval is subject to credit assessment and employer verification, and is not guaranteed.',
+                  'I agree to repay the loan according to the terms specified in the loan agreement, including all applicable interest and charges.',
+                  'I acknowledge that defaulting on repayment will affect my credit rating and may result in legal action for recovery.',
+                  'I understand that my employer will be notified of loan approval and repayment schedule for payroll deduction purposes.',
+                  'I confirm that I have disclosed all existing loans and financial obligations in this application.',
+                  'I agree to notify the lender of any changes in my employment status or financial circumstances during the loan term.'
                 ].map((term, index) => (
                   <Box key={index} sx={{ display: 'flex', gap: 2, alignItems: 'flex-start' }}>
                     <Box sx={{ 
@@ -1300,7 +1482,7 @@ export default function SMELoanApplicationPage() {
             Your application reference number:
           </Typography>
           <Typography variant="h6" sx={{ color: limeColors[500], fontWeight: 700, mb: 4 }}>
-            SME-{Math.random().toString(36).substr(2, 9).toUpperCase()}
+            PAY-{Math.random().toString(36).substr(2, 9).toUpperCase()}
           </Typography>
           
           <Divider sx={{ my: 4, borderColor: isDarkMode ? 'rgba(132, 204, 22, 0.2)' : 'rgba(132, 204, 22, 0.15)' }} />
@@ -1312,10 +1494,10 @@ export default function SMELoanApplicationPage() {
             <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 3 }}>
               <Box>
                 <Typography variant="caption" sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>
-                  Business Name
+                  Employer
                 </Typography>
                 <Typography variant="body1" sx={{ color: isDarkMode ? 'white' : '#18181b', fontWeight: 600, mt: 0.5 }}>
-                  {formData.businessName}
+                  {formData.employerName}
                 </Typography>
               </Box>
               <Box>
@@ -1328,18 +1510,18 @@ export default function SMELoanApplicationPage() {
               </Box>
               <Box>
                 <Typography variant="caption" sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>
-                  Loan Product
-                </Typography>
-                <Typography variant="body1" sx={{ color: isDarkMode ? 'white' : '#18181b', fontWeight: 600, mt: 0.5 }}>
-                  {formData.loanProduct}
-                </Typography>
-              </Box>
-              <Box>
-                <Typography variant="caption" sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>
                   Payback Period
                 </Typography>
                 <Typography variant="body1" sx={{ color: isDarkMode ? 'white' : '#18181b', fontWeight: 600, mt: 0.5 }}>
                   {formData.paybackPeriodMonths} months
+                </Typography>
+              </Box>
+              <Box>
+                <Typography variant="caption" sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>
+                  Net Monthly Salary
+                </Typography>
+                <Typography variant="body1" sx={{ color: isDarkMode ? 'white' : '#18181b', fontWeight: 600, mt: 0.5 }}>
+                  MK {formData.netMonthlySalary.toLocaleString()}
                 </Typography>
               </Box>
             </Box>
@@ -1352,8 +1534,9 @@ export default function SMELoanApplicationPage() {
             textAlign: 'left'
           }}>
             <Typography variant="body2" sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a', lineHeight: 1.6 }}>
-              <strong style={{ color: isDarkMode ? 'white' : '#18181b' }}>Next Steps:</strong> Our team will review your application and contact you within 3-5 business days. 
-              You will receive an email confirmation with your application details.
+              <strong style={{ color: isDarkMode ? 'white' : '#18181b' }}>Next Steps:</strong> Our team will verify your employment details with your employer 
+              and review your application. You will receive a response within 2-3 business days. 
+              If approved, your employer will be notified for payroll deduction setup.
             </Typography>
           </Box>
         </Paper>
@@ -1369,7 +1552,7 @@ export default function SMELoanApplicationPage() {
     <Container maxWidth="lg" sx={{ py: 4 }}>
       <Box sx={{ mb: 5, textAlign: 'center' }}>
         <Typography variant="h3" component="h1" sx={{ color: isDarkMode ? 'white' : '#18181b', fontWeight: 700, mb: 1 }}>
-          SME Loan Application
+          Payroll Deduction Loan Application
         </Typography>
         <Typography variant="body1" sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a' }}>
           Complete all steps to submit your application
