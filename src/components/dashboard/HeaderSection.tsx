@@ -1,4 +1,4 @@
-// src/app/dashboard/components/HeaderSection.tsx
+﻿// src/components/dashboard/HeaderSection.tsx
 'use client';
 import { useContext } from 'react';
 import { AuthContext } from '@/context/AuthContext';
@@ -17,11 +17,11 @@ export default function HeaderSection({ applicationType, onTypeChange }: HeaderS
       <div>
         {user ? (
           <>
-            <p className="text-lg">Welcome back, {user.fullName}</p>
-            <p className="text-sm text-gray-500">{user.email}</p>
+            <p className="text-lg text-foreground">Welcome back, {user.fullName}</p>
+            <p className="text-sm text-foreground/60">{user.email}</p>
           </>
         ) : (
-          <p className="text-lg">Welcome back!</p>
+          <p className="text-lg text-foreground">Welcome back!</p>
         )}
       </div>
       <div className="lg:w-auto">

@@ -1,4 +1,4 @@
-// src/app/dashboard/components/ApplicationInsights.tsx
+﻿// src/components/dashboard/ApplicationInsights.tsx
 import { Building2, TrendingUp } from 'lucide-react';
 
 export default function ApplicationInsights() {
@@ -6,10 +6,10 @@ export default function ApplicationInsights() {
     <div className="bento-card p-6">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-xl font-bold">Application Insights</h2>
+          <h2 className="text-xl font-bold text-foreground">Application Insights</h2>
           <p className="text-sm text-foreground/60">Track your loan applications progress</p>
         </div>
-        <button className="text-sm text-primary-600 dark:text-primary-400 hover:underline">
+        <button className="text-sm text-primary-600 hover:underline">
           View Analytics
         </button>
       </div>
@@ -17,7 +17,7 @@ export default function ApplicationInsights() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Types */}
         <div>
-          <h3 className="font-medium mb-4 flex items-center gap-2">
+          <h3 className="font-medium mb-4 flex items-center gap-2 text-foreground">
             <Building2 className="w-4 h-4" />
             Application Types
           </h3>
@@ -25,31 +25,31 @@ export default function ApplicationInsights() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-3 h-3 rounded-full bg-primary-500"></div>
-                <span className="text-sm">SME Working Capital</span>
+                <span className="text-sm text-foreground">SME Working Capital</span>
               </div>
-              <span className="font-semibold">70%</span>
+              <span className="font-semibold text-foreground">70%</span>
             </div>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-3 h-3 rounded-full bg-blue-500"></div>
-                <span className="text-sm">Payroll Loans</span>
+                <span className="text-sm text-foreground">Payroll Loans</span>
               </div>
-              <span className="font-semibold">30%</span>
+              <span className="font-semibold text-foreground">30%</span>
             </div>
           </div>
           <div className="mt-4 h-2 bg-border rounded-full overflow-hidden">
-            <div className="h-full bg-linear-to-rrom-primary-500 to-blue-500 rounded-full"></div>
+            <div className="h-full bg-gradient-to-r from-primary-500 to-blue-500 rounded-full"></div>
           </div>
         </div>
 
         {/* Success Rate */}
         <div>
-          <h3 className="font-medium mb-4 flex items-center gap-2">
+          <h3 className="font-medium mb-4 flex items-center gap-2 text-foreground">
             <TrendingUp className="w-4 h-4" />
             Success Rate
           </h3>
           <div className="flex items-end gap-2">
-            <div className="text-3xl font-bold">85%</div>
+            <div className="text-3xl font-bold text-foreground">85%</div>
             <div className="text-sm text-green-500 flex items-center">
               <TrendingUp className="w-3 h-3 mr-1" />
               +12% this month
@@ -57,11 +57,11 @@ export default function ApplicationInsights() {
           </div>
           <div className="mt-4 space-y-2">
             <div className="flex justify-between text-sm">
-              <span>Approval Rate</span>
-              <span className="font-medium">92%</span>
+              <span className="text-foreground/60">Approval Rate</span>
+              <span className="font-medium text-foreground">92%</span>
             </div>
             <div className="w-full bg-border rounded-full h-1.5">
-              <div className="bg-green-500 h-1.5 rounded-full" style={{ width: '92%' }}></div>
+              <div className="h-full bg-green-500 rounded-full" style={{ width: '92%' }}></div>
             </div>
           </div>
         </div>

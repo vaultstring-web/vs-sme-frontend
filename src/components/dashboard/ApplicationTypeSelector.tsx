@@ -1,4 +1,4 @@
-// src/components/dashboard/ApplicationTypeSelector.tsx
+﻿// src/components/dashboard/ApplicationTypeSelector.tsx
 'use client';
 
 import { Building2, Users } from 'lucide-react';

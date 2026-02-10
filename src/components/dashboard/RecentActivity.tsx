@@ -1,4 +1,4 @@
-// src/app/dashboard/components/RecentActivity.tsx
+﻿// src/components/dashboard/RecentActivity.tsx
 import { CheckCircle2, CreditCard, FileText } from 'lucide-react';
 
 const activityData = [
@@ -33,10 +33,10 @@ export default function RecentActivity() {
     <div className="bento-card p-6">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-xl font-bold">Recent Activity</h2>
+          <h2 className="text-xl font-bold text-foreground">Recent Activity</h2>
           <p className="text-sm text-foreground/60">Latest updates on your account</p>
         </div>
-        <button className="text-sm text-primary-600 dark:text-primary-400 hover:underline">
+        <button className="text-sm text-primary-600 hover:underline">
           View All Activity
         </button>
       </div>
@@ -46,21 +46,21 @@ export default function RecentActivity() {
           const Icon = activity.icon;
           return (
             <div key={index} className="flex items-center gap-4 p-4 rounded-xl hover:bg-card/50 transition-colors group">
-              <div className={`p-3 rounded-lg bg-${activity.color}-50 dark:bg-${activity.color}-900/20`}>
-                <Icon className={`w-5 h-5 text-${activity.color}-500`} />
+              <div className={`p-3 rounded-lg ${activity.color === 'green' ? 'bg-green-100 dark:bg-green-900/20' : activity.color === 'blue' ? 'bg-blue-100 dark:bg-blue-900/20' : 'bg-yellow-100 dark:bg-yellow-900/20'}`}>
+                <Icon className={`w-5 h-5 ${activity.color === 'green' ? 'text-green-500' : activity.color === 'blue' ? 'text-blue-500' : 'text-yellow-500'}`} />
               </div>
               <div className="flex-1">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="font-medium">{activity.action}</p>
+                    <p className="font-medium text-foreground">{activity.action}</p>
                     <p className="text-sm text-foreground/60">{activity.date}</p>
                   </div>
                   <div className="text-right">
-                    <p className="font-bold">{activity.amount}</p>
+                    <p className="font-bold text-foreground">{activity.amount}</p>
                     <span className={`text-xs px-2 py-1 rounded-full ${
                       activity.status === 'success' 
-                        ? 'bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400' 
-                        : 'bg-yellow-50 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
+                        ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' 
+                        : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400'
                     }`}>
                       {activity.status === 'success' ? 'Completed' : 'Pending'}
                     </span>
