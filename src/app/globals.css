@@ -116,3 +116,37 @@ body {
   background: var(--scrollbar-thumb);
   border-radius: 20px;
 }
+
+/* Input text */
+.dark .MuiInputBase-input {
+  color: var(--foreground) !important;
+}
+
+/* Placeholder text */
+.dark .MuiInputBase-input::placeholder {
+  color: #71717a;
+  opacity: 1;
+}
+
+/* Labels */
+.dark .MuiInputLabel-root {
+  color: #a1a1aa;
+}
+
+/* Outlined borders */
+.dark .MuiOutlinedInput-notchedOutline {
+  border-color: var(--border);
+}
+
+/* Focus / hover */
+.dark .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline,
+.dark .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
+  border-color: var(--accent);
+}
+
+/* Chrome autofill (the evil one) */
+.dark input:-webkit-autofill {
+  -webkit-text-fill-color: var(--foreground) !important;
+  -webkit-box-shadow: 0 0 0 1000px var(--background) inset !important;
+  transition: background-color 9999s ease-in-out 0s;
+}
