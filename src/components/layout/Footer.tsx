@@ -36,7 +36,7 @@ export const Footer = () => {
             Solutions
           </h4>
           <ul className="space-y-4">
-            <FooterLink href="/dashboard/payroll">Payroll Lending</FooterLink>
+            <FooterLink href="/dashboard/applications/page">Payroll Lending</FooterLink>
             <FooterLink href="/dashboard/sme">SME Working Capital</FooterLink>
             <FooterLink href="/dashboard/orders">Order Finance</FooterLink>
             <FooterLink href="/dashboard/invoice">Invoice Discounting</FooterLink>
