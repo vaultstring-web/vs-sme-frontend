@@ -196,10 +196,14 @@ export const ApplicationsProvider = ({ children }: { children: ReactNode }) => {
     }
   }, []);
 
+  // FIXED: Backend uses /applications/:id (not /applications/:id/sme)
+  // The route handler checks the application type and updates accordingly
   const updateSMEApplication = useCallback(async (id: string, data: any) => {
     setState(prev => ({ ...prev, isLoading: true, error: null }));
     try {
-      await apiClient.patch(`/applications/${id}/sme`, data);
+      // Backend route is PATCH /applications/:id/draft or PATCH /applications/:id
+      // Both use the same handler (saveDraftApplication)
+      await apiClient.patch(`/applications/${id}`, data);
       setState(prev => ({ ...prev, isLoading: false }));
     } catch (err: any) {
       const errorMessage = err.response?.data?.message || err.message || 'Failed to update SME application';
@@ -211,7 +215,8 @@ export const ApplicationsProvider = ({ children }: { children: ReactNode }) => {
   const updatePayrollApplication = useCallback(async (id: string, data: any) => {
     setState(prev => ({ ...prev, isLoading: true, error: null }));
     try {
-      await apiClient.patch(`/applications/${id}/payroll`, data);
+      // Backend route is PATCH /applications/:id/draft or PATCH /applications/:id
+      await apiClient.patch(`/applications/${id}`, data);
       setState(prev => ({ ...prev, isLoading: false }));
     } catch (err: any) {
       const errorMessage = err.response?.data?.message || err.message || 'Failed to update payroll application';
@@ -224,7 +229,7 @@ export const ApplicationsProvider = ({ children }: { children: ReactNode }) => {
     setState(prev => ({ ...prev, isLoading: true, error: null }));
     try {
       const formData = new FormData();
-      formData.append('document', file);
+      formData.append('file', file);
       formData.append('documentType', documentType);
 
       await apiClient.post(`/applications/${applicationId}/documents/upload`, formData, {
@@ -244,7 +249,8 @@ export const ApplicationsProvider = ({ children }: { children: ReactNode }) => {
   const submitApplication = useCallback(async (id: string) => {
     setState(prev => ({ ...prev, isLoading: true, error: null }));
     try {
-      await apiClient.post(`/applications/${id}/submit`);
+      // Backend expects PATCH not POST for submit
+      await apiClient.patch(`/applications/${id}/submit`);
       setState(prev => ({ ...prev, isLoading: false }));
       // Refresh the applications list after submission
       await refreshApplications();

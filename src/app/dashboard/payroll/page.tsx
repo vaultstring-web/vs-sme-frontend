@@ -1,11 +1,8 @@
 'use client';
 
-import React, { useState, ChangeEvent } from 'react';
+import React, { useState, ChangeEvent, useEffect } from 'react';
 import {
   Box,
-  Stepper,
-  Step,
-  StepLabel,
   Button,
   Typography,
   TextField,
@@ -15,10 +12,7 @@ import {
   MenuItem,
   FormControlLabel,
   Checkbox,
-  Switch,
   Paper,
-  Card,
-  CardContent,
   Alert,
   CircularProgress,
   Divider,
@@ -49,15 +43,14 @@ import {
   FileUp,
   Shield,
   MapPin,
-  Mail,
   CreditCard,
   UserCog,
-  FileCheck,
-  ClipboardCheck,
-  Target
+  FileCheck
 } from 'lucide-react';
 import { styled } from '@mui/material/styles';
 import { useTheme } from '@/context/ThemeContext';
+import { useApplications } from '@/hooks/useApplications';
+import { useRouter } from 'next/navigation';
 
 const VisuallyHiddenInput = styled('input')({
   clip: 'rect(0 0 0 0)',
@@ -131,12 +124,33 @@ const steps = [
   { label: 'Review', icon: Shield }
 ];
 
+// Document type constants for backend
+const DOCUMENT_TYPES = {
+  ID_DOCUMENT: 'ID_DOCUMENT',
+  EMPLOYER_LETTER: 'EMPLOYER_LETTER',
+  PAYSLIP_1: 'PAYSLIP_1',
+  PAYSLIP_2: 'PAYSLIP_2',
+  PAYSLIP_3: 'PAYSLIP_3'
+} as const;
+
 export default function PayrollLoanApplicationPage() {
+  const router = useRouter();
   const [activeStep, setActiveStep] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [showSnackbar, setShowSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [applicationId, setApplicationId] = useState<string | null>(null);
+  
+  const {
+    createPayrollApplication,
+    updatePayrollApplication,
+    uploadDocument,
+    submitApplication,
+    isLoading,
+    error,
+    clearError
+  } = useApplications();
   
   const { theme } = useTheme();
   const isDarkMode = theme === 'dark';
@@ -172,6 +186,30 @@ export default function PayrollLoanApplicationPage() {
   });
   
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Load draft from localStorage on mount
+  useEffect(() => {
+    const savedDraft = localStorage.getItem('payrollLoanDraft');
+    if (savedDraft) {
+      try {
+        const draft = JSON.parse(savedDraft);
+        setFormData(draft.formData || draft);
+        if (draft.step !== undefined) setActiveStep(draft.step);
+        if (draft.applicationId) setApplicationId(draft.applicationId);
+      } catch (error) {
+        console.error('Failed to load draft:', error);
+      }
+    }
+  }, []);
+
+  // Show error from context
+  useEffect(() => {
+    if (error) {
+      setSnackbarMessage(error);
+      setShowSnackbar(true);
+      clearError();
+    }
+  }, [error, clearError]);
 
   const validateStep = (step: number): boolean => {
     const newErrors: Record<string, string> = {};
@@ -260,7 +298,11 @@ export default function PayrollLoanApplicationPage() {
   const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | { target: { name: string; value: any } }) => {
     const { name, value } = e.target as { name: string; value: any };
     const inputElement = e.target as HTMLInputElement;
-    const parsedValue = inputElement.type === 'number' ? parseFloat(value) || 0 : value;
+    let parsedValue = value;
+    
+    if (inputElement.type === 'number') {
+      parsedValue = parseFloat(value) || 0;
+    }
     
     setFormData(prev => ({
       ...prev,
@@ -317,34 +359,134 @@ export default function PayrollLoanApplicationPage() {
     setActiveStep((prev) => prev - 1);
   };
 
-  const handleSaveDraft = () => {
-    const draft = {
-      ...formData,
-      savedAt: new Date().toISOString(),
-      step: activeStep
-    };
-    
+  // Prepare data for backend - match the exact backend schema
+  const prepareBackendData = () => ({
+    dateOfBirth: formData.dateOfBirth, // already ISO string (YYYY-MM-DD)
+    gender: formData.gender,
+    maritalStatus: formData.maritalStatus,
+    nextOfKinName: formData.nextOfKinName,
+    nextOfKinRelationship: formData.nextOfKinRelationship,
+    nextOfKinPhone: formData.nextOfKinPhone,
+    employerName: formData.employerName,
+    employerAddress: formData.employerAddress,
+    jobTitle: formData.jobTitle,
+    employeeNumber: formData.employeeNumber || undefined,
+    dateOfEmployment: formData.dateOfEmployment,
+    grossMonthlySalary: formData.grossMonthlySalary,
+    netMonthlySalary: formData.netMonthlySalary,
+    loanAmount: formData.loanAmount,
+    paybackPeriodMonths: formData.paybackPeriodMonths,
+    payrollDeductionConfirmed: formData.payrollDeductionConfirmed,
+    hasOutstandingLoans: formData.hasOutstandingLoans,
+    outstandingLoanDetails: formData.hasOutstandingLoans ? formData.outstandingLoanDetails : undefined,
+    hasDefaulted: formData.hasDefaulted,
+    defaultExplanation: formData.hasDefaulted ? formData.defaultExplanation : undefined,
+  });
+
+  const handleSaveDraft = async (): Promise<string> => {
+  try {
+    const backendData = prepareBackendData();
+    let id = applicationId;
+
+    if (!id) {
+      const result = await createPayrollApplication(backendData);
+      id = result.id;
+      setApplicationId(id);
+    } else {
+      await updatePayrollApplication(id, backendData);
+    }
+
+    // Save to localStorage (optional, but keep as backup)
+    const draft = { formData, applicationId: id, savedAt: new Date().toISOString(), step: activeStep };
     localStorage.setItem('payrollLoanDraft', JSON.stringify(draft));
+
     setSnackbarMessage('Draft saved successfully!');
     setShowSnackbar(true);
-  };
+
+    return id;
+  } catch (error) {
+    console.error('Save draft error:', error);
+    throw error;
+  }
+};
+
+  const uploadDocuments = async (appId: string): Promise<void> => {
+  const requiredTasks: Promise<any>[] = [];
+  const optionalTasks: Promise<any>[] = [];
+
+  // Required documents
+  if (formData.idDocument) {
+    requiredTasks.push(
+      uploadDocument(appId, formData.idDocument, DOCUMENT_TYPES.ID_DOCUMENT)
+    );
+  }
+  if (formData.payslip1) {
+    requiredTasks.push(
+      uploadDocument(appId, formData.payslip1, DOCUMENT_TYPES.PAYSLIP_1)
+    );
+  }
+  if (formData.payrollDeductionConfirmed && formData.employerLetter) {
+    requiredTasks.push(
+      uploadDocument(appId, formData.employerLetter, DOCUMENT_TYPES.EMPLOYER_LETTER)
+    );
+  }
+
+  // Optional documents
+  if (formData.payslip2) {
+    optionalTasks.push(
+      uploadDocument(appId, formData.payslip2, DOCUMENT_TYPES.PAYSLIP_2)
+        .catch(err => console.warn('Payslip 2 upload failed (optional):', err))
+    );
+  }
+  if (formData.payslip3) {
+    optionalTasks.push(
+      uploadDocument(appId, formData.payslip3, DOCUMENT_TYPES.PAYSLIP_3)
+        .catch(err => console.warn('Payslip 3 upload failed (optional):', err))
+    );
+  }
+  // If employerLetter exists but payrollDeductionConfirmed = false, treat as optional
+  if (!formData.payrollDeductionConfirmed && formData.employerLetter) {
+    optionalTasks.push(
+      uploadDocument(appId, formData.employerLetter, DOCUMENT_TYPES.EMPLOYER_LETTER)
+        .catch(err => console.warn('Employer letter upload failed (optional):', err))
+    );
+  }
+
+  // Wait for all required uploads – if any fails, this throws and stops submission
+  await Promise.all(requiredTasks);
+  // Fire off optional uploads but don't await them (or await with allSettled)
+  await Promise.allSettled(optionalTasks);
+};
 
   const handleSubmit = async () => {
-    if (validateStep(7)) {
-      setIsSubmitting(true);
-      
-      try {
-        await new Promise(resolve => setTimeout(resolve, 1500));
-        setSubmitSuccess(true);
-        localStorage.removeItem('payrollLoanDraft');
-      } catch (error) {
-        setSnackbarMessage('Submission failed. Please try again.');
-        setShowSnackbar(true);
-      } finally {
-        setIsSubmitting(false);
-      }
-    }
-  };
+  if (!validateStep(7)) return;
+  setIsSubmitting(true);
+
+  try {
+    // Get the application ID – either existing or newly created
+    const id = applicationId || await handleSaveDraft();
+
+    if (!id) throw new Error('Failed to create application');
+
+    // Upload documents
+    await uploadDocuments(id);
+
+    // Submit
+    await submitApplication(id);
+
+    // Cleanup and redirect
+    localStorage.removeItem('payrollLoanDraft');
+    setSubmitSuccess(true);
+    setSnackbarMessage('Application submitted successfully!');
+    setShowSnackbar(true);
+
+    setTimeout(() => router.push('/dashboard/applications'), 2000);
+  } catch (error) {
+    // error handled via context/snackbar
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   const progress = Math.round(((activeStep + 1) / steps.length) * 100);
 
@@ -1443,6 +1585,7 @@ export default function PayrollLoanApplicationPage() {
     }
   };
 
+  // SummaryDisplay component remains unchanged
   const SummaryDisplay = () => (
     <Container maxWidth="md">
       <Box sx={{ 
@@ -1544,6 +1687,7 @@ export default function PayrollLoanApplicationPage() {
     </Container>
   );
 
+  // If submission succeeded, show the summary page
   if (submitSuccess) {
     return <SummaryDisplay />;
   }
@@ -1580,7 +1724,6 @@ export default function PayrollLoanApplicationPage() {
             sx={{ 
               height: '100%', 
               bgcolor: `linear-gradient(90deg, ${limeColors[500]} 0%, ${limeColors[400]} 100%)`,
-              background: `linear-gradient(90deg, ${limeColors[500]} 0%, ${limeColors[400]} 100%)`,
               width: `${progress}%`,
               transition: 'width 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
               borderRadius: '100px',
@@ -1701,6 +1844,7 @@ export default function PayrollLoanApplicationPage() {
             onClick={handleSaveDraft}
             startIcon={<Save size={18} />}
             variant="outlined"
+            disabled={isLoading}
             sx={{ 
               color: limeColors[500],
               borderColor: limeColors[500],
@@ -1712,10 +1856,14 @@ export default function PayrollLoanApplicationPage() {
               '&:hover': {
                 borderColor: limeColors[600],
                 bgcolor: alpha(limeColors[500], 0.1)
+              },
+              '&.Mui-disabled': {
+                borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+                color: isDarkMode ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.3)'
               }
             }}
           >
-            Save Draft
+            {isLoading ? <CircularProgress size={20} /> : 'Save Draft'}
           </Button>
         </Box>
         <Box>
@@ -1723,7 +1871,7 @@ export default function PayrollLoanApplicationPage() {
             <Button
               variant="contained"
               onClick={handleSubmit}
-              disabled={isSubmitting}
+              disabled={isSubmitting || isLoading}
               endIcon={isSubmitting ? <CircularProgress size={20} sx={{ color: 'white' }} /> : <CheckCircle size={18} />}
               sx={{
                 bgcolor: limeColors[500],
@@ -1737,6 +1885,10 @@ export default function PayrollLoanApplicationPage() {
                 '&:hover': {
                   bgcolor: limeColors[600],
                   boxShadow: `0 6px 25px ${alpha(limeColors[500], 0.5)}`
+                },
+                '&.Mui-disabled': {
+                  bgcolor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+                  color: isDarkMode ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.3)'
                 }
               }}
             >

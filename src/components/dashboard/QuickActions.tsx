@@ -1,12 +1,19 @@
-// src/app/dashboard/components/QuickActions.tsx
+'use client';
+
 import { CreditCard, BarChart3, Users, ArrowRight } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 export default function QuickActions() {
+  const router = useRouter();
+
   return (
     <div className="bento-card p-6">
       <h2 className="text-xl font-bold mb-4">Quick Actions</h2>
       <div className="space-y-3">
-        <button className="w-full p-4 bg-linear-to-r from-primary-500/10 to-primary-500/5 border border-primary-500/20 rounded-xl text-left hover:border-primary-500/40 transition-all group">
+        <button
+          onClick={() => router.push('/dashboard/application-type')} // adjust route as needed
+          className="w-full p-4 bg-linear-to-r from-primary-500/10 to-primary-500/5 border border-primary-500/20 rounded-xl text-left hover:border-primary-500/40 transition-all group"
+        >
           <div className="flex items-center gap-3">
             <div className="p-2 bg-primary-500 rounded-lg">
               <CreditCard className="w-4 h-4 text-white" />
@@ -19,20 +26,26 @@ export default function QuickActions() {
           </div>
         </button>
 
-        <button className="w-full p-4 bg-linear-to-r from-blue-500/10 to-blue-500/5 border border-blue-500/20 rounded-xl text-left hover:border-blue-500/40 transition-all group">
+        <button
+          onClick={() => router.push('/dashboard/applications')}
+          className="w-full p-4 bg-linear-to-r from-blue-500/10 to-blue-500/5 border border-blue-500/20 rounded-xl text-left hover:border-blue-500/40 transition-all group"
+        >
           <div className="flex items-center gap-3">
             <div className="p-2 bg-blue-500 rounded-lg">
               <BarChart3 className="w-4 h-4 text-white" />
             </div>
             <div className="flex-1">
-              <p className="font-medium">View Reports</p>
-              <p className="text-xs text-foreground/60">Analytics & insights</p>
+              <p className="font-medium">View All Applications</p>
+              <p className="text-xs text-foreground/60">Track and manage</p>
             </div>
             <ArrowRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
           </div>
         </button>
 
-        <button className="w-full p-4 bg-linear-to-r from-purple-500/10 to-purple-500/5 border border-purple-500/20 rounded-xl text-left hover:border-purple-500/40 transition-all group">
+        <button
+          onClick={() => router.push('/support')} // adjust route
+          className="w-full p-4 bg-linear-to-r from-purple-500/10 to-purple-500/5 border border-purple-500/20 rounded-xl text-left hover:border-purple-500/40 transition-all group"
+        >
           <div className="flex items-center gap-3">
             <div className="p-2 bg-purple-500 rounded-lg">
               <Users className="w-4 h-4 text-white" />
