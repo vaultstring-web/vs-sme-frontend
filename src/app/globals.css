@@ -60,6 +60,16 @@
   --color-blue-800: #1e3137;
   --color-blue-900: #16252a;
 
+  /* Semantic Status Colors - Optimized for Light Mode Contrast */
+  --color-approved-bg: #dcfce7;    /* green-100 */
+  --color-approved-text: #166534;  /* green-900 */
+  --color-in-review-bg: #dbeafe;   /* blue-100 */
+  --color-in-review-text: #1e3a8a; /* blue-900 */
+  --color-draft-bg: #fefce8;       /* yellow-50 */
+  --color-draft-text: #713f12;     /* yellow-900 */
+  --color-rejected-bg: #fee2e2;    /* red-100 */
+  --color-rejected-text: #991b1b;  /* red-700 */
+
   /* Semantic */
   --color-success-main: #28a745;
   --color-error-main: #dc3545;
@@ -115,4 +125,39 @@ body {
 .sidebar-scrollbar::-webkit-scrollbar-thumb {
   background: var(--scrollbar-thumb);
   border-radius: 20px;
+}
+
+/* === STATUS CHIP CONTRAST FIXES FOR LIGHT MODE === */
+:root:not(.dark) .applications-table [data-status="approved"] .status-chip {
+  background-color: var(--color-approved-bg) !important;
+  color: var(--color-approved-text) !important;
+}
+
+:root:not(.dark) .applications-table [data-status="in-review"] .status-chip {
+  background-color: var(--color-in-review-bg) !important;
+  color: var(--color-in-review-text) !important;
+}
+
+:root:not(.dark) .applications-table [data-status="draft"] .status-chip {
+  background-color: var(--color-draft-bg) !important;
+  color: var(--color-draft-text) !important;
+}
+
+:root:not(.dark) .applications-table [data-status="rejected"] .status-chip {
+  background-color: var(--color-rejected-bg) !important;
+  color: var(--color-rejected-text) !important;
+}
+
+/* Optional: Enhance icon colors to match text */
+:root:not(.dark) .applications-table [data-status="approved"] svg {
+  color: var(--color-approved-text) !important;
+}
+:root:not(.dark) .applications-table [data-status="in-review"] svg {
+  color: var(--color-in-review-text) !important;
+}
+:root:not(.dark) .applications-table [data-status="draft"] svg {
+  color: var(--color-draft-text) !important;
+}
+:root:not(.dark) .applications-table [data-status="rejected"] svg {
+  color: var(--color-rejected-text) !important;
 }
