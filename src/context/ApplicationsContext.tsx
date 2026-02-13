@@ -85,6 +85,7 @@ interface ApplicationsContextType extends ApplicationsState {
   uploadDocument: (applicationId: string, file: File, documentType: string) => Promise<void>;
   submitApplication: (id: string) => Promise<void>;
   deleteApplication: (id: string) => Promise<void>;
+  setCurrentApplication: (application: ApplicationDetail | null) => void;
   clearError: () => void;
   refreshApplications: () => Promise<void>;
 }
@@ -196,6 +197,10 @@ export const ApplicationsProvider = ({ children }: { children: ReactNode }) => {
     }
   }, []);
 
+  const setCurrentApplication = useCallback((application: ApplicationDetail | null) => {
+    setState(prev => ({ ...prev, currentApplication: application }));
+  }, []);
+
   // FIXED: Backend uses /applications/:id (not /applications/:id/sme)
   // The route handler checks the application type and updates accordingly
   const updateSMEApplication = useCallback(async (id: string, data: any) => {
@@ -294,6 +299,7 @@ export const ApplicationsProvider = ({ children }: { children: ReactNode }) => {
         submitApplication,
         deleteApplication,
         clearError,
+        setCurrentApplication,
         refreshApplications,
       }}
     >

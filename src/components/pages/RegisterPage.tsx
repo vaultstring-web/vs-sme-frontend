@@ -1,13 +1,8 @@
 import Image from "next/image";
-import PasswordResetRequest from "../components/auth/PasswordResetRequest";
-import PasswordResetForm from "../components/auth/PasswordResetForm";
-import logo from "../vaultlogo.png";
+import RegisterForm from "@/components/auth/RegisterForm";
+import logo from "../../vaultlogo.png";
 
-interface PasswordResetPageProps {
-  token?: string;
-}
-
-const PasswordResetPage = ({ token }: PasswordResetPageProps) => {
+const RegisterPage = () => {
   return (
     <div className="flex min-h-screen flex-col justify-center py-12 sm:px-6 lg:px-8 bg-gray-50">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
@@ -20,15 +15,18 @@ const PasswordResetPage = ({ token }: PasswordResetPageProps) => {
           />
         </div>
         <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900 tracking-tight">
-          Account Security
+          Join VaultString Thrive
         </h2>
+        <p className="mt-2 text-center text-sm text-gray-600">
+          Smart financial solutions for individuals, employees and businesses of all kinds.
+        </p>
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        {token ? <PasswordResetForm token={token} /> : <PasswordResetRequest />}
+        <RegisterForm />
       </div>
     </div>
   );
 };
 
-export default PasswordResetPage;
+export default RegisterPage;

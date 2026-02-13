@@ -15,7 +15,7 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     useEffect(() => {
         if (!isLoading && !isAuthenticated) {
             // Preserve intended destination
-            const returnUrl = encodeURIComponent(pathname);
+            const returnUrl = encodeURIComponent(pathname ?? '/');
             router.push(`/login?returnUrl=${returnUrl}`);
         }
     }, [isAuthenticated, isLoading, router, pathname]);

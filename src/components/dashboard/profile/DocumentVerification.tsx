@@ -9,6 +9,8 @@ import {
   ChevronLeft, ChevronRight, Maximize2, Minimize2 
 } from 'lucide-react';
 
+import { DocumentUploadModal, DocumentType } from './DocumentUploadModal';
+
 // Define Document interface based on backend response
 interface BackendDocument {
   id: string;
@@ -41,6 +43,7 @@ export const DocumentVerification = () => {
   const [currentDocumentIndex, setCurrentDocumentIndex] = useState(0);
   const [zoom, setZoom] = useState(100);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
 
   // Fetch documents from backend
   const fetchDocuments = async () => {
@@ -184,8 +187,9 @@ export const DocumentVerification = () => {
   };
 
   const handleReupload = (documentType: string) => {
-    console.log('Reupload requested for:', documentType);
-    alert(`Re-upload feature for ${documentType} would open here`);
+    // Open upload modal pre-filtered to this document type
+    setIsUploadModalOpen(true);
+    // Note: Future enhancement could pass documentType to focus on specific field
   };
 
   const handleViewDocument = (index: number) => {
@@ -230,7 +234,7 @@ export const DocumentVerification = () => {
     try {
       const fullUrl = fileUrl.startsWith('http') 
         ? fileUrl 
-        : `${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000'}${fileUrl}`;
+        : `${process.env.NEXT_PUBLIC_API_BASE_URL || 'https://api-thrive.vaultstring.com'}/${fileUrl.replace(/^\/+/, '')}`;
       
       const response = await fetch(fullUrl);
       const blob = await response.blob();
@@ -244,7 +248,7 @@ export const DocumentVerification = () => {
       window.URL.revokeObjectURL(downloadUrl);
     } catch (err) {
       console.error('Download failed:', err);
-      alert('Failed to download document');
+      alert('Failed to download document. Please try again later.');
     }
   };
 
@@ -263,7 +267,7 @@ export const DocumentVerification = () => {
   const currentFileUrl = currentDocument 
     ? (currentDocument.fileUrl.startsWith('http') 
         ? currentDocument.fileUrl 
-        : `${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000'}${currentDocument.fileUrl}`)
+        : `${process.env.NEXT_PUBLIC_API_BASE_URL || 'https://api-thrive.vaultstring.com'}/${currentDocument.fileUrl.replace(/^\/+/, '')}`)
     : '';
   const currentFileType = currentDocument ? getFileType(currentDocument.fileUrl) : 'unknown';
 
@@ -335,10 +339,27 @@ export const DocumentVerification = () => {
           <p className="text-sm text-slate-500 mb-4">
             Upload your verification documents to complete your profile and access all features.
           </p>
-          <button className="px-4 py-2 bg-primary-600 text-white rounded-lg font-medium hover:bg-primary-700 transition-colors">
+          <button
+            onClick={() => setIsUploadModalOpen(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 transition-colors"
+          >
+            <UploadCloud className="w-4 h-4" />
             Upload Documents
           </button>
         </div>
+
+        {/* Upload Modal - Correctly placed outside viewer */}
+        {isUploadModalOpen && (
+          <DocumentUploadModal
+            isOpen={isUploadModalOpen}
+            onClose={() => setIsUploadModalOpen(false)}
+            onUploadComplete={fetchDocuments}
+            existingDocuments={documents.map(d => ({ 
+              type: d.type as DocumentType, 
+              name: d.name 
+            }))}
+          />
+        )}
       </section>
     );
   }
@@ -363,6 +384,13 @@ export const DocumentVerification = () => {
             >
               <RefreshCcw className="w-4 h-4" />
               Refresh
+            </button>
+            <button
+              onClick={() => setIsUploadModalOpen(true)}
+              className="flex items-center gap-2 px-3 py-1.5 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition-colors"
+            >
+              <UploadCloud className="w-4 h-4" />
+              Upload More
             </button>
           </div>
         </div>
@@ -656,6 +684,19 @@ export const DocumentVerification = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Document Upload Modal - CORRECTLY PLACED OUTSIDE VIEWER MODAL */}
+      {isUploadModalOpen && (
+        <DocumentUploadModal
+          isOpen={isUploadModalOpen}
+          onClose={() => setIsUploadModalOpen(false)}
+          onUploadComplete={fetchDocuments}
+          existingDocuments={documents.map(d => ({ 
+            type: d.type as DocumentType, 
+            name: d.name 
+          }))}
+        />
       )}
     </>
   );

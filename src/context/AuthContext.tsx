@@ -40,6 +40,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         error: null,
     });
 
+    // 🛡️ Promise cache for duplicate API calls
+    const pendingRegistrations = new Map<string, Promise<any>>();
+
     const uploadDocuments = async (formData: FormData) => {
         setState(prev => ({ ...prev, isLoading: true, error: null }));
         try {
@@ -56,7 +59,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
     };
 
-    // Change password for authenticated user
     const changePassword = async (data: { currentPassword: string; newPassword: string }) => {
         setState(prev => ({ ...prev, isLoading: true, error: null }));
         try {
@@ -69,7 +71,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
     };
 
-    // Fetch current user from the API
     const fetchCurrentUser = async () => {
         try {
             const response = await apiClient.get('/auth/users/me');
@@ -90,14 +91,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 isLoading: false 
             }));
             
-            // Update session with latest user data
             const { accessToken, refreshToken } = getSession();
             if (accessToken && refreshToken) {
                 setSession(accessToken, refreshToken, user);
             }
         } catch (err) {
             console.error('Failed to fetch current user:', err);
-            // If fetching user fails, clear session and mark as not authenticated
             clearSession();
             setState(prev => ({ 
                 ...prev, 
@@ -114,17 +113,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             
             if (accessToken) {
                 if (user) {
-                    // We have a user in session, use it but verify with API
                     setState(prev => ({ 
                         ...prev, 
                         user, 
                         isAuthenticated: true, 
                         isLoading: true 
                     }));
-                    // Fetch fresh user data in the background
                     await fetchCurrentUser();
                 } else {
-                    // We have a token but no user, fetch from API
                     await fetchCurrentUser();
                 }
             } else {
@@ -134,7 +130,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
         initializeAuth();
 
-        // Set up cross-tab session sync
         return initializeSessionSync(() => {
             const { accessToken, user } = getSession();
             if (accessToken && user) {
@@ -151,7 +146,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             const response = await apiClient.post('/auth/login', data);
             const { accessToken, refreshToken, profile } = response.data;
             
-            // Map backend profile to frontend user structure
             const user: User = {
                 id: profile.id,
                 email: profile.email,
@@ -170,26 +164,40 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
 
     const register = async (data: any) => {
-        setState(prev => ({ ...prev, isLoading: true, error: null }));
-        try {
-            const response = await apiClient.post('/auth/register', data);
-            const { accessToken, refreshToken, profile } = response.data;
-            
-            const user: User = {
-                id: profile.id,
-                email: profile.email,
-                name: profile.fullName,
-                fullName: profile.fullName,
-                role: profile.role
-            };
-            
-            setSession(accessToken, refreshToken, user);
-            setState({ user, isAuthenticated: true, isLoading: false, error: null });
-        } catch (err: any) {
-            const errorMessage = err.response?.data?.message || err.message || 'Registration failed';
-            setState(prev => ({ ...prev, isLoading: false, error: errorMessage }));
-            throw err;
+        // 🛡️ Prevent duplicate registration calls with identical payload
+        const key = JSON.stringify(data);
+        if (pendingRegistrations.has(key)) {
+            return pendingRegistrations.get(key);
         }
+
+        setState(prev => ({ ...prev, isLoading: true, error: null }));
+
+        const promise = (async () => {
+            try {
+                const response = await apiClient.post('/auth/register', data);
+                const { accessToken, refreshToken, profile } = response.data;
+                
+                const user: User = {
+                    id: profile.id,
+                    email: profile.email,
+                    name: profile.fullName,
+                    fullName: profile.fullName,
+                    role: profile.role
+                };
+                
+                setSession(accessToken, refreshToken, user);
+                setState({ user, isAuthenticated: true, isLoading: false, error: null });
+            } catch (err: any) {
+                const errorMessage = err.response?.data?.message || err.message || 'Registration failed';
+                setState(prev => ({ ...prev, isLoading: false, error: errorMessage }));
+                throw err;
+            } finally {
+                pendingRegistrations.delete(key);
+            }
+        })();
+
+        pendingRegistrations.set(key, promise);
+        return promise;
     };
 
     const logout = async () => {
