@@ -1,18 +1,17 @@
 // src/components/layout/Header.tsx
 'use client';
 
-import { Bell, Menu } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { Menu } from 'lucide-react';
+import { useState, useEffect, useContext } from 'react';
 import { useTheme } from '@/context/ThemeContext';
-import { useContext } from 'react';
 import { AuthContext } from '@/context/AuthContext';
-
+import NotificationCenter from '@/components/admin/layout/NotificationCenter';
 
 export const Header = ({ toggleSidebar }: { toggleSidebar: () => void }) => {
   const [scrolled, setScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { theme, toggleTheme } = useTheme();
-  const { user } = useContext(AuthContext)!;
+  const { user, logout } = useContext(AuthContext)!;
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 10);
@@ -20,8 +19,7 @@ export const Header = ({ toggleSidebar }: { toggleSidebar: () => void }) => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const displayName = user?.fullName || 'Guest';
-  const displayRole = user?.role || 'Customer';
+  const isAdmin = user?.role === 'ADMIN_TIER1' || user?.role === 'ADMIN_TIER2';
 
   return (
     <header
@@ -44,14 +42,8 @@ export const Header = ({ toggleSidebar }: { toggleSidebar: () => void }) => {
 
       {/* Right: Actions */}
       <div className="flex items-center gap-2 sm:gap-4">
-        {/* Notification Bell */}
-        <button
-          className="p-2 rounded-xl text-foreground/60 hover:bg-primary-50 dark:hover:bg-primary-900/20 hover:text-primary-600 dark:hover:text-primary-400 transition-colors relative"
-          aria-label="Notifications"
-        >
-          <Bell className="w-5 h-5" />
-          <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
-        </button>
+        {/* Notification Bell - Only for Admin for now */}
+        {isAdmin && <NotificationCenter />}
 
         <div className="hidden sm:block h-6 w-px bg-border dark:bg-border" />
 
@@ -69,15 +61,15 @@ export const Header = ({ toggleSidebar }: { toggleSidebar: () => void }) => {
             </span>
           </div>
           <div className="hidden sm:block text-left">
-            <p className="text-sm font-medium">{displayName}</p>
-            <p className="text-xs text-foreground/60">{displayRole}</p>
+            <p className="text-sm font-medium">{user?.fullName || 'Guest'}</p>
+            <p className="text-xs text-foreground/60">{user?.role || 'Customer'}</p>
           </div>
         </button>
       </div>
 
       {/* Mobile Dropdown Menu */}
       {isMobileMenuOpen && (
-        <div className="absolute top-full right-4 mt-2 w-48 bg-card border border-border rounded-xl shadow-lg z-40 lg:hidden">
+        <div className="absolute top-full right-4 mt-2 w-48 bg-card border border-border rounded-xl shadow-lg z-40">
           <div className="px-3 py-2 space-y-1">
             <button className="w-full text-left px-3 py-2 rounded-lg text-sm hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-colors">
               My Profile
@@ -85,7 +77,13 @@ export const Header = ({ toggleSidebar }: { toggleSidebar: () => void }) => {
             <button className="w-full text-left px-3 py-2 rounded-lg text-sm hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-colors">
               Settings
             </button>
-            <button className="w-full text-left px-3 py-2 rounded-lg text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
+            <button 
+              onClick={() => {
+                logout();
+                setIsMobileMenuOpen(false);
+              }}
+              className="w-full text-left px-3 py-2 rounded-lg text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+            >
               Logout
             </button>
           </div>

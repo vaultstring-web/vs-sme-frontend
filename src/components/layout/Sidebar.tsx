@@ -34,7 +34,6 @@ const menuGroups = [
     label: 'Account',
     items: [
       { name: 'Profile', href: '/dashboard/profile', icon: Users },
-      { name: 'Settings', href: '/admin/settings', icon: Settings },
     ]
   }
 ];

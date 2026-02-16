@@ -1,12 +1,11 @@
-import PasswordResetPage from '@/pages/PasswordResetPage';
+// src/app/reset-password/page.tsx
+import { Suspense } from 'react';
+import PasswordResetClient from './PasswordResetClient';
 
-export default async function Page({
-    searchParams,
-}: {
-    searchParams: Promise<{ [key: string]: string | string[] | undefined }>
-}) {
-    const params = await searchParams;
-    const token = typeof params.token === 'string' ? params.token : undefined;
-
-    return <PasswordResetPage token={token} />;
+export default function Page() {
+  return (
+    <Suspense fallback={<div className="flex justify-center py-12">Loading...</div>}>
+      <PasswordResetClient />
+    </Suspense>
+  );
 }

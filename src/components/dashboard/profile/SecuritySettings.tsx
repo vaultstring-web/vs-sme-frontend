@@ -5,7 +5,7 @@ import React, { useState } from 'react';
 import { ShieldCheck, Lock, Monitor, LogOut, ChevronRight, X, Eye, EyeOff, CheckCircle2, AlertCircle } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 
-export const SecuritySettings = () => {
+export default function SecuritySettings() {
   const { user, changePassword } = useAuth();
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
