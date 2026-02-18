@@ -21,7 +21,7 @@ interface ExtendedUserProfile {
   updatedAt: string;
 }
 
-export const PersonalInfo = () => {
+export default function PersonalInfo() {
   const auth = useContext(AuthContext);
   const [profileData, setProfileData] = useState<ExtendedUserProfile | null>(null);
   const [isLoadingProfile, setIsLoadingProfile] = useState(false);
@@ -231,18 +231,4 @@ function formatRole(role: string): string {
     'ADMIN_TIER2': 'Admin (Tier 2)',
   };
   return roleMap[role] || role;
-}
-
-// Helper function to format dates
-function formatDate(dateString: string): string {
-  try {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric' 
-    });
-  } catch {
-    return dateString;
-  }
 }

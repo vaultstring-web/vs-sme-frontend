@@ -5,20 +5,33 @@ import { useAuth } from '../../hooks/useAuth';
 
 interface ProtectedRouteProps {
     children: React.ReactNode;
+    allowedRoles?: string[];
 }
 
-const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
-    const { isAuthenticated, isLoading } = useAuth();
+const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) => {
+    const { isAuthenticated, isLoading, user } = useAuth();
     const router = useRouter();
     const pathname = usePathname();
 
     useEffect(() => {
+<<<<<<< HEAD
         if (!isLoading && !isAuthenticated) {
             // Preserve intended destination
             const returnUrl = encodeURIComponent(pathname ?? '/');
             router.push(`/login?returnUrl=${returnUrl}`);
+=======
+        if (!isLoading) {
+            if (!isAuthenticated) {
+                // Preserve intended destination
+                const returnUrl = encodeURIComponent(pathname ?? '/');
+                router.push(`/login?returnUrl=${returnUrl}`);
+            } else if (allowedRoles && user && !allowedRoles.includes(user.role)) {
+                // Redirect to unauthorized page or dashboard if role doesn't match
+                router.push('/dashboard'); // Assuming dashboard is the default for authenticated users
+            }
+>>>>>>> b7245c4e2de9aebc3e52b641c330300c15710cd9
         }
-    }, [isAuthenticated, isLoading, router, pathname]);
+    }, [isAuthenticated, isLoading, router, pathname, user, allowedRoles]);
 
     if (isLoading) {
         return (
