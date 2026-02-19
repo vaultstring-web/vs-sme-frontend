@@ -92,8 +92,4 @@ export default function RecentApplicationsTable({ applications }: RecentApplicat
       </div>
     </div>
   );
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> b7245c4e2de9aebc3e52b641c330300c15710cd9
