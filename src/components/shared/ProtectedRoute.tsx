@@ -14,12 +14,6 @@ const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) => {
     const pathname = usePathname();
 
     useEffect(() => {
-<<<<<<< HEAD
-        if (!isLoading && !isAuthenticated) {
-            // Preserve intended destination
-            const returnUrl = encodeURIComponent(pathname ?? '/');
-            router.push(`/login?returnUrl=${returnUrl}`);
-=======
         if (!isLoading) {
             if (!isAuthenticated) {
                 // Preserve intended destination
@@ -29,7 +23,6 @@ const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) => {
                 // Redirect to unauthorized page or dashboard if role doesn't match
                 router.push('/dashboard'); // Assuming dashboard is the default for authenticated users
             }
->>>>>>> b7245c4e2de9aebc3e52b641c330300c15710cd9
         }
     }, [isAuthenticated, isLoading, router, pathname, user, allowedRoles]);
 

@@ -1,14 +1,16 @@
-'use client';
+"use client";
 
-import { FileText } from 'lucide-react';
-import Link from 'next/link';
-import type { RecentApplication } from '@/app/dashboard/types';
+import { FileText } from "lucide-react";
+import Link from "next/link";
+import type { RecentApplication } from "@/app/dashboard/types";
 
 interface RecentApplicationsTableProps {
   applications: RecentApplication[];
 }
 
-export default function RecentApplicationsTable({ applications }: RecentApplicationsTableProps) {
+export default function RecentApplicationsTable({
+  applications,
+}: RecentApplicationsTableProps) {
   if (applications.length === 0) {
     return (
       <div className="bento-card p-8 text-center">
@@ -32,7 +34,9 @@ export default function RecentApplicationsTable({ applications }: RecentApplicat
       <div className="flex items-center justify-between mb-4">
         <div>
           <h2 className="text-xl font-bold">Recent Applications</h2>
-          <p className="text-sm text-foreground/60">Your latest submitted applications</p>
+          <p className="text-sm text-foreground/60">
+            Your latest submitted applications
+          </p>
         </div>
         <Link
           href="/dashboard/applications"
@@ -56,10 +60,13 @@ export default function RecentApplicationsTable({ applications }: RecentApplicat
           </thead>
           <tbody className="divide-y divide-border">
             {applications.map((app) => (
-              <tr key={app.id} className="group hover:bg-card/80 transition-colors">
+              <tr
+                key={app.id}
+                className="group hover:bg-card/80 transition-colors"
+              >
                 <td className="py-3 font-medium">#{app.reference}</td>
                 <td className="py-3">
-                  {app.type === 'SME' ? 'SME Working Capital' : 'Payroll Loan'}
+                  {app.type === "SME" ? "SME Working Capital" : "Payroll Loan"}
                 </td>
                 <td className="py-3 font-medium">
                   MWK {app.amount.toLocaleString()}
@@ -67,7 +74,7 @@ export default function RecentApplicationsTable({ applications }: RecentApplicat
                 <td className="py-3">
                   <span
                     className="status-chip"
-                    data-status={app.status.toLowerCase().replace('_', '-')}
+                    data-status={app.status.toLowerCase().replace("_", "-")}
                   >
                     {app.status}
                   </span>
@@ -92,8 +99,4 @@ export default function RecentApplicationsTable({ applications }: RecentApplicat
       </div>
     </div>
   );
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> b7245c4e2de9aebc3e52b641c330300c15710cd9
