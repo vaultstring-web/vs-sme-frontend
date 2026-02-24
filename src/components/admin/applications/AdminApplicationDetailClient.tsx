@@ -9,7 +9,8 @@ import {
   AlertTriangle,
   Edit2,
   Eye,
-  Save
+  Save,
+  FileText
 } from 'lucide-react';
 import apiClient from '@/lib/apiClient';
 import EditableField from './EditableField';

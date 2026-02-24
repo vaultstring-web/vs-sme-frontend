@@ -2,7 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   // Enable static export – outputs to 'out' directory by default
-  output: 'export',
+  // output: 'export',
 
   // Add trailing slashes to all generated paths
   trailingSlash: true,

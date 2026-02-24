@@ -86,7 +86,7 @@ export default function NotificationCenter() {
               </button>
             </div>
 
-            <div className="max-h-[400px] overflow-y-auto custom-scrollbar">
+            <div className="max-h-100 overflow-y-auto custom-scrollbar">
               {/* Pending Reviews Section */}
               {pendingCount > 0 && (
                 <div className="p-4 bg-yellow-50 dark:bg-yellow-900/10 border-b border-yellow-200 dark:border-yellow-900/20">
