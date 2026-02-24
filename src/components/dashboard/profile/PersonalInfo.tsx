@@ -6,7 +6,7 @@ import { User as UserIcon, Mail, Phone, MapPin, CreditCard, Loader2, AlertCircle
 import { AuthContext } from '@/context/AuthContext';
 import apiClient from '@/lib/apiClient';
 
-// Extended user profile interface with all fields from backend
+
 interface ExtendedUserProfile {
   id: string;
   email: string;

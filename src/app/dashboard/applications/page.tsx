@@ -1,11 +1,12 @@
 // src/app/dashboard/applications/page.tsx
 'use client';
 
-import { FileText, Clock, CheckCircle2, XCircle, Search, Filter, ChevronDown, AlertCircle, Loader2 } from 'lucide-react';
+import { FileText, Briefcase, X, Clock, CheckCircle2, XCircle, Search, Filter, ChevronDown, AlertCircle, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useMemo, useEffect } from 'react';
 import { useApplications } from '@/hooks/useApplications';
 import type { ApplicationStatus } from '@/context/ApplicationsContext';
+import NewApplicationModal from '@/components/modals/NewApplicationModal';
 
 // Map backend status to frontend display config
 const statusConfig = {
@@ -67,6 +68,7 @@ export default function ApplicationsPage() {
   const [statusFilter, setStatusFilter] = useState<FilterType>('all');
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Fetch applications on mount
   useEffect(() => {
@@ -343,7 +345,10 @@ export default function ApplicationsPage() {
             )}
           </div>
 
-          <button className="px-4 py-2.5 bg-primary-600 text-white rounded-lg font-medium hover:bg-primary-700 transition-colors">
+          <button 
+            onClick={() => setIsModalOpen(true)}
+            className="px-4 py-2.5 bg-primary-600 text-white rounded-lg font-medium hover:bg-primary-700 transition-colors"
+          >
             + New Application
           </button>
         </div>
@@ -527,6 +532,10 @@ export default function ApplicationsPage() {
           </>
         )}
       </div>
+      <NewApplicationModal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+      />
     </div>
   );
 }

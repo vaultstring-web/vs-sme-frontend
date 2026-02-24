@@ -1,10 +1,10 @@
 // src/app/dashboard/profile/page.tsx
 "use client";
 
-import { PersonalInfo } from '@/components/dashboard/profile/PersonalInfo';
+import PersonalInfo from '@/components/dashboard/profile/PersonalInfo';
 import { AccountStatus } from '@/components/dashboard/profile/AccountStatus';
 import { DocumentVerification } from '@/components/dashboard/profile/DocumentVerification';
-import { SecuritySettings } from '@/components/dashboard/profile/SecuritySettings';
+import SecuritySettings  from '@/components/dashboard/profile/SecuritySettings';
 
 export default function ProfilePage() {
   return (

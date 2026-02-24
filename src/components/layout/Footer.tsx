@@ -23,11 +23,11 @@ export const Footer = () => {
           <p className="text-sm text-muted-foreground leading-relaxed max-w-xs">
             Tech-enabled microfinance for Malawi’s future. Empowering salaried workers and SMEs with smart, sustainable credit.
           </p>
-          <div className="flex gap-2.5 mt-2">
+          {/* <div className="flex gap-2.5 mt-2">
             <SocialIcon Icon={Twitter} />
             <SocialIcon Icon={Linkedin} />
             <SocialIcon Icon={Facebook} />
-          </div>
+          </div> */}
         </div>
 
         {/* Solutions */}
@@ -36,10 +36,11 @@ export const Footer = () => {
           <ul className="space-y-3.5">
             <FooterLink href="/dashboard/payroll">Payroll Advance</FooterLink>
             <FooterLink href="/dashboard/sme">SME Growth Capital</FooterLink>
-            <FooterLink href="/dashboard/orders">Order Financing</FooterLink>
-            <FooterLink href="/dashboard/invoice">Invoice Discounting</FooterLink>
+            {/* <FooterLink href="/dashboard/orders">Order Financing</FooterLink>
+            <FooterLink href="/dashboard/invoice">Invoice Discounting</FooterLink> */}
           </ul>
         </div>
+
 
         {/* Contact */}
         <div>
@@ -51,7 +52,13 @@ export const Footer = () => {
             </li>
             <li className="flex items-center gap-3 text-sm text-muted-foreground group">
               <Mail className="w-4 h-4 text-muted-foreground shrink-0" />
-              <span className="group-hover:text-primary transition-colors">thrive@vaultstring.com</span>
+              {/* Wrapped in a mailto link */}
+              <a 
+                href="mailto:thrive@vaultstring.com" 
+                className="group-hover:text-primary transition-colors hover:underline underline-offset-4"
+              >
+                thrive@vaultstring.com
+              </a>
             </li>
           </ul>
         </div>
@@ -64,13 +71,8 @@ export const Footer = () => {
               Regulated & Licensed
             </h4>
             <p className="text-xs text-muted-foreground leading-relaxed mb-3">
-              Licensed non-deposit-taking Microfinance Institution by the Reserve Bank of Malawi.
+              Licensed non-deposit-taking Microfinance Institution.
             </p>
-            <div className="pt-3 border-t border-border/30">
-              <code className="text-[10px] font-mono font-bold text-foreground/80 bg-muted/30 px-2 py-1 rounded">
-                MFI/2026/001
-              </code>
-            </div>
           </div>
         </div>
       </div>
@@ -80,12 +82,12 @@ export const Footer = () => {
         <p className="text-muted-foreground">
           © {new Date().getFullYear()} VaultString. Built for Malawi’s financial future.
         </p>
-        <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 text-muted-foreground">
+        {/* <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 text-muted-foreground">
           <FooterTextLink href="#">Privacy</FooterTextLink>
           <FooterTextLink href="#">Terms</FooterTextLink>
           <FooterTextLink href="#">Cookies</FooterTextLink>
           <FooterTextLink href="#">Security</FooterTextLink>
-        </div>
+        </div> */}
       </div>
     </footer>
   );
