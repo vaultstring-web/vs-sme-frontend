@@ -1,4 +1,4 @@
-// src/components/auth/LoginForm
+// src/components/auth/LoginForm.tsx
 'use client';
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
@@ -11,8 +11,6 @@ const LoginForm = () => {
     const router = useRouter();
     const searchParams = useSearchParams();
 
-    const returnUrl = searchParams.get('returnUrl') || '/dashboard';
-
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
@@ -20,20 +18,16 @@ const LoginForm = () => {
     const [localError, setLocalError] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    // 🔍 Debug logging
-    useEffect(() => {
-        console.log('🔍 LoginForm - Auth state:', {
-            isAuthenticated,
-            isLoading,
-            userEmail: user?.email,
-            returnUrl
-        });
-    }, [isAuthenticated, isLoading, user, returnUrl]);
-
     // ✅ Handle redirect when authenticated
     useEffect(() => {
-        if (isAuthenticated && !isLoading) {
-            console.log('✅ LoginForm - User authenticated, redirecting to:', returnUrl);
+        if (isAuthenticated && !isLoading && user) {
+            // Determine the default dashboard based on user role
+            const defaultDashboard = user.role === 'ADMIN_TIER1' || user.role === 'ADMIN_TIER2'
+                ? '/admin/dashboard'
+                : '/dashboard';
+            
+            // Use returnUrl from query param if present, otherwise role-based default
+            const returnUrl = searchParams.get('returnUrl') || defaultDashboard;
             
             // Small delay to ensure state is stable
             const timer = setTimeout(() => {
@@ -42,21 +36,10 @@ const LoginForm = () => {
 
             return () => clearTimeout(timer);
         }
-    }, [isAuthenticated, isLoading, router, returnUrl]);
-
-    // 🔍 Check localStorage on mount
-    useEffect(() => {
-        const token = localStorage.getItem('accessToken');
-        const session = localStorage.getItem('session');
-        console.log('🔍 LoginForm - localStorage:', { 
-            hasToken: !!token,
-            hasSession: !!session 
-        });
-    }, []);
+    }, [isAuthenticated, isLoading, user, router, searchParams]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        console.log('🔍 LoginForm - Form submitted:', { email });
         
         setErrors({});
         setLocalError(null);
@@ -78,12 +61,9 @@ const LoginForm = () => {
         setIsSubmitting(true);
 
         try {
-            console.log('🔍 LoginForm - Calling login API...');
             await login({ email, password });
-            console.log('🔍 LoginForm - Login successful, waiting for auth state update...');
             // Don't redirect here - let the useEffect handle it
         } catch (err: any) {
-            console.error('🔍 LoginForm - Login error:', err);
             setLocalError(err.message || 'Login failed');
         } finally {
             setIsSubmitting(false);
