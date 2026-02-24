@@ -59,6 +59,32 @@ export interface ApplicationsFilters {
   limit?: number;
 }
 
+
+export interface AdminApplicationDetail extends Application {
+  user: {
+    id: string;
+    fullName: string;
+    email: string;
+    primaryPhone?: string;
+  };
+  smeData?: any;
+  payrollData?: any;
+  documents: Array<{
+    id: string;
+    fileName: string;
+    fileUrl: string;
+    documentType: string;
+    uploadedAt: string;
+  }>;
+  auditLogs: Array<{
+    id: string;
+    action: string;
+    comment?: string;
+    createdAt: string;
+    actor?: { fullName: string; email: string };
+  }>;
+}
+
 interface ApplicationsMeta {
   total: number;
   page: number;
@@ -67,14 +93,23 @@ interface ApplicationsMeta {
 }
 
 interface ApplicationsState {
+  // existing user state
   applications: Application[];
   currentApplication: ApplicationDetail | null;
   meta: ApplicationsMeta;
   isLoading: boolean;
   error: string | null;
+
+  // new admin state
+  adminApplications: Application[];
+  adminCurrentApplication: AdminApplicationDetail | null;
+  adminMeta: ApplicationsMeta;
+  adminIsLoading: boolean;
+  adminError: string | null;
 }
 
 interface ApplicationsContextType extends ApplicationsState {
+  // existing user methods
   fetchApplications: (filters?: ApplicationsFilters) => Promise<void>;
   fetchApplicationById: (id: string) => Promise<void>;
   createSMEApplication: (data: any) => Promise<{ id: string }>;
@@ -88,23 +123,34 @@ interface ApplicationsContextType extends ApplicationsState {
   setCurrentApplication: (application: ApplicationDetail | null) => void;
   clearError: () => void;
   refreshApplications: () => Promise<void>;
+
+  // new admin methods
+  fetchAdminApplications: (filters?: ApplicationsFilters) => Promise<void>;
+  fetchAdminApplicationById: (id: string) => Promise<void>;
+  updateAdminApplicationStatus: (id: string, status: string, comment: string) => Promise<void>;
+  updateAdminApplicationData: (id: string, payload: any) => Promise<void>;
+  clearAdminError: () => void;
 }
+
 
 export const ApplicationsContext = createContext<ApplicationsContextType | undefined>(undefined);
 
 export const ApplicationsProvider = ({ children }: { children: ReactNode }) => {
   const [state, setState] = useState<ApplicationsState>({
+    // user
     applications: [],
     currentApplication: null,
-    meta: {
-      total: 0,
-      page: 1,
-      totalPages: 0,
-      limit: 10,
-    },
+    meta: { total: 0, page: 1, totalPages: 0, limit: 10 },
     isLoading: false,
     error: null,
+    // admin
+    adminApplications: [],
+    adminCurrentApplication: null,
+    adminMeta: { total: 0, page: 1, totalPages: 0, limit: 10 },
+    adminIsLoading: false,
+    adminError: null,
   });
+
 
   const [currentFilters, setCurrentFilters] = useState<ApplicationsFilters>({});
 
@@ -135,6 +181,78 @@ export const ApplicationsProvider = ({ children }: { children: ReactNode }) => {
       setState(prev => ({ ...prev, isLoading: false, error: errorMessage }));
       throw err;
     }
+  }, []);
+
+  // ----- Admin methods -----
+  const fetchAdminApplications = useCallback(async (filters: ApplicationsFilters = {}) => {
+    setState(prev => ({ ...prev, adminIsLoading: true, adminError: null }));
+    try {
+      const params = new URLSearchParams();
+      if (filters.status) params.append('status', filters.status);
+      if (filters.type) params.append('type', filters.type);
+      if (filters.startDate) params.append('startDate', filters.startDate);
+      if (filters.endDate) params.append('endDate', filters.endDate);
+      if (filters.page) params.append('page', filters.page.toString());
+      if (filters.limit) params.append('limit', filters.limit.toString());
+
+      const response = await apiClient.get(`/admin/applications?${params.toString()}`);
+      setState(prev => ({
+        ...prev,
+        adminApplications: response.data.data,
+        adminMeta: response.data.meta,
+        adminIsLoading: false,
+      }));
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.message || err.message || 'Failed to fetch admin applications';
+      setState(prev => ({ ...prev, adminIsLoading: false, adminError: errorMessage }));
+      throw err;
+    }
+  }, []);
+
+  const fetchAdminApplicationById = useCallback(async (id: string) => {
+    setState(prev => ({ ...prev, adminIsLoading: true, adminError: null }));
+    try {
+      const response = await apiClient.get(`/admin/applications/${id}`);
+      setState(prev => ({
+        ...prev,
+        adminCurrentApplication: response.data.data,
+        adminIsLoading: false,
+      }));
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.message || err.message || 'Failed to fetch admin application';
+      setState(prev => ({ ...prev, adminIsLoading: false, adminError: errorMessage }));
+      throw err;
+    }
+  }, []);
+
+  const updateAdminApplicationStatus = useCallback(async (id: string, status: string, comment: string) => {
+    setState(prev => ({ ...prev, adminIsLoading: true, adminError: null }));
+    try {
+      await apiClient.patch(`/admin/applications/${id}/status`, { status, comment });
+      await fetchAdminApplicationById(id); // refresh
+      setState(prev => ({ ...prev, adminIsLoading: false }));
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.message || err.message || 'Failed to update status';
+      setState(prev => ({ ...prev, adminIsLoading: false, adminError: errorMessage }));
+      throw err;
+    }
+  }, [fetchAdminApplicationById]);
+
+  const updateAdminApplicationData = useCallback(async (id: string, payload: any) => {
+    setState(prev => ({ ...prev, adminIsLoading: true, adminError: null }));
+    try {
+      await apiClient.patch(`/admin/applications/${id}/data`, payload);
+      await fetchAdminApplicationById(id); // refresh
+      setState(prev => ({ ...prev, adminIsLoading: false }));
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.message || err.message || 'Failed to update application data';
+      setState(prev => ({ ...prev, adminIsLoading: false, adminError: errorMessage }));
+      throw err;
+    }
+  }, [fetchAdminApplicationById]);
+
+  const clearAdminError = useCallback(() => {
+    setState(prev => ({ ...prev, adminError: null }));
   }, []);
 
   const refreshApplications = useCallback(async () => {
@@ -288,6 +406,7 @@ export const ApplicationsProvider = ({ children }: { children: ReactNode }) => {
     <ApplicationsContext.Provider
       value={{
         ...state,
+        // user methods
         fetchApplications,
         fetchApplicationById,
         createSMEApplication,
@@ -301,6 +420,12 @@ export const ApplicationsProvider = ({ children }: { children: ReactNode }) => {
         clearError,
         setCurrentApplication,
         refreshApplications,
+        // admin methods
+        fetchAdminApplications,
+        fetchAdminApplicationById,
+        updateAdminApplicationStatus,
+        updateAdminApplicationData,
+        clearAdminError,
       }}
     >
       {children}

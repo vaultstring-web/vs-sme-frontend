@@ -31,41 +31,41 @@ export default function NotificationCenter() {
   const [unreadCount, setUnreadCount] = useState(0);
 
   // Fetch pending count and recent activity
-  const fetchData = async () => {
-    setIsLoading(true);
-    try {
-      // Parallel fetch
-      const [statsRes, activityRes] = await Promise.all([
-        apiClient.get("/admin/stats"),
-        apiClient.get("/admin/activity"),
-      ]);
+  // const fetchData = async () => {
+  //   setIsLoading(true);
+  //   try {
+  //     // Parallel fetch
+  //     const [statsRes, activityRes] = await Promise.all([
+  //       apiClient.get("/admin/stats"),
+  //       apiClient.get("/admin/activity"),
+  //     ]);
 
-      // Calculate pending (Submitted + Under Review)
-      const pending = statsRes.data.byStatus
-        .filter((s: any) => ["SUBMITTED", "UNDER_REVIEW"].includes(s.status))
-        .reduce((acc: number, s: any) => acc + s._count._all, 0);
+  //     // Calculate pending (Submitted + Under Review)
+  //     const pending = statsRes.data.byStatus
+  //       .filter((s: any) => ["SUBMITTED", "UNDER_REVIEW"].includes(s.status))
+  //       .reduce((acc: number, s: any) => acc + s._count._all, 0);
 
-      setActivities(activityRes.data.data || []);
-      setPendingCount(pending);
+  //     setActivities(activityRes.data.data || []);
+  //     setPendingCount(pending);
 
-      // Count unread notifications
-      const unread = (activityRes.data.data || []).filter(
-        (a: ActivityLog) => !a.isRead,
-      ).length;
-      setUnreadCount(unread);
-    } catch (error) {
-      console.error("Failed to fetch notifications:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  //     // Count unread notifications
+  //     const unread = (activityRes.data.data || []).filter(
+  //       (a: ActivityLog) => !a.isRead,
+  //     ).length;
+  //     setUnreadCount(unread);
+  //   } catch (error) {
+  //     console.error("Failed to fetch notifications:", error);
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
 
-  useEffect(() => {
-    fetchData();
-    // Poll every 60 seconds
-    const interval = setInterval(fetchData, 60000);
-    return () => clearInterval(interval);
-  }, []);
+  // useEffect(() => {
+  //   fetchData();
+  //   // Poll every 60 seconds
+  //   const interval = setInterval(fetchData, 60000);
+  //   return () => clearInterval(interval);
+  // }, []);
 
   const handleMarkAsRead = async (id: string) => {
     try {

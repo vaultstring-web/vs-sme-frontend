@@ -15,11 +15,9 @@ import { Input, Select } from "@/components/ui/FormELements";
 interface AuditLog {
   id: string;
   action: string;
-  notes: string;
-  timestamp: string;
-  actor: {
-    fullName: string;
-  };
+  comment?: string;
+  createdAt: string;
+  actor?: { fullName: string; email: string; };
 }
 
 interface ApplicationTimelineProps {
@@ -42,7 +40,7 @@ export default function ApplicationTimeline({
 
     return logs.filter((log) => {
       const matchesSearch =
-        log.notes?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        log.comment?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         log.action?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         log.actor?.fullName?.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesAction = !actionFilter || log.action === actionFilter;
@@ -158,7 +156,7 @@ export default function ApplicationTimeline({
             <div key={log.id} className="relative">
               {/* Dot */}
               <div
-                className={`absolute -left-[37px] top-1 w-8 h-8 rounded-full flex items-center justify-center shadow-sm border-4 border-card ${getColor(log.action)}`}
+                className={`absolute -left-9.25 top-1 w-8 h-8 rounded-full flex items-center justify-center shadow-sm border-4 border-card ${getColor(log.action)}`}
               >
                 {getIcon(log.action)}
               </div>
@@ -169,7 +167,7 @@ export default function ApplicationTimeline({
                     {log.action.replace("_", " ")}
                   </span>
                   <span className="text-xs text-foreground/50 whitespace-nowrap">
-                    {new Date(log.timestamp).toLocaleString()}
+                    {new Date(log.createdAt).toLocaleString()}
                   </span>
                 </div>
 
@@ -177,9 +175,9 @@ export default function ApplicationTimeline({
                   by {log.actor?.fullName || "System"}
                 </p>
 
-                {log.notes && (
+                {log.comment && (
                   <div className="mt-2 p-3 rounded-lg text-sm text-foreground/80 border border-border bg-card/50">
-                    {log.notes}
+                    {log.comment}
                   </div>
                 )}
               </div>

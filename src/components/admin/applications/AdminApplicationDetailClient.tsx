@@ -9,14 +9,12 @@ import {
   AlertTriangle,
   Edit2,
   Eye,
-  Save,
-  FileText,,
-  FileText
+  FileText,
 } from "lucide-react";
-import apiClient from "@/lib/apiClient";
 import EditableField from "./EditableField";
 import StatusChangeModal from "./StatusChangeModal";
 import ApplicationTimeline from "./ApplicationTimeline";
+import { useApplications } from "@/hooks/useApplications"; // adjust path as needed
 
 interface AdminApplicationDetailClientProps {
   id: string;
@@ -26,65 +24,66 @@ export default function AdminApplicationDetailClient({
   id,
 }: AdminApplicationDetailClientProps) {
   const router = useRouter();
-  const [app, setApp] = useState<any>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const {
+    adminCurrentApplication: app,
+    adminIsLoading,
+    adminError,
+    fetchAdminApplicationById,
+    updateAdminApplicationStatus,
+    updateAdminApplicationData,
+    clearAdminError,
+  } = useApplications();
+
   const [isEditMode, setIsEditMode] = useState(false);
   const [isStatusModalOpen, setIsStatusModalOpen] = useState(false);
-
-  const fetchApplication = async () => {
-    try {
-      const response = await apiClient.get(`/admin/applications/${id}`);
-      setApp(response.data.data);
-    } catch (error) {
-      console.error("Failed to fetch application:", error);
-      // Redirect or show error
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  
 
   useEffect(() => {
-    fetchApplication();
-  }, [id]);
+    fetchAdminApplicationById(id);
+  }, [id, fetchAdminApplicationById]);
+
+  // Handle error (optional: show toast)
+  useEffect(() => {
+    if (adminError) {
+      console.error("Admin application error:", adminError);
+      // You could show a toast here
+      clearAdminError();
+    }
+  }, [adminError, clearAdminError]);
 
   const handleStatusUpdate = async (status: string, comment: string) => {
     try {
-      await apiClient.patch(`/admin/applications/${id}/status`, {
-        status,
-        comment,
-      });
-      await fetchApplication(); // Refresh data
+      await updateAdminApplicationStatus(id, status, comment);
     } catch (error) {
-      throw error;
+      throw error; // let modal handle error display
     }
   };
 
   const handleFieldUpdate = async (field: string, value: string | number) => {
+    if (!app) return;
     try {
       const payload =
         app.type === "SME"
           ? { smeData: { [field]: value }, comment: `Updated ${field}` }
           : { payrollData: { [field]: value }, comment: `Updated ${field}` };
-
-      await apiClient.patch(`/admin/applications/${id}/data`, payload);
-      // Optimistic update or refresh
-      await fetchApplication();
+      await updateAdminApplicationData(id, payload);
     } catch (error) {
-      throw error;
+      throw error; // let EditableField handle error
     }
   };
 
-  if (isLoading)
+  if (adminIsLoading)
     return (
       <div className="p-8 text-center">Loading application details...</div>
     );
-  if (!app) return <div className="p-8 text-center">Application not found</div>;
+  if (!app)
+    return <div className="p-8 text-center">Application not found</div>;
 
   const data = app.type === "SME" ? app.smeData : app.payrollData;
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
-      {/* Header Actions */}
+      {/* Header Actions - unchanged */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <button
           onClick={() => router.back()}
@@ -119,7 +118,7 @@ export default function AdminApplicationDetailClient({
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Main Content: Application Form Data */}
+        {/* Main Content - mostly unchanged, but ensure app.auditLogs is used */}
         <div className="lg:col-span-2 space-y-6">
           {/* Status Banner */}
           <div
@@ -140,7 +139,7 @@ export default function AdminApplicationDetailClient({
                 </p>
                 <p className="text-xs opacity-80">
                   Last updated:{" "}
-                  {new Date(app.updatedAt || app.createdAt).toLocaleString()}
+                  {new Date( app.createdAt).toLocaleString()}
                 </p>
               </div>
             </div>
@@ -173,7 +172,7 @@ export default function AdminApplicationDetailClient({
             </div>
           </div>
 
-          {/* Application Data (Dynamic Fields) */}
+          {/* Application Data */}
           <div className="bento-card p-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-bold text-foreground">
@@ -195,7 +194,6 @@ export default function AdminApplicationDetailClient({
                   key === "updatedAt"
                 )
                   return null;
-                // Simple assumption for editable fields vs read-only metadata
                 return (
                   <EditableField
                     key={key}
@@ -255,7 +253,7 @@ export default function AdminApplicationDetailClient({
           </div>
         </div>
 
-        {/* Sidebar: Timeline & Meta */}
+        {/* Sidebar */}
         <div className="space-y-6">
           <div className="bento-card p-6 sticky top-24">
             <h3 className="text-lg font-bold mb-6 text-foreground">
