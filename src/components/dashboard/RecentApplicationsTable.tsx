@@ -2,7 +2,9 @@
 
 import { FileText } from "lucide-react";
 import Link from "next/link";
+import { useState } from "react";
 import type { RecentApplication } from "@/app/dashboard/types";
+import NewApplicationModal from "@/components/modals/NewApplicationModal"; // Import the modal
 
 interface RecentApplicationsTableProps {
   applications: RecentApplication[];
@@ -11,6 +13,9 @@ interface RecentApplicationsTableProps {
 export default function RecentApplicationsTable({
   applications,
 }: RecentApplicationsTableProps) {
+  // 1. Add state to handle modal visibility
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
   if (applications.length === 0) {
     return (
       <div className="bento-card p-8 text-center">
@@ -19,84 +24,100 @@ export default function RecentApplicationsTable({
         <p className="text-sm text-foreground/60 mb-4">
           Start your first loan application today
         </p>
-        <Link
-          href="/dashboard/application-type"
+        
+        {/* 2. Changed from Link to Button */}
+        <button
+          onClick={() => setIsModalOpen(true)}
           className="inline-flex items-center px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors"
         >
           New Application
-        </Link>
+        </button>
+
+        {/* 3. Include the modal here */}
+        <NewApplicationModal 
+          isOpen={isModalOpen} 
+          onClose={() => setIsModalOpen(false)} 
+        />
       </div>
     );
   }
 
   return (
-    <div className="bento-card p-6">
-      <div className="flex items-center justify-between mb-4">
-        <div>
-          <h2 className="text-xl font-bold">Recent Applications</h2>
-          <p className="text-sm text-foreground/60">
-            Your latest submitted applications
-          </p>
+    <>
+      <div className="bento-card p-6">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2 className="text-xl font-bold">Recent Applications</h2>
+            <p className="text-sm text-foreground/60">
+              Your latest submitted applications
+            </p>
+          </div>
+          <Link
+            href="/dashboard/applications"
+            className="text-sm text-primary-600 dark:text-primary-400 hover:underline"
+          >
+            View All
+          </Link>
         </div>
-        <Link
-          href="/dashboard/applications"
-          className="text-sm text-primary-600 dark:text-primary-400 hover:underline"
-        >
-          View All
-        </Link>
+
+        <div className="overflow-x-auto">
+          <table className="w-full applications-table">
+            <thead>
+              <tr className="text-left text-sm text-foreground/60 border-b border-border">
+                <th className="pb-3 font-medium">Reference</th>
+                <th className="pb-3 font-medium">Type</th>
+                <th className="pb-3 font-medium">Amount</th>
+                <th className="pb-3 font-medium">Status</th>
+                <th className="pb-3 font-medium">Submitted</th>
+                <th className="pb-3 font-medium"></th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {applications.map((app) => (
+                <tr
+                  key={app.id}
+                  className="group hover:bg-card/80 transition-colors"
+                >
+                  <td className="py-3 font-medium">#{app.reference}</td>
+                  <td className="py-3">
+                    {app.type === "SME" ? "SME Working Capital" : "Payroll Loan"}
+                  </td>
+                  <td className="py-3 font-medium">
+                    MWK {app.amount.toLocaleString()}
+                  </td>
+                  <td className="py-3">
+                    <span
+                      className="status-chip"
+                      data-status={app.status.toLowerCase().replace("_", "-")}
+                    >
+                      {app.status}
+                    </span>
+                  </td>
+                  <td className="py-3 text-foreground/60">
+                    {app.submittedAt
+                      ? new Date(app.submittedAt).toLocaleDateString()
+                      : new Date(app.createdAt).toLocaleDateString()}
+                  </td>
+                  <td className="py-3 text-right">
+                    <Link
+                      href={`/dashboard/applications/${app.id}`}
+                      className="text-primary-600 dark:text-primary-400 hover:underline text-sm"
+                    >
+                      View
+                    </Link>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
 
-      <div className="overflow-x-auto">
-        <table className="w-full applications-table">
-          <thead>
-            <tr className="text-left text-sm text-foreground/60 border-b border-border">
-              <th className="pb-3 font-medium">Reference</th>
-              <th className="pb-3 font-medium">Type</th>
-              <th className="pb-3 font-medium">Amount</th>
-              <th className="pb-3 font-medium">Status</th>
-              <th className="pb-3 font-medium">Submitted</th>
-              <th className="pb-3 font-medium"></th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border">
-            {applications.map((app) => (
-              <tr
-                key={app.id}
-                className="group hover:bg-card/80 transition-colors"
-              >
-                <td className="py-3 font-medium">#{app.reference}</td>
-                <td className="py-3">
-                  {app.type === "SME" ? "SME Working Capital" : "Payroll Loan"}
-                </td>
-                <td className="py-3 font-medium">
-                  MWK {app.amount.toLocaleString()}
-                </td>
-                <td className="py-3">
-                  <span
-                    className="status-chip"
-                    data-status={app.status.toLowerCase().replace("_", "-")}
-                  >
-                    {app.status}
-                  </span>
-                </td>
-                <td className="py-3 text-foreground/60">
-                  {app.submittedAt
-                    ? new Date(app.submittedAt).toLocaleDateString()
-                    : new Date(app.createdAt).toLocaleDateString()}
-                </td>
-                <td className="py-3 text-right">
-                  <Link
-                    href={`/dashboard/applications/${app.id}`}
-                    className="text-primary-600 dark:text-primary-400 hover:underline text-sm"
-                  >
-                    View
-                  </Link>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
+      {/* 4. Include the modal for the non-empty state as well */}
+      <NewApplicationModal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+      />
+    </>
   );
 }
