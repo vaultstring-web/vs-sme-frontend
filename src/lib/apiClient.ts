@@ -1,7 +1,30 @@
 import axios from 'axios';
 import { getSession, setSession, clearSession } from '@/utils/sessionStorage';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://api-thrive.vaultstring.com';
+function isPrivateIp(host: string): boolean {
+  return (
+    /^10\./.test(host) ||
+    /^127\./.test(host) ||
+    /^192\.168\./.test(host) ||
+    /^172\.(1[6-9]|2\d|3[0-1])\./.test(host) ||
+    host === 'localhost' ||
+    host === '::1'
+  );
+}
+
+function resolveApiBase(): string {
+  if (typeof window !== 'undefined') {
+    const host = window.location.hostname;
+    const port = window.location.port;
+    // If running the Next dev server on 3001 or on a private/local host, target local backend
+    if (port === '3001' || isPrivateIp(host)) {
+      return 'http://localhost:3000';
+    }
+  }
+  return process.env.NEXT_PUBLIC_API_BASE_URL || 'https://api-thrive.vaultstring.com';
+}
+
+export const API_BASE_URL = resolveApiBase();
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL + '/api',
