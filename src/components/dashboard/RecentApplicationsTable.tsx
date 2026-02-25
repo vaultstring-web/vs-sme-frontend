@@ -4,7 +4,7 @@ import { FileText } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import type { RecentApplication } from "@/app/dashboard/types";
-import NewApplicationModal from "@/components/modals/NewApplicationModal"; // Import the modal
+import NewApplicationModal from "@/components/modals/NewApplicationModal";
 
 interface RecentApplicationsTableProps {
   applications: RecentApplication[];
