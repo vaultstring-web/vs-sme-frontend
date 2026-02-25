@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { 
   Search, 
   ChevronLeft, 
@@ -9,10 +9,12 @@ import {
   Shield,
   Phone,
   Mail,
-  Calendar
+  Calendar,
+  ExternalLink
 } from 'lucide-react';
 import apiClient from '@/lib/apiClient';
 import { Input, Select } from '@/components/ui/FormELements';
+import Link from 'next/link';
 
 interface UserData {
   id: string;
@@ -39,7 +41,10 @@ export default function UserTable() {
   const [search, setSearch] = useState('');
   const [role, setRole] = useState('');
 
-  const fetchUsers = async () => {
+  const latestRequest = useRef(0);
+  const fetchUsers = useCallback(async () => {
+    const requestId = Date.now();
+    latestRequest.current = requestId;
     setIsLoading(true);
     try {
       const params = new URLSearchParams({
@@ -50,21 +55,38 @@ export default function UserTable() {
       });
 
       const response = await apiClient.get(`/admin/users?${params.toString()}`);
-      setUsers(response.data.data);
-      setMeta(response.data.meta);
+      // Apply only if this is the latest request
+      if (latestRequest.current === requestId) {
+        setUsers(response.data.data);
+        setMeta(prev => {
+          const next = response.data.meta as Meta;
+          // Avoid unnecessary state updates that can trigger re-renders
+          if (
+            prev.page === next.page &&
+            prev.pageSize === next.pageSize &&
+            prev.total === next.total &&
+            prev.totalPages === next.totalPages
+          ) {
+            return prev;
+          }
+          return next;
+        });
+      }
     } catch (error) {
       console.error('Failed to fetch users:', error);
     } finally {
-      setIsLoading(false);
+      if (latestRequest.current === requestId) {
+        setIsLoading(false);
+      }
     }
-  };
+  }, [meta.page, meta.pageSize, search, role]);
 
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       fetchUsers();
     }, 300); // Debounce search
     return () => clearTimeout(timeoutId);
-  }, [meta.page, meta.pageSize, search, role]);
+  }, [fetchUsers]);
 
   return (
     <div className="space-y-4">
@@ -102,18 +124,19 @@ export default function UserTable() {
                 <th className="px-6 py-3 font-medium">Contact</th>
                 <th className="px-6 py-3 font-medium">Role</th>
                 <th className="px-6 py-3 font-medium">Joined</th>
+                <th className="px-6 py-3 font-medium text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {isLoading ? (
                 <tr>
-                  <td colSpan={4} className="px-6 py-8 text-center text-foreground/50">
+                  <td colSpan={5} className="px-6 py-8 text-center text-foreground/50">
                     Loading users...
                   </td>
                 </tr>
               ) : users.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="px-6 py-8 text-center text-foreground/50">
+                  <td colSpan={5} className="px-6 py-8 text-center text-foreground/50">
                     No users found.
                   </td>
                 </tr>
@@ -157,6 +180,15 @@ export default function UserTable() {
                         <Calendar className="w-3 h-3" />
                         {new Date(user.createdAt).toLocaleDateString()}
                       </div>
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <Link 
+                        href={`/admin/users/detail?id=${user.id}`}
+                        className="inline-flex items-center gap-1.5 text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 font-medium transition-colors"
+                      >
+                        View Details
+                        <ExternalLink className="w-3.5 h-3.5" />
+                      </Link>
                     </td>
                   </tr>
                 ))
