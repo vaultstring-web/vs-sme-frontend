@@ -79,6 +79,14 @@ It uses the base URL from NEXT_PUBLIC_API_BASE_URL. Interceptors are set up for:
 - Request: (future) attaching auth tokens
 - Response: global error logging
 
+Document Upload Preview
+
+When uploading documents (KYC profile docs and SME/Payroll application docs), users can click **Preview** after selecting a file to confirm it’s the correct document before uploading/submitting.
+
+- Supported previews: **images** and **PDFs**
+- Not previewable: other file types (e.g. DOC/DOCX) will show a “Preview not available” message
+- Implementation: `src/components/shared/LocalFilePreviewModal.tsx`
+
 Team Conventions
 
 - Use App Router (not Pages Router)

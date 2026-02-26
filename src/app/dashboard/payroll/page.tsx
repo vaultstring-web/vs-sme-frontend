@@ -51,6 +51,7 @@ import { styled } from '@mui/material/styles';
 import { useTheme } from '@/context/ThemeContext';
 import { useApplications } from '@/hooks/useApplications';
 import { useRouter } from 'next/navigation';
+import LocalFilePreviewModal from '@/components/shared/LocalFilePreviewModal';
 
 const VisuallyHiddenInput = styled('input')({
   clip: 'rect(0 0 0 0)',
@@ -141,6 +142,7 @@ export default function PayrollLoanApplicationPage() {
   const [showSnackbar, setShowSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [applicationId, setApplicationId] = useState<string | null>(null);
+  const [preview, setPreview] = useState<{ file: File; title: string } | null>(null);
   
   const {
     createPayrollApplication,
@@ -357,6 +359,10 @@ export default function PayrollLoanApplicationPage() {
 
   const handleBack = () => {
     setActiveStep((prev) => prev - 1);
+  };
+
+  const openPreview = (file: File, title: string) => {
+    setPreview({ file, title });
   };
 
   // Prepare data for backend - match the exact backend schema
@@ -1067,6 +1073,18 @@ export default function PayrollLoanApplicationPage() {
                       ✓ {formData.employerLetter.name}
                     </Typography>
                   )}
+                  {formData.employerLetter && (
+                    <Box sx={{ mt: 1, display: 'flex', justifyContent: 'center' }}>
+                      <Button
+                        size="small"
+                        variant="text"
+                        onClick={() => openPreview(formData.employerLetter as File, 'Employer Authorization Letter')}
+                        sx={{ textTransform: 'none', color: limeColors[500] }}
+                      >
+                        Preview
+                      </Button>
+                    </Box>
+                  )}
                   {errors.employerLetter && (
                     <Typography color="error" variant="caption" sx={{ display: 'block', mt: 1 }}>
                       {errors.employerLetter}
@@ -1269,6 +1287,18 @@ export default function PayrollLoanApplicationPage() {
                       ✓ {formData.idDocument.name}
                     </Typography>
                   )}
+                  {formData.idDocument && (
+                    <Box sx={{ mt: 1, display: 'flex', justifyContent: 'center' }}>
+                      <Button
+                        size="small"
+                        variant="text"
+                        onClick={() => openPreview(formData.idDocument as File, 'ID Document')}
+                        sx={{ textTransform: 'none', color: limeColors[500] }}
+                      >
+                        Preview
+                      </Button>
+                    </Box>
+                  )}
                   {errors.idDocument && (
                     <Typography color="error" variant="caption" sx={{ display: 'block', mt: 1 }}>
                       {errors.idDocument}
@@ -1319,6 +1349,18 @@ export default function PayrollLoanApplicationPage() {
                     <Typography variant="caption" sx={{ display: 'block', mt: 2, color: limeColors[500] }}>
                       ✓ {formData.payslip1.name}
                     </Typography>
+                  )}
+                  {formData.payslip1 && (
+                    <Box sx={{ mt: 1, display: 'flex', justifyContent: 'center' }}>
+                      <Button
+                        size="small"
+                        variant="text"
+                        onClick={() => openPreview(formData.payslip1 as File, 'Recent Payslip 1')}
+                        sx={{ textTransform: 'none', color: limeColors[500] }}
+                      >
+                        Preview
+                      </Button>
+                    </Box>
                   )}
                   {errors.payslip1 && (
                     <Typography color="error" variant="caption" sx={{ display: 'block', mt: 1 }}>
@@ -1374,6 +1416,18 @@ export default function PayrollLoanApplicationPage() {
                       ✓ {formData.payslip2.name}
                     </Typography>
                   )}
+                  {formData.payslip2 && (
+                    <Box sx={{ mt: 1, display: 'flex', justifyContent: 'center' }}>
+                      <Button
+                        size="small"
+                        variant="text"
+                        onClick={() => openPreview(formData.payslip2 as File, 'Recent Payslip 2')}
+                        sx={{ textTransform: 'none', color: limeColors[500] }}
+                      >
+                        Preview
+                      </Button>
+                    </Box>
+                  )}
                 </Box>
                 
                 <Box sx={{ 
@@ -1420,6 +1474,18 @@ export default function PayrollLoanApplicationPage() {
                     <Typography variant="caption" sx={{ display: 'block', mt: 2, color: limeColors[500] }}>
                       ✓ {formData.payslip3.name}
                     </Typography>
+                  )}
+                  {formData.payslip3 && (
+                    <Box sx={{ mt: 1, display: 'flex', justifyContent: 'center' }}>
+                      <Button
+                        size="small"
+                        variant="text"
+                        onClick={() => openPreview(formData.payslip3 as File, 'Recent Payslip 3')}
+                        sx={{ textTransform: 'none', color: limeColors[500] }}
+                      >
+                        Preview
+                      </Button>
+                    </Box>
                   )}
                 </Box>
               </Box>
@@ -1693,7 +1759,8 @@ export default function PayrollLoanApplicationPage() {
   }
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
+    <>
+      <Container maxWidth="lg" sx={{ py: 4 }}>
       <Box sx={{ mb: 5, textAlign: 'center' }}>
         <Typography variant="h3" component="h1" sx={{ color: isDarkMode ? 'white' : '#18181b', fontWeight: 700, mb: 1 }}>
           Payroll Deduction Loan Application
@@ -1936,6 +2003,15 @@ export default function PayrollLoanApplicationPage() {
           }
         }}
       />
-    </Container>
+      </Container>
+
+      {preview && (
+        <LocalFilePreviewModal
+          file={preview.file}
+          title={preview.title}
+          onClose={() => setPreview(null)}
+        />
+      )}
+    </>
   );
 }
