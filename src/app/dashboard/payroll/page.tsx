@@ -99,7 +99,6 @@ interface PayrollApplicationData {
   defaultExplanation: string;
   
   // Document Upload
-  idDocument: File | null;
   payslip1: File | null;
   payslip2: File | null;
   payslip3: File | null;
@@ -126,7 +125,6 @@ const steps = [
 
 // Document type constants for backend
 const DOCUMENT_TYPES = {
-  ID_DOCUMENT: 'ID_DOCUMENT',
   EMPLOYER_LETTER: 'EMPLOYER_LETTER',
   PAYSLIP_1: 'PAYSLIP_1',
   PAYSLIP_2: 'PAYSLIP_2',
@@ -143,7 +141,7 @@ export default function PayrollLoanApplicationPage() {
   const [applicationId, setApplicationId] = useState<string | null>(null);
   
   const {
-    createPayrollApplication,
+    createDraftApplication,
     updatePayrollApplication,
     uploadDocument,
     submitApplication,
@@ -177,7 +175,6 @@ export default function PayrollLoanApplicationPage() {
     outstandingLoanDetails: '',
     hasDefaulted: false,
     defaultExplanation: '',
-    idDocument: null,
     payslip1: null,
     payslip2: null,
     payslip3: null,
@@ -281,7 +278,6 @@ export default function PayrollLoanApplicationPage() {
         break;
       
       case 6:
-        if (!formData.idDocument) newErrors.idDocument = 'ID document is required';
         if (!formData.payslip1) newErrors.payslip1 = 'Recent payslip is required';
         break;
       
@@ -328,9 +324,8 @@ export default function PayrollLoanApplicationPage() {
       return;
     }
 
-    // Calculate current total size
+    // Calculate current total size (excluding idDocument)
     const currentTotalSize = 
-      (formData.idDocument?.size || 0) +
       (formData.payslip1?.size || 0) +
       (formData.payslip2?.size || 0) +
       (formData.payslip3?.size || 0) +
@@ -413,30 +408,69 @@ export default function PayrollLoanApplicationPage() {
     defaultExplanation: formData.hasDefaulted ? formData.defaultExplanation : undefined,
   });
 
-  const handleSaveDraft = async (): Promise<string> => {
+  const handleSaveDraft = async (): Promise<string | null> => {
     try {
+      // Prepare data for backend – allow nulls for missing fields
       const backendData = prepareBackendData();
+
       let id = applicationId;
 
       if (!id) {
-        const result = await createPayrollApplication(backendData);
+        // Step 1: Create an empty draft (no validation)
+        const result = await createDraftApplication('PAYROLL');
         id = result.id;
         setApplicationId(id);
-      } else {
-        await updatePayrollApplication(id, backendData);
       }
 
-      // Save to localStorage (optional, but keep as backup)
-      const draft = { formData, applicationId: id, savedAt: new Date().toISOString(), step: activeStep };
-      localStorage.setItem('payrollLoanDraft', JSON.stringify(draft));
+      // Step 2: Update the draft with the actual data (unvalidated)
+      await updatePayrollApplication(id, backendData);
+
+      // Save metadata to localStorage (optional, as backup)
+      const draftMetadata = {
+        formData: {
+          ...formData,
+          // Store file metadata only (actual File objects cannot be stringified)
+          employerLetter: formData.employerLetter ? {
+            name: formData.employerLetter.name,
+            type: formData.employerLetter.type,
+            size: formData.employerLetter.size,
+            lastModified: formData.employerLetter.lastModified,
+          } : null,
+          payslip1: formData.payslip1 ? {
+            name: formData.payslip1.name,
+            type: formData.payslip1.type,
+            size: formData.payslip1.size,
+            lastModified: formData.payslip1.lastModified,
+          } : null,
+          payslip2: formData.payslip2 ? {
+            name: formData.payslip2.name,
+            type: formData.payslip2.type,
+            size: formData.payslip2.size,
+            lastModified: formData.payslip2.lastModified,
+          } : null,
+          payslip3: formData.payslip3 ? {
+            name: formData.payslip3.name,
+            type: formData.payslip3.type,
+            size: formData.payslip3.size,
+            lastModified: formData.payslip3.lastModified,
+          } : null,
+        },
+        applicationId: id,
+        savedAt: new Date().toISOString(),
+        step: activeStep,
+      };
+
+      localStorage.setItem('payrollLoanDraft', JSON.stringify(draftMetadata));
 
       setSnackbarMessage('Draft saved successfully!');
       setShowSnackbar(true);
 
       return id;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Save draft error:', error);
-      throw error;
+      setSnackbarMessage(error.message || 'Failed to save draft');
+      setShowSnackbar(true);
+      return null;
     }
   };
 
@@ -445,11 +479,6 @@ export default function PayrollLoanApplicationPage() {
     const optionalTasks: Promise<any>[] = [];
 
     // Required documents
-    if (formData.idDocument) {
-      requiredTasks.push(
-        uploadDocument(appId, formData.idDocument, DOCUMENT_TYPES.ID_DOCUMENT)
-      );
-    }
     if (formData.payslip1) {
       requiredTasks.push(
         uploadDocument(appId, formData.payslip1, DOCUMENT_TYPES.PAYSLIP_1)
@@ -950,14 +979,11 @@ export default function PayrollLoanApplicationPage() {
         const totalDeductions = processingFee + insuranceFee;
         const amountReceived = loanAmount - totalDeductions;
         
-        // Calculate monthly repayment with 7.5% monthly interest
-        const monthlyInterestRate = 0.075; // 7.5% per month
-        const paybackPeriod = formData.paybackPeriodMonths || 1;
-        
-        // Total interest = principal * monthly rate * number of months
-        const totalInterest = loanAmount * monthlyInterestRate * paybackPeriod;
+        // Interest calculation: 7.5% annual interest charged once
+        const annualInterestRate = 0.075;
+        const totalInterest = loanAmount * annualInterestRate;
         const totalRepayment = loanAmount + totalInterest;
-        const monthlyPayment = totalRepayment / paybackPeriod;
+        const monthlyPayment = totalRepayment / (formData.paybackPeriodMonths || 1);
 
         return (
           <Box sx={{ mt: 2 }}>
@@ -1029,7 +1055,7 @@ export default function PayrollLoanApplicationPage() {
                 />
               </Box>
 
-              {loanAmount > 0 && paybackPeriod > 0 && (
+              {loanAmount > 0 && formData.paybackPeriodMonths > 0 && (
                 <Box sx={{ 
                   p: 3, 
                   borderRadius: '16px', 
@@ -1116,7 +1142,7 @@ export default function PayrollLoanApplicationPage() {
                       bgcolor: alpha(limeColors[500], 0.05),
                     }}>
                       <Typography variant="subtitle2" sx={{ color: limeColors[500], fontWeight: 600, mb: 2 }}>
-                        Repayment Calculation (7.5% Monthly Interest)
+                        Interest Calculation (7.5% Annual Interest – One‑time Fee)
                       </Typography>
                       
                       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
@@ -1130,7 +1156,7 @@ export default function PayrollLoanApplicationPage() {
                       
                       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
                         <Typography sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a' }}>
-                          Total Interest ({paybackPeriod} months @ 7.5%/month):
+                          Interest (7.5% one‑time):
                         </Typography>
                         <Typography sx={{ color: isDarkMode ? 'white' : '#18181b' }}>
                           MK {totalInterest.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
@@ -1169,10 +1195,10 @@ export default function PayrollLoanApplicationPage() {
                         MK {monthlyPayment.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                       </Typography>
                       <Typography variant="caption" sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a' }}>
-                        (Principal + Interest) ÷ {paybackPeriod} months
+                        (Total repayment ÷ {formData.paybackPeriodMonths} months)
                       </Typography>
                       <Typography variant="caption" sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a', display: 'block', mt: 1 }}>
-                        Total interest: MK {(totalInterest).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                        One‑time interest: MK {totalInterest.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                       </Typography>
                     </Box>
                   </Box>
@@ -1418,9 +1444,8 @@ export default function PayrollLoanApplicationPage() {
         );
 
       case 6:
-        // Calculate total file size
+        // Calculate total file size (excluding idDocument)
         const totalFileSize = 
-          (formData.idDocument?.size || 0) +
           (formData.payslip1?.size || 0) +
           (formData.payslip2?.size || 0) +
           (formData.payslip3?.size || 0) +
@@ -1507,57 +1532,6 @@ export default function PayrollLoanApplicationPage() {
                     bgcolor: alpha(limeColors[500], 0.05),
                   }
                 }}>
-                  <User size={32} color={limeColors[500]} style={{ margin: '0 auto 12px' }} />
-                  <Typography variant="subtitle1" sx={{ color: isDarkMode ? 'white' : '#18181b', fontWeight: 600, mb: 0.5 }}>
-                    ID Document *
-                  </Typography>
-                  <Typography variant="body2" sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a', mb: 2 }}>
-                    National ID or Passport (Max 10MB per file)
-                  </Typography>
-                  <Button 
-                    component="label" 
-                    variant="contained" 
-                    startIcon={<Upload size={18} />}
-                    sx={{ 
-                      bgcolor: limeColors[500],
-                      color: 'white',
-                      borderRadius: '10px',
-                      textTransform: 'none',
-                      fontWeight: 600,
-                      px: 3,
-                      py: 1,
-                      '&:hover': {
-                        bgcolor: limeColors[600]
-                      }
-                    }}
-                  >
-                    {formData.idDocument ? 'Change File' : 'Upload'}
-                    <VisuallyHiddenInput type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={handleFileUpload('idDocument')} />
-                  </Button>
-                  {formData.idDocument && (
-                    <Typography variant="caption" sx={{ display: 'block', mt: 2, color: limeColors[500] }}>
-                      ✓ {formData.idDocument.name} ({(formData.idDocument.size / (1024 * 1024)).toFixed(2)}MB)
-                    </Typography>
-                  )}
-                  {errors.idDocument && (
-                    <Typography color="error" variant="caption" sx={{ display: 'block', mt: 1 }}>
-                      {errors.idDocument}
-                    </Typography>
-                  )}
-                </Box>
-                
-                <Box sx={{ 
-                  p: 4, 
-                  borderRadius: '16px', 
-                  bgcolor: isDarkMode ? 'rgba(255, 255, 255, 0.02)' : 'rgba(255, 255, 255, 0.5)',
-                  border: `2px dashed ${isDarkMode ? 'rgba(132, 204, 22, 0.3)' : 'rgba(132, 204, 22, 0.2)'}`,
-                  textAlign: 'center',
-                  transition: 'all 0.3s ease',
-                  '&:hover': {
-                    borderColor: limeColors[500],
-                    bgcolor: alpha(limeColors[500], 0.05),
-                  }
-                }}>
                   <FileText size={32} color={limeColors[500]} style={{ margin: '0 auto 12px' }} />
                   <Typography variant="subtitle1" sx={{ color: isDarkMode ? 'white' : '#18181b', fontWeight: 600, mb: 0.5 }}>
                     Recent Payslip 1 *
@@ -1596,9 +1570,7 @@ export default function PayrollLoanApplicationPage() {
                     </Typography>
                   )}
                 </Box>
-              </Box>
-              
-              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3 }}>
+                
                 <Box sx={{ 
                   p: 4, 
                   borderRadius: '16px', 
@@ -1645,7 +1617,9 @@ export default function PayrollLoanApplicationPage() {
                     </Typography>
                   )}
                 </Box>
-                
+              </Box>
+              
+              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3 }}>
                 <Box sx={{ 
                   p: 4, 
                   borderRadius: '16px', 

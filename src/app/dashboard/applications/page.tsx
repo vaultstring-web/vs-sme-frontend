@@ -477,14 +477,6 @@ export default function ApplicationsPage() {
                               >
                                 View
                               </Link>
-                              {app.status === "DRAFT" && (
-                                <Link
-                                  href={`/dashboard/applications/${app.id}/edit`}
-                                  className="px-3 py-1 text-sm bg-primary-600 text-white hover:bg-primary-700 rounded"
-                                >
-                                  Continue
-                                </Link>
-                              )}
                             </div>
                           </td>
                         </tr>
