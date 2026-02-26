@@ -38,6 +38,7 @@ import { useTheme } from '@/context/ThemeContext';
 import { useApplications } from '@/hooks/useApplications';
 import { useRouter } from 'next/navigation';
 import LocalFilePreviewModal from '@/components/shared/LocalFilePreviewModal';
+import { SmeFormData } from './types';
 
 const VisuallyHiddenInput = styled('input')({
   clip: 'rect(0 0 0 0)',
@@ -50,43 +51,6 @@ const VisuallyHiddenInput = styled('input')({
   whiteSpace: 'nowrap',
   width: 1,
 });
-
-interface SmeFormData {
-  // Business Details
-  businessName: string;
-  registrationNo: string;
-  businessType: string;
-  yearsInOperation: number;
-  
-  // Loan Request
-  loanProduct: string;
-  loanAmount: number;
-  paybackPeriodMonths: number;
-  purposeOfLoan: string;
-  repaymentMethod: string;
-  estimatedMonthlyTurnover: number;
-  estimatedMonthlyProfit: number;
-  
-  // Group Lending
-  isGroupLending: boolean;
-  groupName: string;
-  groupMemberCount: number;
-  
-  // Credit History
-  hasOutstandingLoans: boolean;
-  outstandingLoanDetails: string;
-  hasDefaulted: boolean;
-  defaultExplanation: string;
-  
-  // Documents
-  idDocument: File | null;
-  businessRegistrationDoc: File | null;
-  financialStatementDoc: File | null;
-  
-  // Declarations
-  agreeToTerms: boolean;
-  consentToCreditCheck: boolean;
-}
 
 const businessTypes = ['Sole Proprietorship', 'Partnership', 'Private Limited Company', 'Cooperative', 'Other'];
 const loanProducts = ['Working Capital Loan', 'Asset Financing', 'Invoice Financing', 'Trade Finance', 'Equipment Loan', 'Other'];
@@ -112,7 +76,7 @@ export default function SMELoanApplicationPage() {
   const [preview, setPreview] = useState<{ file: File; title: string } | null>(null);
   
   const {
-    createSMEApplication,
+    createDraftApplication,
     updateSMEApplication,
     uploadDocument,
     submitApplication,
@@ -293,56 +257,102 @@ export default function SMELoanApplicationPage() {
     setPreview({ file, title });
   };
 
-  const handleSaveDraft = async () => {
+  const handleSaveDraft = async (): Promise<string | null> => {
     try {
-      // Prepare data for backend - matching the exact backend schema
-      const backendData = {
-        businessName: formData.businessName,
-        registrationNo: formData.registrationNo || undefined,
-        businessType: formData.businessType,
-        yearsInOperation: formData.yearsInOperation,
-        loanProduct: formData.loanProduct,
-        loanAmount: formData.loanAmount,
-        paybackPeriodMonths: formData.paybackPeriodMonths,
-        purposeOfLoan: formData.purposeOfLoan,
-        repaymentMethod: formData.repaymentMethod,
-        estimatedMonthlyTurnover: formData.estimatedMonthlyTurnover || undefined,
-        estimatedMonthlyProfit: formData.estimatedMonthlyProfit || undefined,
-        groupName: formData.isGroupLending ? formData.groupName : undefined,
-        groupMemberCount: formData.isGroupLending ? formData.groupMemberCount : undefined,
+      // Prepare data for backend - filter out empty/undefined values
+      const backendData: Record<string, any> = {
+        businessName: formData.businessName?.trim() || null,
+        registrationNo: formData.registrationNo?.trim() || null,
+        businessType: formData.businessType || null,
+        yearsInOperation: formData.yearsInOperation || null,
+        loanProduct: formData.loanProduct || null,
+        loanAmount: formData.loanAmount || null,
+        paybackPeriodMonths: formData.paybackPeriodMonths || null,
+        purposeOfLoan: formData.purposeOfLoan?.trim() || null,
+        repaymentMethod: formData.repaymentMethod || null,
+        estimatedMonthlyTurnover: formData.estimatedMonthlyTurnover || null,
+        estimatedMonthlyProfit: formData.estimatedMonthlyProfit || null,
         hasOutstandingLoans: formData.hasOutstandingLoans,
-        outstandingLoanDetails: formData.hasOutstandingLoans ? formData.outstandingLoanDetails : undefined,
         hasDefaulted: formData.hasDefaulted,
-        defaultExplanation: formData.hasDefaulted ? formData.defaultExplanation : undefined,
       };
 
-      let id = applicationId;
-      
-      if (!id) {
-        // Create new application
-        const result = await createSMEApplication(backendData);
-        id = result.id;
-        setApplicationId(id);
+      // Conditionally include group/loan details
+      if (formData.isGroupLending) {
+        backendData.groupName = formData.groupName?.trim() || null;
+        backendData.groupMemberCount = formData.groupMemberCount || null;
       } else {
-        // Update existing application
-        await updateSMEApplication(id, backendData);
+        backendData.groupName = null;
+        backendData.groupMemberCount = null;
       }
 
-      // Save to localStorage for backup
-      const draft = {
-        formData,
+      if (formData.hasOutstandingLoans) {
+        backendData.outstandingLoanDetails = formData.outstandingLoanDetails?.trim() || null;
+      } else {
+        backendData.outstandingLoanDetails = null;
+      }
+
+      if (formData.hasDefaulted) {
+        backendData.defaultExplanation = formData.defaultExplanation?.trim() || null;
+      } else {
+        backendData.defaultExplanation = null;
+      }
+
+      // Remove undefined values
+      Object.keys(backendData).forEach(key => {
+        if (backendData[key] === undefined) delete backendData[key];
+      });
+
+      let id = applicationId;
+
+      if (!id) {
+        // Step 1: Create an empty draft (no validation)
+        const result = await createDraftApplication('SME');
+        id = result.id;
+        setApplicationId(id);
+      }
+
+      // Step 2: Update the draft with the actual data (unvalidated)
+      await updateSMEApplication(id, backendData);
+
+      // Save metadata to localStorage
+      const draftMetadata = {
+        formData: {
+          ...formData,
+          idDocument: formData.idDocument ? {
+            name: formData.idDocument.name,
+            type: formData.idDocument.type,
+            size: formData.idDocument.size,
+            lastModified: formData.idDocument.lastModified,
+          } : null,
+          businessRegistrationDoc: formData.businessRegistrationDoc ? {
+            name: formData.businessRegistrationDoc.name,
+            type: formData.businessRegistrationDoc.type,
+            size: formData.businessRegistrationDoc.size,
+            lastModified: formData.businessRegistrationDoc.lastModified,
+          } : null,
+          financialStatementDoc: formData.financialStatementDoc ? {
+            name: formData.financialStatementDoc.name,
+            type: formData.financialStatementDoc.type,
+            size: formData.financialStatementDoc.size,
+            lastModified: formData.financialStatementDoc.lastModified,
+          } : null,
+        },
         applicationId: id,
         savedAt: new Date().toISOString(),
-        step: activeStep
+        step: activeStep,
       };
-      
-      localStorage.setItem('smeLoanDraft', JSON.stringify(draft));
-      
+
+      localStorage.setItem('smeLoanDraft', JSON.stringify(draftMetadata));
+
       setSnackbarMessage('Draft saved successfully!');
       setShowSnackbar(true);
+
+      return id;
     } catch (error: any) {
       console.error('Save draft error:', error);
-      // Error will be shown via the error state from context
+      setSnackbarMessage(error.message || 'Failed to save draft');
+      setShowSnackbar(true);
+      return null;
     }
   };
 
@@ -385,8 +395,7 @@ export default function SMELoanApplicationPage() {
       // First ensure we have an application ID by saving the draft
       let id = applicationId;
       if (!id) {
-        await handleSaveDraft();
-        id = applicationId; // Get the ID set by handleSaveDraft
+        id = await handleSaveDraft(); // Get ID directly from the function
         
         if (!id) {
           throw new Error('Failed to create application');

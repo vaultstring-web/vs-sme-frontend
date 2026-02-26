@@ -322,6 +322,36 @@ export default function PayrollLoanApplicationPage() {
 
   const handleFileUpload = (name: string) => (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] || null;
+    
+    // Check individual file size (10MB max)
+    if (file && file.size > 10 * 1024 * 1024) {
+      setSnackbarMessage('Each file must be less than 10MB');
+      setShowSnackbar(true);
+      return;
+    }
+
+    // Calculate current total size
+    const currentTotalSize = 
+      (formData.idDocument?.size || 0) +
+      (formData.payslip1?.size || 0) +
+      (formData.payslip2?.size || 0) +
+      (formData.payslip3?.size || 0) +
+      (formData.employerLetter?.size || 0);
+
+    // If replacing an existing file, subtract its size
+    const oldFileSize = formData[name as keyof PayrollApplicationData] instanceof File 
+      ? (formData[name as keyof PayrollApplicationData] as File).size 
+      : 0;
+    
+    const newTotalSize = currentTotalSize - oldFileSize + (file?.size || 0);
+
+    // Check total size (50MB max)
+    if (newTotalSize > 50 * 1024 * 1024) {
+      setSnackbarMessage('Total file size cannot exceed 50MB');
+      setShowSnackbar(true);
+      return;
+    }
+
     setFormData(prev => ({
       ...prev,
       [name]: file
@@ -367,7 +397,7 @@ export default function PayrollLoanApplicationPage() {
 
   // Prepare data for backend - match the exact backend schema
   const prepareBackendData = () => ({
-    dateOfBirth: formData.dateOfBirth, // already ISO string (YYYY-MM-DD)
+    dateOfBirth: formData.dateOfBirth,
     gender: formData.gender,
     maritalStatus: formData.maritalStatus,
     nextOfKinName: formData.nextOfKinName,
@@ -390,109 +420,112 @@ export default function PayrollLoanApplicationPage() {
   });
 
   const handleSaveDraft = async (): Promise<string> => {
-  try {
-    const backendData = prepareBackendData();
-    let id = applicationId;
+    try {
+      const backendData = prepareBackendData();
+      let id = applicationId;
 
-    if (!id) {
-      const result = await createPayrollApplication(backendData);
-      id = result.id;
-      setApplicationId(id);
-    } else {
-      await updatePayrollApplication(id, backendData);
+      if (!id) {
+        const result = await createPayrollApplication(backendData);
+        id = result.id;
+        setApplicationId(id);
+      } else {
+        await updatePayrollApplication(id, backendData);
+      }
+
+      // Save to localStorage (optional, but keep as backup)
+      const draft = { formData, applicationId: id, savedAt: new Date().toISOString(), step: activeStep };
+      localStorage.setItem('payrollLoanDraft', JSON.stringify(draft));
+
+      setSnackbarMessage('Draft saved successfully!');
+      setShowSnackbar(true);
+
+      return id;
+    } catch (error) {
+      console.error('Save draft error:', error);
+      throw error;
     }
-
-    // Save to localStorage (optional, but keep as backup)
-    const draft = { formData, applicationId: id, savedAt: new Date().toISOString(), step: activeStep };
-    localStorage.setItem('payrollLoanDraft', JSON.stringify(draft));
-
-    setSnackbarMessage('Draft saved successfully!');
-    setShowSnackbar(true);
-
-    return id;
-  } catch (error) {
-    console.error('Save draft error:', error);
-    throw error;
-  }
-};
+  };
 
   const uploadDocuments = async (appId: string): Promise<void> => {
-  const requiredTasks: Promise<any>[] = [];
-  const optionalTasks: Promise<any>[] = [];
+    const requiredTasks: Promise<any>[] = [];
+    const optionalTasks: Promise<any>[] = [];
 
-  // Required documents
-  if (formData.idDocument) {
-    requiredTasks.push(
-      uploadDocument(appId, formData.idDocument, DOCUMENT_TYPES.ID_DOCUMENT)
-    );
-  }
-  if (formData.payslip1) {
-    requiredTasks.push(
-      uploadDocument(appId, formData.payslip1, DOCUMENT_TYPES.PAYSLIP_1)
-    );
-  }
-  if (formData.payrollDeductionConfirmed && formData.employerLetter) {
-    requiredTasks.push(
-      uploadDocument(appId, formData.employerLetter, DOCUMENT_TYPES.EMPLOYER_LETTER)
-    );
-  }
+    // Required documents
+    if (formData.idDocument) {
+      requiredTasks.push(
+        uploadDocument(appId, formData.idDocument, DOCUMENT_TYPES.ID_DOCUMENT)
+      );
+    }
+    if (formData.payslip1) {
+      requiredTasks.push(
+        uploadDocument(appId, formData.payslip1, DOCUMENT_TYPES.PAYSLIP_1)
+      );
+    }
+    if (formData.payrollDeductionConfirmed && formData.employerLetter) {
+      requiredTasks.push(
+        uploadDocument(appId, formData.employerLetter, DOCUMENT_TYPES.EMPLOYER_LETTER)
+      );
+    }
 
-  // Optional documents
-  if (formData.payslip2) {
-    optionalTasks.push(
-      uploadDocument(appId, formData.payslip2, DOCUMENT_TYPES.PAYSLIP_2)
-        .catch(err => console.warn('Payslip 2 upload failed (optional):', err))
-    );
-  }
-  if (formData.payslip3) {
-    optionalTasks.push(
-      uploadDocument(appId, formData.payslip3, DOCUMENT_TYPES.PAYSLIP_3)
-        .catch(err => console.warn('Payslip 3 upload failed (optional):', err))
-    );
-  }
-  // If employerLetter exists but payrollDeductionConfirmed = false, treat as optional
-  if (!formData.payrollDeductionConfirmed && formData.employerLetter) {
-    optionalTasks.push(
-      uploadDocument(appId, formData.employerLetter, DOCUMENT_TYPES.EMPLOYER_LETTER)
-        .catch(err => console.warn('Employer letter upload failed (optional):', err))
-    );
-  }
+    // Optional documents
+    if (formData.payslip2) {
+      optionalTasks.push(
+        uploadDocument(appId, formData.payslip2, DOCUMENT_TYPES.PAYSLIP_2)
+          .catch(err => console.warn('Payslip 2 upload failed (optional):', err))
+      );
+    }
+    if (formData.payslip3) {
+      optionalTasks.push(
+        uploadDocument(appId, formData.payslip3, DOCUMENT_TYPES.PAYSLIP_3)
+          .catch(err => console.warn('Payslip 3 upload failed (optional):', err))
+      );
+    }
+    // If employerLetter exists but payrollDeductionConfirmed = false, treat as optional
+    if (!formData.payrollDeductionConfirmed && formData.employerLetter) {
+      optionalTasks.push(
+        uploadDocument(appId, formData.employerLetter, DOCUMENT_TYPES.EMPLOYER_LETTER)
+          .catch(err => console.warn('Employer letter upload failed (optional):', err))
+      );
+    }
 
-  // Wait for all required uploads – if any fails, this throws and stops submission
-  await Promise.all(requiredTasks);
-  // Fire off optional uploads but don't await them (or await with allSettled)
-  await Promise.allSettled(optionalTasks);
-};
+    // Wait for all required uploads – if any fails, this throws and stops submission
+    await Promise.all(requiredTasks);
+    // Fire off optional uploads but don't await them (or await with allSettled)
+    await Promise.allSettled(optionalTasks);
+  };
 
   const handleSubmit = async () => {
-  if (!validateStep(7)) return;
-  setIsSubmitting(true);
+    if (!validateStep(7)) return;
+    setIsSubmitting(true);
 
-  try {
-    // Get the application ID – either existing or newly created
-    const id = applicationId || await handleSaveDraft();
+    try {
+      // Get the application ID – either existing or newly created
+      const id = applicationId || await handleSaveDraft();
 
-    if (!id) throw new Error('Failed to create application');
+      if (!id) throw new Error('Failed to create application');
 
-    // Upload documents
-    await uploadDocuments(id);
+      // Upload documents
+      await uploadDocuments(id);
 
-    // Submit
-    await submitApplication(id);
+      // Submit
+      await submitApplication(id);
 
-    // Cleanup and redirect
-    localStorage.removeItem('payrollLoanDraft');
-    setSubmitSuccess(true);
-    setSnackbarMessage('Application submitted successfully!');
-    setShowSnackbar(true);
+      // Cleanup and redirect
+      localStorage.removeItem('payrollLoanDraft');
+      setSubmitSuccess(true);
+      setSnackbarMessage('Application submitted successfully!');
+      setShowSnackbar(true);
 
-    setTimeout(() => router.push('/dashboard/applications'), 2000);
-  } catch (error) {
-    // error handled via context/snackbar
-  } finally {
-    setIsSubmitting(false);
-  }
-};
+      // Don't redirect immediately - let the user see the success message
+      setTimeout(() => router.push('/dashboard/applications'), 2000);
+    } catch (error) {
+      console.error('Submit error:', error);
+      setSnackbarMessage('Failed to submit application. Please try again.');
+      setShowSnackbar(true);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const progress = Math.round(((activeStep + 1) / steps.length) * 100);
 
@@ -535,6 +568,27 @@ export default function PayrollLoanApplicationPage() {
         '& .MuiInputLabel-root.Mui-focused': {
           color: limeColors[500],
         },
+        // Make input text white in dark mode
+        '& .MuiInputBase-input': {
+          color: isDarkMode ? '#ffffff' : 'inherit',
+        },
+        '& .MuiInputBase-input::placeholder': {
+          color: isDarkMode ? 'rgba(255, 255, 255, 0.5)' : 'inherit',
+        },
+        // Make InputAdornment text white in dark mode
+        '& .MuiInputAdornment-root': {
+          color: isDarkMode ? '#ffffff' : 'inherit',
+        },
+        '& .MuiInputAdornment-root p': {
+          color: isDarkMode ? '#ffffff' : 'inherit',
+        },
+        // Make helper text white in dark mode
+        '& .MuiFormHelperText-root': {
+          color: isDarkMode ? '#a1a1aa' : '#71717a',
+        },
+        '& .MuiFormHelperText-root.Mui-error': {
+          color: '#ef4444',
+        },
       }
     };
 
@@ -544,6 +598,7 @@ export default function PayrollLoanApplicationPage() {
           bgcolor: isDarkMode ? 'rgba(255, 255, 255, 0.02)' : 'rgba(255, 255, 255, 0.9)',
           backdropFilter: 'blur(10px)',
           borderRadius: '12px',
+          color: isDarkMode ? '#ffffff' : 'inherit',
         },
         '& .MuiOutlinedInput-root': {
           borderRadius: '12px',
@@ -565,6 +620,18 @@ export default function PayrollLoanApplicationPage() {
         },
         '& .MuiInputLabel-root.Mui-focused': {
           color: limeColors[500],
+        },
+        // Make selected text white in dark mode
+        '& .MuiSelect-select.MuiSelect-outlined': {
+          color: isDarkMode ? '#ffffff' : 'inherit',
+        },
+        // Make MenuItem text white in dark mode
+        '& .MuiMenuItem-root': {
+          color: isDarkMode ? '#ffffff' : 'inherit',
+        },
+        // Make FormHelperText white in dark mode
+        '& .MuiFormHelperText-root': {
+          color: isDarkMode ? '#a1a1aa' : '#71717a',
         },
       }
     };
@@ -608,7 +675,7 @@ export default function PayrollLoanApplicationPage() {
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
-                      <Calendar size={20} color={isDarkMode ? '#a1a1aa' : '#71717a'} />
+                      <Calendar size={20} color={isDarkMode ? '#ffffff' : '#71717a'} />
                     </InputAdornment>
                   ),
                 }}
@@ -616,7 +683,7 @@ export default function PayrollLoanApplicationPage() {
               />
               <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3 }}>
                 <FormControl fullWidth required error={!!errors.gender}>
-                  <InputLabel>Gender</InputLabel>
+                  <InputLabel sx={{ color: isDarkMode ? '#ffffff' : undefined }}>Gender</InputLabel>
                   <Select 
                     name="gender" 
                     value={formData.gender} 
@@ -631,7 +698,7 @@ export default function PayrollLoanApplicationPage() {
                   {errors.gender && <FormHelperText>{errors.gender}</FormHelperText>}
                 </FormControl>
                 <FormControl fullWidth required error={!!errors.maritalStatus}>
-                  <InputLabel>Marital Status</InputLabel>
+                  <InputLabel sx={{ color: isDarkMode ? '#ffffff' : undefined }}>Marital Status</InputLabel>
                   <Select 
                     name="maritalStatus" 
                     value={formData.maritalStatus} 
@@ -686,7 +753,7 @@ export default function PayrollLoanApplicationPage() {
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
-                      <UserCog size={20} color={isDarkMode ? '#a1a1aa' : '#71717a'} />
+                      <UserCog size={20} color={isDarkMode ? '#ffffff' : '#71717a'} />
                     </InputAdornment>
                   ),
                 }}
@@ -694,7 +761,7 @@ export default function PayrollLoanApplicationPage() {
               />
               <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3 }}>
                 <FormControl fullWidth required error={!!errors.nextOfKinRelationship}>
-                  <InputLabel>Relationship</InputLabel>
+                  <InputLabel sx={{ color: isDarkMode ? '#ffffff' : undefined }}>Relationship</InputLabel>
                   <Select 
                     name="nextOfKinRelationship" 
                     value={formData.nextOfKinRelationship} 
@@ -720,7 +787,7 @@ export default function PayrollLoanApplicationPage() {
                   InputProps={{
                     startAdornment: (
                       <InputAdornment position="start">
-                        <Phone size={20} color={isDarkMode ? '#a1a1aa' : '#71717a'} />
+                        <Phone size={20} color={isDarkMode ? '#ffffff' : '#71717a'} />
                       </InputAdornment>
                     ),
                   }}
@@ -767,7 +834,7 @@ export default function PayrollLoanApplicationPage() {
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
-                      <Building2 size={20} color={isDarkMode ? '#a1a1aa' : '#71717a'} />
+                      <Building2 size={20} color={isDarkMode ? '#ffffff' : '#71717a'} />
                     </InputAdornment>
                   ),
                 }}
@@ -787,7 +854,7 @@ export default function PayrollLoanApplicationPage() {
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start" sx={{ alignSelf: 'flex-start', mt: 2 }}>
-                      <MapPin size={20} color={isDarkMode ? '#a1a1aa' : '#71717a'} />
+                      <MapPin size={20} color={isDarkMode ? '#ffffff' : '#71717a'} />
                     </InputAdornment>
                   ),
                 }}
@@ -806,7 +873,7 @@ export default function PayrollLoanApplicationPage() {
                   InputProps={{
                     startAdornment: (
                       <InputAdornment position="start">
-                        <Briefcase size={20} color={isDarkMode ? '#a1a1aa' : '#71717a'} />
+                        <Briefcase size={20} color={isDarkMode ? '#ffffff' : '#71717a'} />
                       </InputAdornment>
                     ),
                   }}
@@ -836,7 +903,7 @@ export default function PayrollLoanApplicationPage() {
                   InputProps={{
                     startAdornment: (
                       <InputAdornment position="start">
-                        <Calendar size={20} color={isDarkMode ? '#a1a1aa' : '#71717a'} />
+                        <Calendar size={20} color={isDarkMode ? '#ffffff' : '#71717a'} />
                       </InputAdornment>
                     ),
                   }}
@@ -882,6 +949,22 @@ export default function PayrollLoanApplicationPage() {
         );
 
       case 3:
+        // Calculate loan amounts
+        const loanAmount = formData.loanAmount || 0;
+        const processingFee = loanAmount * 0.10; // 10% one-time processing fee
+        const insuranceFee = loanAmount * 0.012; // 1.2% one-time insurance
+        const totalDeductions = processingFee + insuranceFee;
+        const amountReceived = loanAmount - totalDeductions;
+        
+        // Calculate monthly repayment with 7.5% monthly interest
+        const monthlyInterestRate = 0.075; // 7.5% per month
+        const paybackPeriod = formData.paybackPeriodMonths || 1;
+        
+        // Total interest = principal * monthly rate * number of months
+        const totalInterest = loanAmount * monthlyInterestRate * paybackPeriod;
+        const totalRepayment = loanAmount + totalInterest;
+        const monthlyPayment = totalRepayment / paybackPeriod;
+
         return (
           <Box sx={{ mt: 2 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 4 }}>
@@ -904,6 +987,7 @@ export default function PayrollLoanApplicationPage() {
                 </Typography>
               </Box>
             </Box>
+            
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
               <Box sx={{ 
                 p: 3, 
@@ -918,6 +1002,7 @@ export default function PayrollLoanApplicationPage() {
                   Maximum loan amount based on 24x your net monthly salary
                 </Typography>
               </Box>
+              
               <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3 }}>
                 <TextField 
                   required 
@@ -949,24 +1034,156 @@ export default function PayrollLoanApplicationPage() {
                   {...baseTextFieldProps}
                 />
               </Box>
-              <Box sx={{ 
-                p: 3, 
-                borderRadius: '16px', 
-                bgcolor: alpha(limeColors[500], 0.05),
-                border: `1.5px solid ${alpha(limeColors[500], 0.2)}`,
-              }}>
-                <Typography variant="subtitle1" sx={{ color: isDarkMode ? 'white' : '#18181b', fontWeight: 600, mb: 1 }}>
-                  Estimated Monthly Repayment
-                </Typography>
-                <Typography variant="h4" sx={{ color: limeColors[500], fontWeight: 700 }}>
-                  MK {formData.loanAmount && formData.paybackPeriodMonths 
-                    ? ((formData.loanAmount * 1.18) / formData.paybackPeriodMonths).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })
-                    : '0'}
-                </Typography>
-                <Typography variant="caption" sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a' }}>
-                  Based on 18% annual interest rate
-                </Typography>
-              </Box>
+
+              {loanAmount > 0 && paybackPeriod > 0 && (
+                <Box sx={{ 
+                  p: 3, 
+                  borderRadius: '16px', 
+                  bgcolor: alpha(limeColors[500], 0.05),
+                  border: `1.5px solid ${alpha(limeColors[500], 0.2)}`,
+                }}>
+                  <Typography variant="h6" sx={{ color: isDarkMode ? 'white' : '#18181b', fontWeight: 600, mb: 3 }}>
+                    Loan Breakdown
+                  </Typography>
+                  
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    {/* Loan Amount */}
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <Typography sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a' }}>
+                        Loan Amount:
+                      </Typography>
+                      <Typography sx={{ color: isDarkMode ? 'white' : '#18181b', fontWeight: 600 }}>
+                        MK {loanAmount.toLocaleString()}
+                      </Typography>
+                    </Box>
+
+                    {/* Processing Fee (10%) */}
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <Typography sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a' }}>
+                        Processing Fee (10% one-time):
+                      </Typography>
+                      <Typography sx={{ color: '#ef4444', fontWeight: 600 }}>
+                        - MK {processingFee.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                      </Typography>
+                    </Box>
+
+                    {/* Insurance (1.2%) */}
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <Typography sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a' }}>
+                        Insurance (1.2% one-time):
+                      </Typography>
+                      <Typography sx={{ color: '#ef4444', fontWeight: 600 }}>
+                        - MK {insuranceFee.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                      </Typography>
+                    </Box>
+
+                    {/* Total Deductions */}
+                    <Box sx={{ 
+                      display: 'flex', 
+                      justifyContent: 'space-between', 
+                      alignItems: 'center',
+                      pt: 1,
+                      borderTop: `1px dashed ${isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`
+                    }}>
+                      <Typography sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a', fontWeight: 600 }}>
+                        Total Deductions:
+                      </Typography>
+                      <Typography sx={{ color: '#ef4444', fontWeight: 700 }}>
+                        - MK {totalDeductions.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                      </Typography>
+                    </Box>
+
+                    {/* Amount You'll Receive */}
+                    <Box sx={{ 
+                      p: 2,
+                      mt: 1,
+                      borderRadius: '12px',
+                      bgcolor: alpha(limeColors[500], 0.1),
+                      border: `1px solid ${limeColors[500]}`,
+                    }}>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <Typography sx={{ color: limeColors[500], fontWeight: 700 }}>
+                          Amount You'll Receive:
+                        </Typography>
+                        <Typography variant="h5" sx={{ color: limeColors[500], fontWeight: 800 }}>
+                          MK {amountReceived.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                        </Typography>
+                      </Box>
+                      <Typography variant="caption" sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a', display: 'block', mt: 0.5 }}>
+                        After one-time deductions (10% processing + 1.2% insurance)
+                      </Typography>
+                    </Box>
+
+                    {/* Interest Calculation */}
+                    <Box sx={{ 
+                      p: 2,
+                      mt: 2,
+                      borderRadius: '12px',
+                      bgcolor: alpha(limeColors[500], 0.05),
+                    }}>
+                      <Typography variant="subtitle2" sx={{ color: limeColors[500], fontWeight: 600, mb: 2 }}>
+                        Repayment Calculation (7.5% Monthly Interest)
+                      </Typography>
+                      
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                        <Typography sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a' }}>
+                          Principal:
+                        </Typography>
+                        <Typography sx={{ color: isDarkMode ? 'white' : '#18181b' }}>
+                          MK {loanAmount.toLocaleString()}
+                        </Typography>
+                      </Box>
+                      
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                        <Typography sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a' }}>
+                          Total Interest ({paybackPeriod} months @ 7.5%/month):
+                        </Typography>
+                        <Typography sx={{ color: isDarkMode ? 'white' : '#18181b' }}>
+                          MK {totalInterest.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                        </Typography>
+                      </Box>
+                      
+                      <Box sx={{ 
+                        display: 'flex', 
+                        justifyContent: 'space-between', 
+                        alignItems: 'center',
+                        pt: 1,
+                        borderTop: `1px solid ${isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`
+                      }}>
+                        <Typography sx={{ color: isDarkMode ? 'white' : '#18181b', fontWeight: 600 }}>
+                          Total Repayment (Principal + Interest):
+                        </Typography>
+                        <Typography sx={{ color: limeColors[500], fontWeight: 700 }}>
+                          MK {totalRepayment.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                        </Typography>
+                      </Box>
+                    </Box>
+
+                    {/* Monthly Payment */}
+                    <Box sx={{ 
+                      p: 3, 
+                      borderRadius: '12px', 
+                      bgcolor: alpha(limeColors[500], 0.1),
+                      border: `2px solid ${limeColors[500]}`,
+                      textAlign: 'center',
+                      mt: 2
+                    }}>
+                      <Typography variant="body2" sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a', mb: 1 }}>
+                        Monthly Repayment Amount
+                      </Typography>
+                      <Typography variant="h3" sx={{ color: limeColors[500], fontWeight: 800, mb: 1 }}>
+                        MK {monthlyPayment.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                      </Typography>
+                      <Typography variant="caption" sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a' }}>
+                        (Principal + Interest) ÷ {paybackPeriod} months
+                      </Typography>
+                      <Typography variant="caption" sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a', display: 'block', mt: 1 }}>
+                        Total interest: MK {(totalInterest).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                      </Typography>
+                    </Box>
+                  </Box>
+                </Box>
+              )}
             </Box>
           </Box>
         );
@@ -1046,7 +1263,7 @@ export default function PayrollLoanApplicationPage() {
                     Employer Authorization Letter *
                   </Typography>
                   <Typography variant="body2" sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a', mb: 2 }}>
-                    Letter from employer confirming payroll deduction authorization
+                    Letter from employer confirming payroll deduction authorization (Max 10MB per file)
                   </Typography>
                   <Button 
                     component="label" 
@@ -1070,7 +1287,7 @@ export default function PayrollLoanApplicationPage() {
                   </Button>
                   {formData.employerLetter && (
                     <Typography variant="caption" sx={{ display: 'block', mt: 2, color: limeColors[500] }}>
-                      ✓ {formData.employerLetter.name}
+                      ✓ {formData.employerLetter.name} ({(formData.employerLetter.size / (1024 * 1024)).toFixed(2)}MB)
                     </Typography>
                   )}
                   {formData.employerLetter && (
@@ -1219,6 +1436,17 @@ export default function PayrollLoanApplicationPage() {
         );
 
       case 6:
+        // Calculate total file size
+        const totalFileSize = 
+          (formData.idDocument?.size || 0) +
+          (formData.payslip1?.size || 0) +
+          (formData.payslip2?.size || 0) +
+          (formData.payslip3?.size || 0) +
+          (formData.employerLetter?.size || 0);
+        
+        const totalFileSizeMB = totalFileSize / (1024 * 1024);
+        const isTotalSizeExceeded = totalFileSizeMB > 50;
+
         return (
           <Box sx={{ mt: 2 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 4 }}>
@@ -1241,6 +1469,48 @@ export default function PayrollLoanApplicationPage() {
                 </Typography>
               </Box>
             </Box>
+
+            {/* Total File Size Indicator */}
+            <Box sx={{ 
+              mb: 3, 
+              p: 2, 
+              borderRadius: '12px',
+              bgcolor: isDarkMode ? 'rgba(255, 255, 255, 0.02)' : 'rgba(255, 255, 255, 0.5)',
+              border: `1.5px solid ${isTotalSizeExceeded ? '#ef4444' : (isDarkMode ? 'rgba(132, 204, 22, 0.2)' : 'rgba(132, 204, 22, 0.15)')}`,
+            }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                <Typography sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a' }}>
+                  Total Upload Size:
+                </Typography>
+                <Typography sx={{ 
+                  color: isTotalSizeExceeded ? '#ef4444' : limeColors[500], 
+                  fontWeight: 700 
+                }}>
+                  {totalFileSizeMB.toFixed(2)}MB / 50MB
+                </Typography>
+              </Box>
+              <Box sx={{ 
+                height: 8, 
+                bgcolor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)', 
+                borderRadius: '100px',
+                overflow: 'hidden',
+              }}>
+                <Box 
+                  sx={{ 
+                    height: '100%', 
+                    bgcolor: isTotalSizeExceeded ? '#ef4444' : limeColors[500],
+                    width: `${Math.min((totalFileSizeMB / 50) * 100, 100)}%`,
+                    transition: 'width 0.3s ease',
+                  }}
+                />
+              </Box>
+              {isTotalSizeExceeded && (
+                <Typography color="error" variant="caption" sx={{ display: 'block', mt: 1 }}>
+                  Total file size exceeds 50MB limit. Please remove some files.
+                </Typography>
+              )}
+            </Box>
+
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
               <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3 }}>
                 <Box sx={{ 
@@ -1260,7 +1530,7 @@ export default function PayrollLoanApplicationPage() {
                     ID Document *
                   </Typography>
                   <Typography variant="body2" sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a', mb: 2 }}>
-                    National ID or Passport
+                    National ID or Passport (Max 10MB per file)
                   </Typography>
                   <Button 
                     component="label" 
@@ -1284,7 +1554,7 @@ export default function PayrollLoanApplicationPage() {
                   </Button>
                   {formData.idDocument && (
                     <Typography variant="caption" sx={{ display: 'block', mt: 2, color: limeColors[500] }}>
-                      ✓ {formData.idDocument.name}
+                      ✓ {formData.idDocument.name} ({(formData.idDocument.size / (1024 * 1024)).toFixed(2)}MB)
                     </Typography>
                   )}
                   {formData.idDocument && (
@@ -1323,7 +1593,7 @@ export default function PayrollLoanApplicationPage() {
                     Recent Payslip 1 *
                   </Typography>
                   <Typography variant="body2" sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a', mb: 2 }}>
-                    Most recent payslip
+                    Most recent payslip (Max 10MB per file)
                   </Typography>
                   <Button 
                     component="label" 
@@ -1347,7 +1617,7 @@ export default function PayrollLoanApplicationPage() {
                   </Button>
                   {formData.payslip1 && (
                     <Typography variant="caption" sx={{ display: 'block', mt: 2, color: limeColors[500] }}>
-                      ✓ {formData.payslip1.name}
+                      ✓ {formData.payslip1.name} ({(formData.payslip1.size / (1024 * 1024)).toFixed(2)}MB)
                     </Typography>
                   )}
                   {formData.payslip1 && (
@@ -1388,7 +1658,7 @@ export default function PayrollLoanApplicationPage() {
                     Recent Payslip 2
                   </Typography>
                   <Typography variant="body2" sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a', mb: 2 }}>
-                    Second most recent payslip
+                    Second most recent payslip (Max 10MB per file)
                   </Typography>
                   <Button 
                     component="label" 
@@ -1413,7 +1683,7 @@ export default function PayrollLoanApplicationPage() {
                   </Button>
                   {formData.payslip2 && (
                     <Typography variant="caption" sx={{ display: 'block', mt: 2, color: limeColors[500] }}>
-                      ✓ {formData.payslip2.name}
+                      ✓ {formData.payslip2.name} ({(formData.payslip2.size / (1024 * 1024)).toFixed(2)}MB)
                     </Typography>
                   )}
                   {formData.payslip2 && (
@@ -1447,7 +1717,7 @@ export default function PayrollLoanApplicationPage() {
                     Recent Payslip 3
                   </Typography>
                   <Typography variant="body2" sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a', mb: 2 }}>
-                    Third most recent payslip
+                    Third most recent payslip (Max 10MB per file)
                   </Typography>
                   <Button 
                     component="label" 
@@ -1472,7 +1742,7 @@ export default function PayrollLoanApplicationPage() {
                   </Button>
                   {formData.payslip3 && (
                     <Typography variant="caption" sx={{ display: 'block', mt: 2, color: limeColors[500] }}>
-                      ✓ {formData.payslip3.name}
+                      ✓ {formData.payslip3.name} ({(formData.payslip3.size / (1024 * 1024)).toFixed(2)}MB)
                     </Typography>
                   )}
                   {formData.payslip3 && (
@@ -1497,7 +1767,7 @@ export default function PayrollLoanApplicationPage() {
               }}>
                 <Typography variant="body2" sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a' }}>
                   <strong>Note:</strong> Upload clear scans/photos of documents. Allowed formats: PDF, JPG, PNG. 
-                  Maximum file size: 5MB each.
+                  Maximum file size per document: <strong>10MB</strong>. Total for all documents: <strong>50MB</strong>.
                 </Typography>
               </Alert>
             </Box>
@@ -1651,7 +1921,7 @@ export default function PayrollLoanApplicationPage() {
     }
   };
 
-  // SummaryDisplay component remains unchanged
+  // SummaryDisplay component
   const SummaryDisplay = () => (
     <Container maxWidth="md">
       <Box sx={{ 
