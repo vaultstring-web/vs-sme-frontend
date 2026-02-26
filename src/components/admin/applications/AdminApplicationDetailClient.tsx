@@ -15,6 +15,8 @@ import EditableField from "./EditableField";
 import StatusChangeModal from "./StatusChangeModal";
 import ApplicationTimeline from "./ApplicationTimeline";
 import { useApplications } from "@/hooks/useApplications"; // adjust path as needed
+import DocumentViewer from "@/components/shared/DocumentViewer";
+import { API_BASE_URL } from "@/lib/apiClient";
 
 interface AdminApplicationDetailClientProps {
   id: string;
@@ -36,6 +38,8 @@ export default function AdminApplicationDetailClient({
 
   const [isEditMode, setIsEditMode] = useState(false);
   const [isStatusModalOpen, setIsStatusModalOpen] = useState(false);
+  const [isViewerOpen, setIsViewerOpen] = useState(false);
+  const [viewerIndex, setViewerIndex] = useState(0);
   
 
   useEffect(() => {
@@ -220,7 +224,7 @@ export default function AdminApplicationDetailClient({
               </p>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {app.documents.map((doc: any) => (
+                {app.documents.map((doc: any, idx: number) => (
                   <div
                     key={doc.id}
                     className="flex items-center justify-between p-3 border border-border rounded-lg hover:bg-slate-50 dark:hover:bg-zinc-800/50 transition-colors"
@@ -238,14 +242,28 @@ export default function AdminApplicationDetailClient({
                         </p>
                       </div>
                     </div>
-                    <a
-                      href={doc.fileUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="p-2 text-foreground/40 hover:text-primary-600 transition-colors"
-                    >
-                      <Download size={18} />
-                    </a>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => {
+                          setViewerIndex(idx);
+                          setIsViewerOpen(true);
+                        }}
+                        className="px-2 py-1 text-xs text-primary-600 hover:text-primary-700"
+                        title="View"
+                      >
+                        View
+                      </button>
+                      <a
+                        href={doc.fileUrl.startsWith('http') ? doc.fileUrl : `${API_BASE_URL}${doc.fileUrl}`}
+                        download
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-2 text-foreground/40 hover:text-primary-600 transition-colors"
+                        title="Download"
+                      >
+                        <Download size={18} />
+                      </a>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -270,6 +288,13 @@ export default function AdminApplicationDetailClient({
         onConfirm={handleStatusUpdate}
         currentStatus={app.status}
       />
+      {isViewerOpen && app && (
+        <DocumentViewer
+          documents={app.documents.map((d: any) => ({ id: d.id, name: d.fileName, fileUrl: d.fileUrl, documentType: d.documentType }))}
+          initialIndex={viewerIndex}
+          onClose={() => setIsViewerOpen(false)}
+        />
+      )}
     </div>
   );
 }

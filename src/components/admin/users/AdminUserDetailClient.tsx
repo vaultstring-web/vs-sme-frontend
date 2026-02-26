@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { 
-  User,
+  //User,
   ArrowLeft, 
   Mail, 
   Phone, 
@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import apiClient, { API_BASE_URL } from '@/lib/apiClient';
 import Link from 'next/link';
+import DocumentViewer from '@/components/shared/DocumentViewer';
 
 interface UserDocument {
   id: string;
@@ -62,6 +63,8 @@ export default function AdminUserDetailClient({ id }: AdminUserDetailClientProps
   const [user, setUser] = useState<UserDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isViewerOpen, setIsViewerOpen] = useState(false);
+  const [viewerIndex, setViewerIndex] = useState(0);
 
   const fetchUserDetails = useCallback(async () => {
     setIsLoading(true);
@@ -251,14 +254,27 @@ export default function AdminUserDetailClient({ id }: AdminUserDetailClientProps
                     <p className="text-xs text-slate-500 dark:text-zinc-500 mb-4">
                       Uploaded {new Date(doc.uploadedAt).toLocaleDateString()}
                     </p>
-                    <a 
-                      href={doc.fileUrl.startsWith('http') ? doc.fileUrl : `${API_BASE_URL}${doc.fileUrl}`} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 text-xs font-medium text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 transition-colors"
-                    >
-                      View Document <ExternalLink className="w-3 h-3" />
-                    </a>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => {
+                          const idx = user.documents.findIndex(d => d.id === doc.id);
+                          setViewerIndex(Math.max(0, idx));
+                          setIsViewerOpen(true);
+                        }}
+                        className="inline-flex items-center gap-2 text-xs font-medium text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 transition-colors"
+                      >
+                        View <ExternalLink className="w-3 h-3" />
+                      </button>
+                      <a
+                        href={doc.fileUrl.startsWith('http') ? doc.fileUrl : `${API_BASE_URL}${doc.fileUrl}`}
+                        download
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs text-slate-600 dark:text-zinc-300 hover:text-primary-600 dark:hover:text-primary-400"
+                      >
+                        Download
+                      </a>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -318,6 +334,13 @@ export default function AdminUserDetailClient({ id }: AdminUserDetailClientProps
           </div>
         </div>
       </div>
+      {isViewerOpen && user && (
+        <DocumentViewer
+          documents={user.documents.map(d => ({ id: d.id, name: d.fileName, fileUrl: d.fileUrl, documentType: d.documentType }))}
+          initialIndex={viewerIndex}
+          onClose={() => setIsViewerOpen(false)}
+        />
+      )}
     </div>
   );
 }

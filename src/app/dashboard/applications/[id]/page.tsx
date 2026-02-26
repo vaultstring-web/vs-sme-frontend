@@ -4,6 +4,8 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useApplications } from '@/hooks/useApplications';
+import DocumentViewer from '@/components/shared/DocumentViewer';
+import { API_BASE_URL } from '@/lib/apiClient';
 import {
   ArrowLeft,
   FileText,
@@ -84,6 +86,8 @@ export default function ApplicationDetailPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isViewerOpen, setIsViewerOpen] = useState(false);
+  const [viewerIndex, setViewerIndex] = useState(0);
 
   useEffect(() => {
     if (applicationId) {
@@ -411,7 +415,7 @@ export default function ApplicationDetailPage() {
             </h2>
             {app.documents && app.documents.length > 0 ? (
               <div className="space-y-2">
-                {app.documents.map((doc) => (
+                {app.documents.map((doc, idx) => (
                   <div
                     key={doc.id}
                     className="flex items-center justify-between p-3 bg-card rounded-lg border border-border"
@@ -425,14 +429,26 @@ export default function ApplicationDetailPage() {
                         </p>
                       </div>
                     </div>
-                    <a
-                      href={doc.fileUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="p-2 text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-lg"
-                    >
-                      <Download className="w-5 h-5" />
-                    </a>
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={() => {
+                          setViewerIndex(idx);
+                          setIsViewerOpen(true);
+                        }}
+                        className="text-sm text-primary-600 hover:text-primary-700"
+                      >
+                        View
+                      </button>
+                      <a
+                        href={doc.fileUrl.startsWith('http') ? doc.fileUrl : `${API_BASE_URL}${doc.fileUrl}`}
+                        download
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-2 text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-lg"
+                      >
+                        <Download className="w-5 h-5" />
+                      </a>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -444,6 +460,13 @@ export default function ApplicationDetailPage() {
             )}
           </div>
         </div>
+        {isViewerOpen && currentApplication?.documents && (
+          <DocumentViewer
+            documents={currentApplication.documents.map(d => ({ id: d.id, name: d.fileName, fileUrl: d.fileUrl, documentType: d.documentType }))}
+            initialIndex={viewerIndex}
+            onClose={() => setIsViewerOpen(false)}
+          />
+        )}
 
         {/* Sidebar */}
         <div className="space-y-6">

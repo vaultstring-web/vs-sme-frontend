@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { X, Upload, File, CheckCircle, AlertCircle, Loader2, Trash2 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import LocalFilePreviewModal from '@/components/shared/LocalFilePreviewModal';
 
 // Document type definitions (must match backend)
 export type DocumentType = 
@@ -79,7 +80,7 @@ interface SelectedFile {
   id: string;
   file: File;
   type: DocumentType;
-  preview?: string;
+  previewUrl?: string; // local object URL for preview (image/pdf thumbnails)
 }
 
 interface DocumentUploadModalProps {
@@ -97,12 +98,24 @@ export const DocumentUploadModal: React.FC<DocumentUploadModalProps> = ({
 }) => {
   const { uploadDocuments, isLoading: authLoading } = useAuth();
   const [selectedFiles, setSelectedFiles] = useState<SelectedFile[]>([]);
+  const [previewing, setPreviewing] = useState<SelectedFile | null>(null);
   const [uploadProgress, setUploadProgress] = useState<number>(0);
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
   const fileInputRefs = useRef<Record<DocumentType, HTMLInputElement | null>>({} as any);
+
+  // Cleanup local object URLs on unmount/close.
+  // Without this, closing the modal after selecting files can leak blob URLs.
+  // (We also revoke URLs when removing a single file.)
+  useEffect(() => {
+    return () => {
+      for (const f of selectedFiles) {
+        if (f.previewUrl) URL.revokeObjectURL(f.previewUrl);
+      }
+    };
+  }, [selectedFiles]);
 
   if (!isOpen) return null;
 
@@ -148,14 +161,19 @@ export const DocumentUploadModal: React.FC<DocumentUploadModalProps> = ({
       }
 
       const id = `${type}-${Date.now()}-${Math.random()}`;
-      const preview = isImage ? URL.createObjectURL(file) : undefined;
+      const previewUrl = (isImage || isPdf) ? URL.createObjectURL(file) : undefined;
 
       // For non-multiple, replace existing files of same type
       if (!requirement.multiple) {
-        setSelectedFiles(prev => prev.filter(f => f.type !== type));
+        setSelectedFiles(prev => {
+          for (const f of prev) {
+            if (f.type === type && f.previewUrl) URL.revokeObjectURL(f.previewUrl);
+          }
+          return prev.filter(f => f.type !== type);
+        });
       }
 
-      setSelectedFiles(prev => [...prev, { id, file, type, preview }]);
+      setSelectedFiles(prev => [...prev, { id, file, type, previewUrl }]);
     });
 
     e.target.value = ''; // Reset input so same file can be selected again
@@ -164,7 +182,7 @@ export const DocumentUploadModal: React.FC<DocumentUploadModalProps> = ({
   const removeFile = (id: string) => {
     setSelectedFiles(prev => {
       const file = prev.find(f => f.id === id);
-      if (file?.preview) URL.revokeObjectURL(file.preview);
+      if (file?.previewUrl) URL.revokeObjectURL(file.previewUrl);
       return prev.filter(f => f.id !== id);
     });
   };
@@ -303,8 +321,8 @@ export const DocumentUploadModal: React.FC<DocumentUploadModalProps> = ({
                     {filesForType.map(file => (
                       <div key={file.id} className="flex items-center justify-between bg-slate-50 dark:bg-white/5 p-2 rounded-lg">
                         <div className="flex items-center gap-3">
-                          {file.preview ? (
-                            <img src={file.preview} alt="preview" className="w-8 h-8 object-cover rounded" />
+                          {file.previewUrl && file.file.type.startsWith('image/') ? (
+                            <img src={file.previewUrl} alt="preview" className="w-8 h-8 object-cover rounded" />
                           ) : (
                             <File className="w-5 h-5 text-slate-400" />
                           )}
@@ -313,12 +331,24 @@ export const DocumentUploadModal: React.FC<DocumentUploadModalProps> = ({
                             {(file.file.size / 1024).toFixed(1)} KB
                           </span>
                         </div>
-                        <button
-                          onClick={() => removeFile(file.id)}
-                          className="p-1 text-slate-500 hover:text-error-main transition-colors"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                        <div className="flex items-center gap-1">
+                          <button
+                            type="button"
+                            onClick={() => setPreviewing(file)}
+                            className="px-2 py-1 text-xs font-semibold text-primary-700 dark:text-primary-300 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-md transition-colors"
+                            aria-label={`Preview ${file.file.name}`}
+                          >
+                            Preview
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => removeFile(file.id)}
+                            className="p-1 text-slate-500 hover:text-error-main transition-colors"
+                            aria-label={`Remove ${file.file.name}`}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -371,6 +401,14 @@ export const DocumentUploadModal: React.FC<DocumentUploadModalProps> = ({
           </div>
         </div>
       </div>
+
+      {previewing && (
+        <LocalFilePreviewModal
+          file={previewing.file}
+          title={`${previewing.type.replaceAll('_', ' ')} preview`}
+          onClose={() => setPreviewing(null)}
+        />
+      )}
     </div>
   );
 };

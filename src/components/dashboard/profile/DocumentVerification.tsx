@@ -1,15 +1,16 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import apiClient from '@/lib/apiClient';
 import { 
   FileText, CheckCircle2, Clock, AlertCircle, UploadCloud, 
-  RefreshCcw, Loader2, Eye, Download, X, ZoomIn, ZoomOut, 
-  ChevronLeft, ChevronRight, Maximize2, Minimize2 
+  RefreshCcw, Loader2, Eye, Download
 } from 'lucide-react';
 
 import { DocumentUploadModal, DocumentType } from './DocumentUploadModal';
+import DocumentViewer from '@/components/shared/DocumentViewer';
+import { API_BASE_URL } from '@/lib/apiClient';
 
 // Define Document interface based on backend response
 interface BackendDocument {
@@ -41,12 +42,10 @@ export const DocumentVerification = () => {
   const [error, setError] = useState<string | null>(null);
   const [isViewerOpen, setIsViewerOpen] = useState(false);
   const [currentDocumentIndex, setCurrentDocumentIndex] = useState(0);
-  const [zoom, setZoom] = useState(100);
-  const [isFullscreen, setIsFullscreen] = useState(false);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
 
   // Fetch documents from backend
-  const fetchDocuments = async () => {
+  const fetchDocuments = useCallback(async () => {
     if (!user) return;
 
     try {
@@ -113,29 +112,13 @@ export const DocumentVerification = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [user]);
 
   useEffect(() => {
     fetchDocuments();
-  }, [user]);
+  }, [fetchDocuments]);
 
-  // Handle keyboard navigation
-  useEffect(() => {
-    if (!isViewerOpen) return;
-
-    const handleKeyPress = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        handleCloseViewer();
-      } else if (e.key === 'ArrowLeft') {
-        handlePrevDocument();
-      } else if (e.key === 'ArrowRight') {
-        handleNextDocument();
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyPress);
-    return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [isViewerOpen, currentDocumentIndex, documents.length]);
+  // Keyboard navigation handled inside shared DocumentViewer
 
   const getStatusStyles = (status?: DocumentItem['status']) => {
     if (!status) {
@@ -195,81 +178,19 @@ export const DocumentVerification = () => {
   const handleViewDocument = (index: number) => {
     setCurrentDocumentIndex(index);
     setIsViewerOpen(true);
-    setZoom(100);
   };
 
   const handleCloseViewer = () => {
     setIsViewerOpen(false);
-    setZoom(100);
-    setIsFullscreen(false);
   };
 
-  const handleNextDocument = () => {
-    if (currentDocumentIndex < documents.length - 1) {
-      setCurrentDocumentIndex(currentDocumentIndex + 1);
-      setZoom(100);
-    }
-  };
-
-  const handlePrevDocument = () => {
-    if (currentDocumentIndex > 0) {
-      setCurrentDocumentIndex(currentDocumentIndex - 1);
-      setZoom(100);
-    }
-  };
-
-  const handleZoomIn = () => {
-    setZoom(prev => Math.min(prev + 25, 200));
-  };
-
-  const handleZoomOut = () => {
-    setZoom(prev => Math.max(prev - 25, 50));
-  };
-
-  const toggleFullscreen = () => {
-    setIsFullscreen(!isFullscreen);
-  };
-
-  const handleDownloadDocument = async (fileUrl: string, fileName: string) => {
-    try {
-      const fullUrl = fileUrl.startsWith('http') 
-        ? fileUrl 
-        : `${process.env.NEXT_PUBLIC_API_BASE_URL || 'https://api-thrive.vaultstring.com'}/${fileUrl.replace(/^\/+/, '')}`;
-      
-      const response = await fetch(fullUrl);
-      const blob = await response.blob();
-      const downloadUrl = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = downloadUrl;
-      link.download = fileName;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(downloadUrl);
-    } catch (err) {
-      console.error('Download failed:', err);
-      alert('Failed to download document. Please try again later.');
-    }
-  };
+  // removed local viewer download/zoom/fullscreen handlers; shared viewer handles this
 
   const handleRefresh = () => {
     fetchDocuments();
   };
 
-  const getFileType = (fileUrl: string): 'pdf' | 'image' | 'unknown' => {
-    const url = fileUrl.toLowerCase();
-    if (url.endsWith('.pdf')) return 'pdf';
-    if (url.match(/\.(jpg|jpeg|png|gif|webp|svg)$/)) return 'image';
-    return 'unknown';
-  };
-
-  const currentDocument = documents[currentDocumentIndex];
-  const currentFileUrl = currentDocument 
-    ? (currentDocument.fileUrl.startsWith('http') 
-        ? currentDocument.fileUrl 
-        : `${process.env.NEXT_PUBLIC_API_BASE_URL || 'https://api-thrive.vaultstring.com'}/${currentDocument.fileUrl.replace(/^\/+/, '')}`)
-    : '';
-  const currentFileType = currentDocument ? getFileType(currentDocument.fileUrl) : 'unknown';
+  // removed local viewer file type and current url helpers; shared viewer handles this
 
   if (isLoading) {
     return (
@@ -439,14 +360,17 @@ export const DocumentVerification = () => {
                       <span className="hidden sm:inline">View</span>
                     </button>
                     
-                    <button 
-                      onClick={() => handleDownloadDocument(doc.fileUrl, doc.name)}
+                    <a 
+                      href={doc.fileUrl.startsWith('http') ? doc.fileUrl : `${API_BASE_URL}${doc.fileUrl}`}
+                      download
+                      target="_blank"
+                      rel="noopener noreferrer"
                       className="flex items-center gap-1.5 px-3 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-xs font-semibold rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                       title="Download document"
                     >
                       <Download className="w-4 h-4" />
                       <span className="hidden sm:inline">Download</span>
-                    </button>
+                    </a>
                     
                     {doc.status === 'rejected' && (
                       <button 
@@ -502,188 +426,12 @@ export const DocumentVerification = () => {
         )}
       </section>
 
-      {/* Elegant Document Viewer Modal */}
-      {isViewerOpen && currentDocument && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
-          {/* Modal Container */}
-          <div className={`relative bg-background rounded-2xl shadow-2xl flex flex-col transition-all duration-300 ${
-            isFullscreen ? 'w-full h-full rounded-none' : 'w-11/12 h-5/6 max-w-6xl'
-          }`}>
-            {/* Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-card/50 backdrop-blur-sm rounded-t-2xl">
-              <div className="flex items-center gap-4">
-                <div className={`p-2 rounded-lg ${getStatusStyles(currentDocument.status).bg}`}>
-                  {getStatusStyles(currentDocument.status).icon}
-                </div>
-                <div>
-                  <h3 className="font-semibold text-lg">{currentDocument.name}</h3>
-                  <p className="text-xs text-slate-500">
-                    {currentDocumentIndex + 1} of {documents.length}
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2">
-                {/* Zoom Controls (only for images) */}
-                {currentFileType === 'image' && (
-                  <>
-                    <button
-                      onClick={handleZoomOut}
-                      disabled={zoom <= 50}
-                      className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                      title="Zoom out"
-                    >
-                      <ZoomOut className="w-5 h-5" />
-                    </button>
-                    <span className="text-sm font-medium text-slate-600 dark:text-slate-400 min-w-12 text-center">
-                      {zoom}%
-                    </span>
-                    <button
-                      onClick={handleZoomIn}
-                      disabled={zoom >= 200}
-                      className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                      title="Zoom in"
-                    >
-                      <ZoomIn className="w-5 h-5" />
-                    </button>
-                    <div className="w-px h-6 bg-border mx-1"></div>
-                  </>
-                )}
-
-                {/* Fullscreen Toggle */}
-                <button
-                  onClick={toggleFullscreen}
-                  className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-                  title={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
-                >
-                  {isFullscreen ? <Minimize2 className="w-5 h-5" /> : <Maximize2 className="w-5 h-5" />}
-                </button>
-
-                {/* Download */}
-                <button
-                  onClick={() => handleDownloadDocument(currentDocument.fileUrl, currentDocument.name)}
-                  className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-                  title="Download"
-                >
-                  <Download className="w-5 h-5" />
-                </button>
-
-                {/* Close */}
-                <button
-                  onClick={handleCloseViewer}
-                  className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-                  title="Close (Esc)"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-            </div>
-
-            {/* Document Display Area */}
-            <div className="flex-1 overflow-hidden relative bg-slate-50 dark:bg-slate-900/50">
-              {currentFileType === 'image' && (
-                <div className="w-full h-full overflow-auto custom-scrollbar flex items-center justify-center p-8">
-                  <img
-                    src={currentFileUrl}
-                    alt={currentDocument.name}
-                    className="transition-transform duration-200 shadow-lg rounded-lg"
-                    style={{ 
-                      transform: `scale(${zoom / 100})`,
-                      maxWidth: '100%',
-                      height: 'auto'
-                    }}
-                  />
-                </div>
-              )}
-
-              {currentFileType === 'pdf' && (
-                <iframe
-                  src={currentFileUrl}
-                  className="w-full h-full border-0"
-                  title={currentDocument.name}
-                />
-              )}
-
-              {currentFileType === 'unknown' && (
-                <div className="flex flex-col items-center justify-center h-full text-slate-500">
-                  <FileText className="w-16 h-16 mb-4" />
-                  <p className="text-lg font-medium">Preview not available</p>
-                  <p className="text-sm mt-2">Please download the file to view it</p>
-                  <button
-                    onClick={() => handleDownloadDocument(currentDocument.fileUrl, currentDocument.name)}
-                    className="mt-4 flex items-center gap-2 px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors"
-                  >
-                    <Download className="w-4 h-4" />
-                    Download Document
-                  </button>
-                </div>
-              )}
-
-              {/* Navigation Arrows */}
-              {documents.length > 1 && (
-                <>
-                  <button
-                    onClick={handlePrevDocument}
-                    disabled={currentDocumentIndex === 0}
-                    className="absolute left-4 top-1/2 -translate-y-1/2 p-3 bg-white dark:bg-slate-800 rounded-full shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed hover:scale-110"
-                    title="Previous (←)"
-                  >
-                    <ChevronLeft className="w-6 h-6" />
-                  </button>
-
-                  <button
-                    onClick={handleNextDocument}
-                    disabled={currentDocumentIndex === documents.length - 1}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 p-3 bg-white dark:bg-slate-800 rounded-full shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed hover:scale-110"
-                    title="Next (→)"
-                  >
-                    <ChevronRight className="w-6 h-6" />
-                  </button>
-                </>
-              )}
-            </div>
-
-            {/* Footer with Document Info */}
-            <div className="px-6 py-4 border-t border-border bg-card/50 backdrop-blur-sm rounded-b-2xl">
-              <div className="flex items-center justify-between text-sm">
-                <div className="flex items-center gap-6">
-                  <div>
-                    <span className="text-slate-500">Status: </span>
-                    <span className={`font-semibold ${getStatusStyles(currentDocument.status).text}`}>
-                      {getStatusStyles(currentDocument.status).label}
-                    </span>
-                  </div>
-                  {currentDocument.updatedAt && (
-                    <div>
-                      <span className="text-slate-500">Uploaded: </span>
-                      <span className="font-medium">{currentDocument.updatedAt}</span>
-                    </div>
-                  )}
-                </div>
-                
-                {documents.length > 1 && (
-                  <div className="flex gap-1">
-                    {documents.map((_, idx) => (
-                      <button
-                        key={idx}
-                        onClick={() => {
-                          setCurrentDocumentIndex(idx);
-                          setZoom(100);
-                        }}
-                        className={`w-2 h-2 rounded-full transition-all ${
-                          idx === currentDocumentIndex 
-                            ? 'bg-primary-500 w-6' 
-                            : 'bg-slate-300 dark:bg-slate-600 hover:bg-slate-400'
-                        }`}
-                        title={documents[idx].name}
-                      />
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
+      {isViewerOpen && (
+        <DocumentViewer
+          documents={documents.map(d => ({ id: d.id, name: d.name, fileUrl: d.fileUrl, documentType: d.type }))}
+          initialIndex={currentDocumentIndex}
+          onClose={() => setIsViewerOpen(false)}
+        />
       )}
 
       {/* Document Upload Modal - CORRECTLY PLACED OUTSIDE VIEWER MODAL */}

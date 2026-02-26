@@ -37,6 +37,7 @@ import { styled } from '@mui/material/styles';
 import { useTheme } from '@/context/ThemeContext';
 import { useApplications } from '@/hooks/useApplications';
 import { useRouter } from 'next/navigation';
+import LocalFilePreviewModal from '@/components/shared/LocalFilePreviewModal';
 import { SmeFormData } from './types';
 
 const VisuallyHiddenInput = styled('input')({
@@ -72,6 +73,7 @@ export default function SMELoanApplicationPage() {
   const [showSnackbar, setShowSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [applicationId, setApplicationId] = useState<string | null>(null);
+  const [preview, setPreview] = useState<{ file: File; title: string } | null>(null);
   
   const {
     createDraftApplication,
@@ -249,6 +251,10 @@ export default function SMELoanApplicationPage() {
 
   const handleBack = () => {
     setActiveStep((prev) => prev - 1);
+  };
+
+  const openPreview = (file: File, title: string) => {
+    setPreview({ file, title });
   };
 
   const handleSaveDraft = async (): Promise<string | null> => {
@@ -818,6 +824,18 @@ export default function SMELoanApplicationPage() {
                   {formData.idDocument ? formData.idDocument.name : 'Choose ID Document'}
                   <VisuallyHiddenInput type="file" onChange={handleFileUpload('idDocument')} accept=".pdf,.jpg,.jpeg,.png" />
                 </Button>
+                {formData.idDocument && (
+                  <Box sx={{ mt: 1, display: 'flex', justifyContent: 'flex-end' }}>
+                    <Button
+                      size="small"
+                      variant="text"
+                      onClick={() => openPreview(formData.idDocument as File, 'ID Document')}
+                      sx={{ textTransform: 'none', color: isDarkMode ? '#a3e635' : '#65a30d' }}
+                    >
+                      Preview
+                    </Button>
+                  </Box>
+                )}
                 {errors.idDocument && (
                   <Typography variant="caption" color="error" sx={{ mt: 0.5, display: 'block' }}>
                     {errors.idDocument}
@@ -847,6 +865,18 @@ export default function SMELoanApplicationPage() {
                   {formData.businessRegistrationDoc ? formData.businessRegistrationDoc.name : 'Choose Business Registration'}
                   <VisuallyHiddenInput type="file" onChange={handleFileUpload('businessRegistrationDoc')} accept=".pdf,.jpg,.jpeg,.png" />
                 </Button>
+                {formData.businessRegistrationDoc && (
+                  <Box sx={{ mt: 1, display: 'flex', justifyContent: 'flex-end' }}>
+                    <Button
+                      size="small"
+                      variant="text"
+                      onClick={() => openPreview(formData.businessRegistrationDoc as File, 'Business Registration Document')}
+                      sx={{ textTransform: 'none', color: isDarkMode ? '#a3e635' : '#65a30d' }}
+                    >
+                      Preview
+                    </Button>
+                  </Box>
+                )}
                 {errors.businessRegistrationDoc && (
                   <Typography variant="caption" color="error" sx={{ mt: 0.5, display: 'block' }}>
                     {errors.businessRegistrationDoc}
@@ -876,6 +906,18 @@ export default function SMELoanApplicationPage() {
                   {formData.financialStatementDoc ? formData.financialStatementDoc.name : 'Choose Financial Statement'}
                   <VisuallyHiddenInput type="file" onChange={handleFileUpload('financialStatementDoc')} accept=".pdf,.jpg,.jpeg,.png" />
                 </Button>
+                {formData.financialStatementDoc && (
+                  <Box sx={{ mt: 1, display: 'flex', justifyContent: 'flex-end' }}>
+                    <Button
+                      size="small"
+                      variant="text"
+                      onClick={() => openPreview(formData.financialStatementDoc as File, 'Financial Statement')}
+                      sx={{ textTransform: 'none', color: isDarkMode ? '#a3e635' : '#65a30d' }}
+                    >
+                      Preview
+                    </Button>
+                  </Box>
+                )}
               </Box>
             </Box>
           </Box>
@@ -1031,7 +1073,8 @@ export default function SMELoanApplicationPage() {
   }
 
   return (
-    <Container maxWidth="lg" sx={{ py: 5 }}>
+    <>
+      <Container maxWidth="lg" sx={{ py: 5 }}>
       <Typography 
         variant="h3" 
         sx={{ 
@@ -1283,6 +1326,15 @@ export default function SMELoanApplicationPage() {
           }
         }}
       />
-    </Container>
+      </Container>
+
+      {preview && (
+        <LocalFilePreviewModal
+          file={preview.file}
+          title={preview.title}
+          onClose={() => setPreview(null)}
+        />
+      )}
+    </>
   );
 }
