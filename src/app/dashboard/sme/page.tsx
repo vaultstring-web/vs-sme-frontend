@@ -18,7 +18,9 @@ import {
   InputAdornment,
   Container,
   Snackbar,
-  alpha
+  alpha,
+  FormHelperText,
+  Divider
 } from '@mui/material';
 import {
   Save,
@@ -31,7 +33,14 @@ import {
   Users,
   History,
   FileUp,
-  Shield
+  Shield,
+  Calendar,
+  Briefcase,
+  FileText,
+  CreditCard,
+  MapPin,
+  Phone,
+  UserCog
 } from 'lucide-react';
 import { styled } from '@mui/material/styles';
 import { useTheme } from '@/context/ThemeContext';
@@ -113,6 +122,93 @@ export default function SMELoanApplicationPage() {
   });
   
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const limeColors = {
+    50: '#f7fee7',
+    100: '#ecfccb',
+    200: '#d9f99d',
+    300: '#bef264',
+    400: '#a3e635',
+    500: '#84cc16',
+    600: '#65a30d',
+    700: '#4d7c0f',
+    800: '#3f6212',
+    900: '#365314',
+  };
+
+  // Base styles for text fields with dark mode support
+  const baseTextFieldProps = {
+    fullWidth: true,
+    variant: 'outlined' as const,
+    sx: {
+      '& .MuiOutlinedInput-root': {
+        bgcolor: isDarkMode ? 'rgba(255, 255, 255, 0.02)' : 'rgba(255, 255, 255, 0.9)',
+        backdropFilter: 'blur(10px)',
+        borderRadius: '12px',
+        '& fieldset': {
+          borderColor: isDarkMode ? 'rgba(132, 204, 22, 0.2)' : 'rgba(132, 204, 22, 0.15)',
+          borderWidth: '1.5px',
+        },
+        '&:hover fieldset': {
+          borderColor: isDarkMode ? 'rgba(132, 204, 22, 0.4)' : 'rgba(132, 204, 22, 0.3)',
+        },
+        '&.Mui-focused fieldset': {
+          borderColor: limeColors[500],
+          borderWidth: '2px',
+        },
+      },
+      '& .MuiInputLabel-root': {
+        color: isDarkMode ? '#a1a1aa' : '#71717a',
+        fontWeight: 500,
+      },
+      '& .MuiInputLabel-root.Mui-focused': {
+        color: limeColors[500],
+      },
+      '& .MuiInputBase-input': {
+        color: isDarkMode ? '#ffffff' : 'inherit',
+      },
+      '& .MuiInputBase-input::placeholder': {
+        color: isDarkMode ? 'rgba(255, 255, 255, 0.5)' : 'inherit',
+      },
+      '& .MuiInputAdornment-root': {
+        color: isDarkMode ? '#ffffff' : 'inherit',
+      },
+      '& .MuiInputAdornment-root p': {
+        color: isDarkMode ? '#ffffff' : 'inherit',
+      },
+      '& .MuiFormHelperText-root': {
+        color: isDarkMode ? '#a1a1aa' : '#71717a',
+      },
+      '& .MuiFormHelperText-root.Mui-error': {
+        color: '#ef4444',
+      },
+    }
+  };
+
+  const baseSelectProps = {
+    sx: {
+      bgcolor: isDarkMode ? 'rgba(255, 255, 255, 0.02)' : 'rgba(255, 255, 255, 0.9)',
+      borderRadius: '12px',
+      color: isDarkMode ? '#ffffff' : 'inherit',
+      '& .MuiOutlinedInput-notchedOutline': {
+        borderColor: isDarkMode ? 'rgba(132, 204, 22, 0.2)' : 'rgba(132, 204, 22, 0.15)',
+        borderWidth: '1.5px',
+      },
+      '&:hover .MuiOutlinedInput-notchedOutline': {
+        borderColor: isDarkMode ? 'rgba(132, 204, 22, 0.4)' : 'rgba(132, 204, 22, 0.3)',
+      },
+      '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+        borderColor: limeColors[500],
+        borderWidth: '2px',
+      },
+      '& .MuiSelect-select': {
+        color: isDarkMode ? '#ffffff' : 'inherit',
+      },
+      '& .MuiMenuItem-root': {
+        color: isDarkMode ? '#ffffff' : 'inherit',
+      },
+    }
+  };
 
   // Load draft from localStorage on mount
   useEffect(() => {
@@ -424,49 +520,6 @@ export default function SMELoanApplicationPage() {
 
   const progress = Math.round(((activeStep + 1) / steps.length) * 100);
 
-  const limeColors = {
-    50: '#f7fee7',
-    100: '#ecfccb',
-    200: '#d9f99d',
-    300: '#bef264',
-    400: '#a3e635',
-    500: '#84cc16',
-    600: '#65a30d',
-    700: '#4d7c0f',
-    800: '#3f6212',
-    900: '#365314',
-  };
-
-  const baseTextFieldProps = {
-    fullWidth: true,
-    variant: 'outlined' as const,
-    sx: {
-      '& .MuiOutlinedInput-root': {
-        bgcolor: isDarkMode ? 'rgba(255, 255, 255, 0.02)' : 'rgba(255, 255, 255, 0.9)',
-        backdropFilter: 'blur(10px)',
-        borderRadius: '12px',
-        '& fieldset': {
-          borderColor: isDarkMode ? 'rgba(132, 204, 22, 0.2)' : 'rgba(132, 204, 22, 0.15)',
-          borderWidth: '1.5px',
-        },
-        '&:hover fieldset': {
-          borderColor: isDarkMode ? 'rgba(132, 204, 22, 0.4)' : 'rgba(132, 204, 22, 0.3)',
-        },
-        '&.Mui-focused fieldset': {
-          borderColor: limeColors[500],
-          borderWidth: '2px',
-        },
-      },
-      '& .MuiInputLabel-root': {
-        color: isDarkMode ? '#a1a1aa' : '#71717a',
-        fontWeight: 500,
-      },
-      '& .MuiInputLabel-root.Mui-focused': {
-        color: limeColors[500],
-      },
-    }
-  };
-
   const getStepContent = (step: number) => {
     switch (step) {
       case 0:
@@ -495,26 +548,21 @@ export default function SMELoanApplicationPage() {
                 helperText="Optional if not registered"
               />
               <FormControl fullWidth error={!!errors.businessType}>
-                <InputLabel>Business Type</InputLabel>
+                <InputLabel sx={{ color: isDarkMode ? '#ffffff' : undefined }}>Business Type</InputLabel>
                 <Select
                   name="businessType"
                   value={formData.businessType}
                   onChange={handleSelectChange('businessType')}
                   label="Business Type"
                   required
-                  sx={{
-                    bgcolor: isDarkMode ? 'rgba(255, 255, 255, 0.02)' : 'rgba(255, 255, 255, 0.9)',
-                    borderRadius: '12px',
-                  }}
+                  {...baseSelectProps}
                 >
                   {businessTypes.map((type) => (
                     <MenuItem key={type} value={type}>{type}</MenuItem>
                   ))}
                 </Select>
                 {errors.businessType && (
-                  <Typography variant="caption" color="error" sx={{ mt: 0.5 }}>
-                    {errors.businessType}
-                  </Typography>
+                  <FormHelperText error>{errors.businessType}</FormHelperText>
                 )}
               </FormControl>
               <TextField
@@ -534,6 +582,44 @@ export default function SMELoanApplicationPage() {
         );
 
       case 1:
+        // Calculate loan amounts with 8.5% ANNUAL interest
+        const loanAmount = formData.loanAmount || 0;
+        const paybackPeriod = formData.paybackPeriodMonths || 1;
+        
+        // Convert annual rate to monthly rate (8.5% per year / 12 months)
+        const annualInterestRate = 0.085; // 8.5% per year
+        const monthlyInterestRate = annualInterestRate / 12; // Convert to monthly
+        
+        // Total interest = principal * monthly rate * number of months
+        const totalInterest = loanAmount * monthlyInterestRate * paybackPeriod;
+        const totalRepayment = loanAmount + totalInterest;
+        
+        // Calculate payment based on repayment method
+        let paymentAmount = 0;
+        let paymentFrequency = '';
+        
+        switch (formData.repaymentMethod) {
+          case 'Monthly':
+            paymentAmount = totalRepayment / paybackPeriod;
+            paymentFrequency = 'Monthly';
+            break;
+          case 'Quarterly':
+            paymentAmount = totalRepayment / (paybackPeriod / 3);
+            paymentFrequency = 'Quarterly';
+            break;
+          case 'Bi-Annually':
+            paymentAmount = totalRepayment / (paybackPeriod / 6);
+            paymentFrequency = 'Bi-Annual';
+            break;
+          case 'Bullet Payment':
+            paymentAmount = totalRepayment;
+            paymentFrequency = 'One-time';
+            break;
+          default:
+            paymentAmount = totalRepayment / paybackPeriod;
+            paymentFrequency = 'Monthly';
+        }
+
         return (
           <Box>
             <Typography variant="h5" sx={{ mb: 3, fontWeight: 700, color: isDarkMode ? 'white' : '#18181b' }}>
@@ -541,32 +627,28 @@ export default function SMELoanApplicationPage() {
             </Typography>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
               <FormControl fullWidth error={!!errors.loanProduct}>
-                <InputLabel>Loan Product</InputLabel>
+                <InputLabel sx={{ color: isDarkMode ? '#ffffff' : undefined }}>Loan Product</InputLabel>
                 <Select
                   name="loanProduct"
                   value={formData.loanProduct}
                   onChange={handleSelectChange('loanProduct')}
                   label="Loan Product"
                   required
-                  sx={{
-                    bgcolor: isDarkMode ? 'rgba(255, 255, 255, 0.02)' : 'rgba(255, 255, 255, 0.9)',
-                    borderRadius: '12px',
-                  }}
+                  {...baseSelectProps}
                 >
                   {loanProducts.map((product) => (
                     <MenuItem key={product} value={product}>{product}</MenuItem>
                   ))}
                 </Select>
                 {errors.loanProduct && (
-                  <Typography variant="caption" color="error" sx={{ mt: 0.5 }}>
-                    {errors.loanProduct}
-                  </Typography>
+                  <FormHelperText error>{errors.loanProduct}</FormHelperText>
                 )}
               </FormControl>
+              
               <TextField
                 {...baseTextFieldProps}
                 type="number"
-                label="Loan Amount"
+                label="Loan Amount (MK)"
                 name="loanAmount"
                 value={formData.loanAmount || ''}
                 onChange={handleInputChange}
@@ -577,6 +659,7 @@ export default function SMELoanApplicationPage() {
                   startAdornment: <InputAdornment position="start">MK</InputAdornment>,
                 }}
               />
+              
               <TextField
                 {...baseTextFieldProps}
                 type="number"
@@ -589,6 +672,71 @@ export default function SMELoanApplicationPage() {
                 required
                 inputProps={{ min: 1, max: 120, step: 1 }}
               />
+
+              {loanAmount > 0 && paybackPeriod > 0 && (
+                <Box sx={{ 
+                  p: 3, 
+                  borderRadius: '16px',
+                  bgcolor: alpha(limeColors[500], 0.05),
+                  border: `1.5px solid ${alpha(limeColors[500], 0.2)}`,
+                  mt: 2
+                }}>
+                  <Typography variant="h6" sx={{ color: limeColors[500], fontWeight: 600, mb: 3 }}>
+                    Loan Repayment Breakdown (8.5% Annual Interest)
+                  </Typography>
+                  
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <Typography sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a' }}>
+                        Principal Amount:
+                      </Typography>
+                      <Typography sx={{ color: isDarkMode ? 'white' : '#18181b', fontWeight: 600 }}>
+                        MK {loanAmount.toLocaleString()}
+                      </Typography>
+                    </Box>
+
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <Typography sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a' }}>
+                        Total Interest ({paybackPeriod} months @ 8.5% p.a.):
+                      </Typography>
+                      <Typography sx={{ color: isDarkMode ? 'white' : '#18181b' }}>
+                        MK {totalInterest.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                      </Typography>
+                    </Box>
+
+                    <Divider sx={{ my: 1, borderColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }} />
+
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <Typography sx={{ color: isDarkMode ? 'white' : '#18181b', fontWeight: 600 }}>
+                        Total Repayment (Principal + Interest):
+                      </Typography>
+                      <Typography sx={{ color: limeColors[500], fontWeight: 700, fontSize: '1.1rem' }}>
+                        MK {totalRepayment.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                      </Typography>
+                    </Box>
+
+                    <Box sx={{ 
+                      mt: 2,
+                      p: 2,
+                      borderRadius: '12px',
+                      bgcolor: alpha(limeColors[500], 0.1),
+                      border: `1px solid ${limeColors[500]}`,
+                      textAlign: 'center'
+                    }}>
+                      <Typography variant="body2" sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a', mb: 1 }}>
+                        {formData.repaymentMethod ? `${formData.repaymentMethod} Payment Amount` : 'Estimated Payment Amount'}
+                      </Typography>
+                      <Typography variant="h4" sx={{ color: limeColors[500], fontWeight: 800 }}>
+                        MK {paymentAmount.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                      </Typography>
+                      <Typography variant="caption" sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a', display: 'block', mt: 1 }}>
+                        {paymentFrequency} payment over {paybackPeriod} months at 8.5% annual interest
+                      </Typography>
+                    </Box>
+                  </Box>
+                </Box>
+              )}
+
               <TextField
                 {...baseTextFieldProps}
                 label="Purpose of Loan"
@@ -601,33 +749,30 @@ export default function SMELoanApplicationPage() {
                 multiline
                 rows={3}
               />
+              
               <FormControl fullWidth error={!!errors.repaymentMethod}>
-                <InputLabel>Repayment Method</InputLabel>
+                <InputLabel sx={{ color: isDarkMode ? '#ffffff' : undefined }}>Repayment Method</InputLabel>
                 <Select
                   name="repaymentMethod"
                   value={formData.repaymentMethod}
                   onChange={handleSelectChange('repaymentMethod')}
                   label="Repayment Method"
                   required
-                  sx={{
-                    bgcolor: isDarkMode ? 'rgba(255, 255, 255, 0.02)' : 'rgba(255, 255, 255, 0.9)',
-                    borderRadius: '12px',
-                  }}
+                  {...baseSelectProps}
                 >
                   {repaymentMethods.map((method) => (
                     <MenuItem key={method} value={method}>{method}</MenuItem>
                   ))}
                 </Select>
                 {errors.repaymentMethod && (
-                  <Typography variant="caption" color="error" sx={{ mt: 0.5 }}>
-                    {errors.repaymentMethod}
-                  </Typography>
+                  <FormHelperText error>{errors.repaymentMethod}</FormHelperText>
                 )}
               </FormControl>
+              
               <TextField
                 {...baseTextFieldProps}
                 type="number"
-                label="Estimated Monthly Turnover"
+                label="Estimated Monthly Turnover (MK)"
                 name="estimatedMonthlyTurnover"
                 value={formData.estimatedMonthlyTurnover || ''}
                 onChange={handleInputChange}
@@ -636,10 +781,11 @@ export default function SMELoanApplicationPage() {
                   startAdornment: <InputAdornment position="start">MK</InputAdornment>,
                 }}
               />
+              
               <TextField
                 {...baseTextFieldProps}
                 type="number"
-                label="Estimated Monthly Profit"
+                label="Estimated Monthly Profit (MK)"
                 name="estimatedMonthlyProfit"
                 value={formData.estimatedMonthlyProfit || ''}
                 onChange={handleInputChange}
@@ -677,7 +823,7 @@ export default function SMELoanApplicationPage() {
                     }}
                   />
                 }
-                label="Apply as part of a group"
+                label={<Typography sx={{ color: isDarkMode ? 'white' : '#18181b' }}>Apply as part of a group</Typography>}
               />
               {formData.isGroupLending && (
                 <>
@@ -734,7 +880,7 @@ export default function SMELoanApplicationPage() {
                     }}
                   />
                 }
-                label="I have outstanding loans"
+                label={<Typography sx={{ color: isDarkMode ? 'white' : '#18181b' }}>I have outstanding loans</Typography>}
               />
               {formData.hasOutstandingLoans && (
                 <TextField
@@ -769,7 +915,7 @@ export default function SMELoanApplicationPage() {
                     }}
                   />
                 }
-                label="I have previously defaulted on a loan"
+                label={<Typography sx={{ color: isDarkMode ? 'white' : '#18181b' }}>I have previously defaulted on a loan</Typography>}
               />
               {formData.hasDefaulted && (
                 <TextField
@@ -813,6 +959,10 @@ export default function SMELoanApplicationPage() {
                     px: 3,
                     width: '100%',
                     justifyContent: 'flex-start',
+                    '&:hover': {
+                      borderColor: limeColors[500],
+                      bgcolor: alpha(limeColors[500], 0.05),
+                    },
                   }}
                 >
                   {formData.idDocument ? formData.idDocument.name : 'Choose ID Document'}
@@ -842,6 +992,10 @@ export default function SMELoanApplicationPage() {
                     px: 3,
                     width: '100%',
                     justifyContent: 'flex-start',
+                    '&:hover': {
+                      borderColor: limeColors[500],
+                      bgcolor: alpha(limeColors[500], 0.05),
+                    },
                   }}
                 >
                   {formData.businessRegistrationDoc ? formData.businessRegistrationDoc.name : 'Choose Business Registration'}
@@ -871,54 +1025,205 @@ export default function SMELoanApplicationPage() {
                     px: 3,
                     width: '100%',
                     justifyContent: 'flex-start',
+                    '&:hover': {
+                      borderColor: limeColors[500],
+                      bgcolor: alpha(limeColors[500], 0.05),
+                    },
                   }}
                 >
                   {formData.financialStatementDoc ? formData.financialStatementDoc.name : 'Choose Financial Statement'}
                   <VisuallyHiddenInput type="file" onChange={handleFileUpload('financialStatementDoc')} accept=".pdf,.jpg,.jpeg,.png" />
                 </Button>
               </Box>
+
+              <Alert severity="info" sx={{ 
+                borderRadius: '12px',
+                bgcolor: isDarkMode ? 'rgba(132, 204, 22, 0.1)' : 'rgba(132, 204, 22, 0.05)',
+                border: `1px solid ${alpha(limeColors[500], 0.2)}`,
+                color: isDarkMode ? '#a1a1aa' : '#71717a',
+              }}>
+                <Typography variant="body2">
+                  <strong>Note:</strong> Upload clear scans/photos of documents. Allowed formats: PDF, JPG, PNG.
+                </Typography>
+              </Alert>
             </Box>
           </Box>
         );
 
       case 5:
+        // Calculate loan amounts for summary with 8.5% ANNUAL interest
+        const summaryLoanAmount = formData.loanAmount || 0;
+        const summaryPaybackPeriod = formData.paybackPeriodMonths || 1;
+        const summaryAnnualInterestRate = 0.085; // 8.5% per year
+        const summaryMonthlyInterestRate = summaryAnnualInterestRate / 12; // Convert to monthly
+        const summaryTotalInterest = summaryLoanAmount * summaryMonthlyInterestRate * summaryPaybackPeriod;
+        const summaryTotalRepayment = summaryLoanAmount + summaryTotalInterest;
+        
+        // Calculate payment based on repayment method for summary
+        let summaryPaymentAmount = 0;
+        let summaryPaymentFrequency = '';
+        
+        switch (formData.repaymentMethod) {
+          case 'Monthly':
+            summaryPaymentAmount = summaryTotalRepayment / summaryPaybackPeriod;
+            summaryPaymentFrequency = 'Monthly';
+            break;
+          case 'Quarterly':
+            summaryPaymentAmount = summaryTotalRepayment / (summaryPaybackPeriod / 3);
+            summaryPaymentFrequency = 'Quarterly';
+            break;
+          case 'Bi-Annually':
+            summaryPaymentAmount = summaryTotalRepayment / (summaryPaybackPeriod / 6);
+            summaryPaymentFrequency = 'Bi-Annual';
+            break;
+          case 'Bullet Payment':
+            summaryPaymentAmount = summaryTotalRepayment;
+            summaryPaymentFrequency = 'One-time';
+            break;
+          default:
+            summaryPaymentAmount = summaryTotalRepayment / summaryPaybackPeriod;
+            summaryPaymentFrequency = 'Monthly';
+        }
+
         return (
           <Box>
             <Typography variant="h5" sx={{ mb: 3, fontWeight: 700, color: isDarkMode ? 'white' : '#18181b' }}>
               Review & Submit
             </Typography>
             
-            {/* Summary */}
-            <Paper elevation={0} sx={{ p: 3, mb: 3, bgcolor: isDarkMode ? 'rgba(255, 255, 255, 0.02)' : 'rgba(0, 0, 0, 0.02)', borderRadius: '12px' }}>
-              <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>Application Summary</Typography>
-              
+            {/* Business Summary */}
+            <Paper elevation={0} sx={{ 
+              p: 3, 
+              mb: 3, 
+              bgcolor: isDarkMode ? 'rgba(255, 255, 255, 0.02)' : 'rgba(0, 0, 0, 0.02)', 
+              borderRadius: '12px',
+              border: `1px solid ${isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`,
+            }}>
+              <Typography variant="h6" sx={{ mb: 2, fontWeight: 600, color: limeColors[500] }}>Business Information</Typography>
               <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 2 }}>
                 <Box>
-                  <Typography variant="caption" color="textSecondary">Business Name</Typography>
-                  <Typography variant="body2" fontWeight={600}>{formData.businessName}</Typography>
+                  <Typography variant="caption" sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a' }}>Business Name</Typography>
+                  <Typography variant="body2" fontWeight={600} sx={{ color: isDarkMode ? 'white' : '#18181b' }}>{formData.businessName}</Typography>
                 </Box>
                 <Box>
-                  <Typography variant="caption" color="textSecondary">Business Type</Typography>
-                  <Typography variant="body2" fontWeight={600}>{formData.businessType}</Typography>
+                  <Typography variant="caption" sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a' }}>Business Type</Typography>
+                  <Typography variant="body2" fontWeight={600} sx={{ color: isDarkMode ? 'white' : '#18181b' }}>{formData.businessType}</Typography>
                 </Box>
                 <Box>
-                  <Typography variant="caption" color="textSecondary">Loan Product</Typography>
-                  <Typography variant="body2" fontWeight={600}>{formData.loanProduct}</Typography>
+                  <Typography variant="caption" sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a' }}>Years in Operation</Typography>
+                  <Typography variant="body2" fontWeight={600} sx={{ color: isDarkMode ? 'white' : '#18181b' }}>{formData.yearsInOperation} years</Typography>
+                </Box>
+                {formData.registrationNo && (
+                  <Box>
+                    <Typography variant="caption" sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a' }}>Registration No.</Typography>
+                    <Typography variant="body2" fontWeight={600} sx={{ color: isDarkMode ? 'white' : '#18181b' }}>{formData.registrationNo}</Typography>
+                  </Box>
+                )}
+              </Box>
+            </Paper>
+
+            {/* Loan Summary with Calculations */}
+            <Paper elevation={0} sx={{ 
+              p: 3, 
+              mb: 3, 
+              bgcolor: isDarkMode ? 'rgba(255, 255, 255, 0.02)' : 'rgba(0, 0, 0, 0.02)', 
+              borderRadius: '12px',
+              border: `1px solid ${isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`,
+            }}>
+              <Typography variant="h6" sx={{ mb: 2, fontWeight: 600, color: limeColors[500] }}>Loan Details</Typography>
+              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 2 }}>
+                <Box>
+                  <Typography variant="caption" sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a' }}>Loan Product</Typography>
+                  <Typography variant="body2" fontWeight={600} sx={{ color: isDarkMode ? 'white' : '#18181b' }}>{formData.loanProduct}</Typography>
                 </Box>
                 <Box>
-                  <Typography variant="caption" color="textSecondary">Loan Amount</Typography>
-                  <Typography variant="body2" fontWeight={600}>MK {formData.loanAmount.toLocaleString()}</Typography>
+                  <Typography variant="caption" sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a' }}>Loan Amount</Typography>
+                  <Typography variant="body2" fontWeight={600} sx={{ color: limeColors[500] }}>MK {formData.loanAmount.toLocaleString()}</Typography>
                 </Box>
                 <Box>
-                  <Typography variant="caption" color="textSecondary">Payback Period</Typography>
-                  <Typography variant="body2" fontWeight={600}>{formData.paybackPeriodMonths} months</Typography>
+                  <Typography variant="caption" sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a' }}>Payback Period</Typography>
+                  <Typography variant="body2" fontWeight={600} sx={{ color: isDarkMode ? 'white' : '#18181b' }}>{formData.paybackPeriodMonths} months</Typography>
                 </Box>
                 <Box>
-                  <Typography variant="caption" color="textSecondary">Repayment Method</Typography>
-                  <Typography variant="body2" fontWeight={600}>{formData.repaymentMethod}</Typography>
+                  <Typography variant="caption" sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a' }}>Repayment Method</Typography>
+                  <Typography variant="body2" fontWeight={600} sx={{ color: isDarkMode ? 'white' : '#18181b' }}>{formData.repaymentMethod}</Typography>
+                </Box>
+              </Box>
+
+              <Divider sx={{ my: 2, borderColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }} />
+
+              <Box sx={{ bgcolor: alpha(limeColors[500], 0.05), p: 2, borderRadius: '8px' }}>
+                <Typography variant="subtitle2" sx={{ color: limeColors[500], fontWeight: 600, mb: 2 }}>
+                  Loan Repayment Summary (8.5% Annual Interest)
+                </Typography>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <Typography variant="body2" sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a' }}>Principal:</Typography>
+                    <Typography variant="body2" fontWeight={600} sx={{ color: isDarkMode ? 'white' : '#18181b' }}>MK {summaryLoanAmount.toLocaleString()}</Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <Typography variant="body2" sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a' }}>Total Interest:</Typography>
+                    <Typography variant="body2" fontWeight={600} sx={{ color: isDarkMode ? 'white' : '#18181b' }}>MK {summaryTotalInterest.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <Typography variant="body2" sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a' }}>Total Repayment:</Typography>
+                    <Typography variant="body2" fontWeight={700} sx={{ color: limeColors[500] }}>MK {summaryTotalRepayment.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 1, pt: 1, borderTop: `1px dashed ${isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}` }}>
+                    <Typography variant="body2" sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a' }}>{formData.repaymentMethod || 'Monthly'} Payment:</Typography>
+                    <Typography variant="h6" sx={{ color: limeColors[500], fontWeight: 800 }}>MK {summaryPaymentAmount.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</Typography>
+                  </Box>
                 </Box>
               </Box>
             </Paper>
+
+            {/* Group Lending Summary (if applicable) */}
+            {formData.isGroupLending && (
+              <Paper elevation={0} sx={{ 
+                p: 3, 
+                mb: 3, 
+                bgcolor: isDarkMode ? 'rgba(255, 255, 255, 0.02)' : 'rgba(0, 0, 0, 0.02)', 
+                borderRadius: '12px',
+                border: `1px solid ${isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`,
+              }}>
+                <Typography variant="h6" sx={{ mb: 2, fontWeight: 600, color: limeColors[500] }}>Group Lending</Typography>
+                <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 2 }}>
+                  <Box>
+                    <Typography variant="caption" sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a' }}>Group Name</Typography>
+                    <Typography variant="body2" fontWeight={600} sx={{ color: isDarkMode ? 'white' : '#18181b' }}>{formData.groupName}</Typography>
+                  </Box>
+                  <Box>
+                    <Typography variant="caption" sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a' }}>Number of Members</Typography>
+                    <Typography variant="body2" fontWeight={600} sx={{ color: isDarkMode ? 'white' : '#18181b' }}>{formData.groupMemberCount}</Typography>
+                  </Box>
+                </Box>
+              </Paper>
+            )}
+
+            {/* Credit History Summary (if applicable) */}
+            {(formData.hasOutstandingLoans || formData.hasDefaulted) && (
+              <Paper elevation={0} sx={{ 
+                p: 3, 
+                mb: 3, 
+                bgcolor: isDarkMode ? 'rgba(255, 255, 255, 0.02)' : 'rgba(0, 0, 0, 0.02)', 
+                borderRadius: '12px',
+                border: `1px solid ${isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`,
+              }}>
+                <Typography variant="h6" sx={{ mb: 2, fontWeight: 600, color: limeColors[500] }}>Credit History</Typography>
+                {formData.hasOutstandingLoans && (
+                  <Box sx={{ mb: formData.hasDefaulted ? 2 : 0 }}>
+                    <Typography variant="caption" sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a' }}>Outstanding Loans</Typography>
+                    <Typography variant="body2" sx={{ color: isDarkMode ? 'white' : '#18181b' }}>{formData.outstandingLoanDetails}</Typography>
+                  </Box>
+                )}
+                {formData.hasDefaulted && (
+                  <Box>
+                    <Typography variant="caption" sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a' }}>Default Explanation</Typography>
+                    <Typography variant="body2" sx={{ color: isDarkMode ? 'white' : '#18181b' }}>{formData.defaultExplanation}</Typography>
+                  </Box>
+                )}
+              </Paper>
+            )}
 
             {/* Declarations */}
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
@@ -944,10 +1249,10 @@ export default function SMELoanApplicationPage() {
                     }}
                   />
                 }
-                label="I agree to the terms and conditions"
+                label={<Typography sx={{ color: isDarkMode ? 'white' : '#18181b' }}>I agree to the terms and conditions</Typography>}
               />
               {errors.agreeToTerms && (
-                <Typography variant="caption" color="error">
+                <Typography variant="caption" color="error" sx={{ ml: 4 }}>
                   {errors.agreeToTerms}
                 </Typography>
               )}
@@ -974,10 +1279,10 @@ export default function SMELoanApplicationPage() {
                     }}
                   />
                 }
-                label="I consent to a credit check"
+                label={<Typography sx={{ color: isDarkMode ? 'white' : '#18181b' }}>I consent to a credit check</Typography>}
               />
               {errors.consentToCreditCheck && (
-                <Typography variant="caption" color="error">
+                <Typography variant="caption" color="error" sx={{ ml: 4 }}>
                   {errors.consentToCreditCheck}
                 </Typography>
               )}
@@ -999,12 +1304,18 @@ export default function SMELoanApplicationPage() {
   if (submitSuccess) {
     return (
       <Container maxWidth="md" sx={{ py: 8 }}>
-        <Paper elevation={0} sx={{ p: 6, textAlign: 'center', borderRadius: '24px' }}>
+        <Paper elevation={0} sx={{ 
+          p: 6, 
+          textAlign: 'center', 
+          borderRadius: '24px',
+          bgcolor: isDarkMode ? 'rgba(255, 255, 255, 0.02)' : 'white',
+          border: `1px solid ${isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`,
+        }}>
           <CheckCircle size={64} color={limeColors[500]} style={{ marginBottom: 16 }} />
-          <Typography variant="h4" sx={{ mb: 2, fontWeight: 700 }}>
+          <Typography variant="h4" sx={{ mb: 2, fontWeight: 700, color: isDarkMode ? 'white' : '#18181b' }}>
             Application Submitted!
           </Typography>
-          <Typography variant="body1" color="textSecondary" sx={{ mb: 3 }}>
+          <Typography variant="body1" sx={{ mb: 3, color: isDarkMode ? '#a1a1aa' : '#71717a' }}>
             Your SME loan application has been successfully submitted. We'll review it and get back to you soon.
           </Typography>
           <Button
@@ -1070,7 +1381,6 @@ export default function SMELoanApplicationPage() {
             sx={{ 
               height: '100%', 
               bgcolor: `linear-gradient(90deg, ${limeColors[500]} 0%, ${limeColors[400]} 100%)`,
-              background: `linear-gradient(90deg, ${limeColors[500]} 0%, ${limeColors[400]} 100%)`,
               width: `${progress}%`,
               transition: 'width 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
               borderRadius: '100px',
