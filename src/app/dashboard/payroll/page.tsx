@@ -1574,14 +1574,8 @@ export default function PayrollLoanApplicationPage() {
                       }
                     }}
                   >
-                    {formData.idDocument ? 'Change File' : 'Upload'}
                     <VisuallyHiddenInput type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={handleFileUpload('idDocument')} />
                   </Button>
-                  {formData.idDocument && (
-                    <Typography variant="caption" sx={{ display: 'block', mt: 2, color: limeColors[500] }}>
-                      ✓ {formData.idDocument.name} ({(formData.idDocument.size / (1024 * 1024)).toFixed(2)}MB)
-                    </Typography>
-                  )}
                   {errors.idDocument && (
                     <Typography color="error" variant="caption" sx={{ display: 'block', mt: 1 }}>
                       {errors.idDocument}
