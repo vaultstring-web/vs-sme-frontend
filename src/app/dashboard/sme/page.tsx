@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useState, ChangeEvent, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
+import apiClient from '@/lib/apiClient';
 import {
   Box,
   Button,
@@ -38,6 +40,7 @@ import { useTheme } from '@/context/ThemeContext';
 import { useApplications } from '@/hooks/useApplications';
 import { useRouter } from 'next/navigation';
 import LocalFilePreviewModal from '@/components/shared/LocalFilePreviewModal';
+import DocumentViewer from '@/components/shared/DocumentViewer';
 import { SmeFormData } from './types';
 
 const VisuallyHiddenInput = styled('input')({
@@ -67,13 +70,19 @@ const steps = [
 
 export default function SMELoanApplicationPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [activeStep, setActiveStep] = useState(0);
+  const [isLoadingDraft, setIsLoadingDraft] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [showSnackbar, setShowSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [applicationId, setApplicationId] = useState<string | null>(null);
   const [preview, setPreview] = useState<{ file: File; title: string } | null>(null);
+  const [uploadedDocuments, setUploadedDocuments] = useState<Set<string>>(new Set());
+  const [existingDocuments, setExistingDocuments] = useState<Record<string, { fileName: string; fileUrl: string }>>({});
+  const [isViewerOpen, setIsViewerOpen] = useState(false);
+  const [viewerDocs, setViewerDocs] = useState<{ id?: string; name: string; fileUrl: string; documentType?: string }[]>([]);
   
   const {
     createDraftApplication,
@@ -116,20 +125,112 @@ export default function SMELoanApplicationPage() {
   
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // Load draft from localStorage on mount
+  // Load draft from URL parameter (takes precedence over localStorage)
   useEffect(() => {
-    const savedDraft = localStorage.getItem('smeLoanDraft');
-    if (savedDraft) {
-      try {
-        const draft = JSON.parse(savedDraft);
-        setFormData(draft.formData || draft);
-        if (draft.step !== undefined) setActiveStep(draft.step);
-        if (draft.applicationId) setApplicationId(draft.applicationId);
-      } catch (error) {
-        console.error('Failed to load draft:', error);
+    const draftId = searchParams?.get('id');
+    const isNew = searchParams?.get('new');
+    
+    // If starting a new application, clear localStorage
+    if (isNew === 'true') {
+      localStorage.removeItem('smeLoanDraft');
+      setApplicationId(null);
+      setActiveStep(0);
+      return;
+    }
+    
+    if (draftId) {
+      setIsLoadingDraft(true);
+      const loadDraftFromBackend = async () => {
+        try {
+          const response = await apiClient.get(`/applications/${draftId}`);
+          const application = response.data.app;
+
+          // Verify it's a draft and SME type
+          if (application.status !== 'DRAFT') {
+            setSnackbarMessage('This application is not a draft and cannot be edited');
+            setShowSnackbar(true);
+            setTimeout(() => router.push('/dashboard/applications'), 2000);
+            return;
+          }
+
+          if (application.type !== 'SME') {
+            setSnackbarMessage('This is not an SME application');
+            setShowSnackbar(true);
+            setTimeout(() => router.push('/dashboard/applications'), 2000);
+            return;
+          }
+
+          // Load the SME data into the form
+          const smeData = application.smeData;
+          if (smeData) {
+            setFormData({
+              businessName: smeData.businessName || '',
+              registrationNo: smeData.registrationNo || '',
+              businessType: smeData.businessType || '',
+              yearsInOperation: smeData.yearsInOperation || 0,
+              loanProduct: smeData.loanProduct || '',
+              loanAmount: smeData.loanAmount || 0,
+              paybackPeriodMonths: smeData.paybackPeriodMonths || 0,
+              purposeOfLoan: smeData.purposeOfLoan || '',
+              repaymentMethod: smeData.repaymentMethod || '',
+              estimatedMonthlyTurnover: smeData.estimatedMonthlyTurnover || 0,
+              estimatedMonthlyProfit: smeData.estimatedMonthlyProfit || 0,
+              isGroupLending: !!(smeData.groupName || smeData.groupMemberCount),
+              groupName: smeData.groupName || '',
+              groupMemberCount: smeData.groupMemberCount || 0,
+              hasOutstandingLoans: smeData.hasOutstandingLoans || false,
+              outstandingLoanDetails: smeData.outstandingLoanDetails || '',
+              hasDefaulted: smeData.hasDefaulted || false,
+              defaultExplanation: smeData.defaultExplanation || '',
+              idDocument: null,
+              businessRegistrationDoc: null,
+              financialStatementDoc: null,
+              agreeToTerms: false,
+              consentToCreditCheck: false,
+            });
+          }
+
+          setApplicationId(draftId);
+          
+          // Mark documents as uploaded if they exist in the backend
+          if (application.documents && application.documents.length > 0) {
+            const uploadedDocs = new Set<string>();
+            const existingDocs: Record<string, { fileName: string; fileUrl: string }> = {};
+            application.documents.forEach((doc: any) => {
+              uploadedDocs.add(doc.documentType);
+              existingDocs[doc.documentType] = { fileName: doc.fileName, fileUrl: doc.fileUrl };
+            });
+            setUploadedDocuments(uploadedDocs);
+            setExistingDocuments(existingDocs);
+          }
+          
+          setSnackbarMessage('Draft loaded successfully');
+          setShowSnackbar(true);
+        } catch (error) {
+          console.error('Error loading draft:', error);
+          setSnackbarMessage('Failed to load draft application');
+          setShowSnackbar(true);
+        } finally {
+          setIsLoadingDraft(false);
+        }
+      };
+
+      loadDraftFromBackend();
+    } else {
+      // Load draft from localStorage only if no URL parameter
+      const savedDraft = localStorage.getItem('smeLoanDraft');
+      if (savedDraft) {
+        try {
+          const draft = JSON.parse(savedDraft);
+          setFormData(draft.formData || draft);
+          if (draft.step !== undefined) setActiveStep(draft.step);
+          if (draft.applicationId) setApplicationId(draft.applicationId);
+        } catch (error) {
+          console.error('Failed to load draft:', error);
+        }
       }
     }
-  }, []);
+  }, [searchParams, router]);
 
   // Show error from context
   useEffect(() => {
@@ -178,9 +279,12 @@ export default function SMELoanApplicationPage() {
           newErrors.defaultExplanation = 'Please explain the default';
         break;
       case 4: // Documents
-        if (!formData.idDocument) newErrors.idDocument = 'ID document is required';
-        if (!formData.businessRegistrationDoc) 
+        if (!formData.idDocument && !existingDocuments['ID_DOCUMENT']) {
+          newErrors.idDocument = 'ID document is required';
+        }
+        if (!formData.businessRegistrationDoc && !existingDocuments['BUSINESS_REGISTRATION']) {
           newErrors.businessRegistrationDoc = 'Business registration document is required';
+        }
         break;
       case 5: // Review
         if (!formData.agreeToTerms) newErrors.agreeToTerms = 'You must agree to the terms and conditions';
@@ -219,6 +323,27 @@ export default function SMELoanApplicationPage() {
       [name]: file
     }));
     
+    // Clear the "uploaded" status if a new file is selected
+    const typeMap: Record<string, string> = {
+      idDocument: 'ID_DOCUMENT',
+      businessRegistrationDoc: 'BUSINESS_REGISTRATION',
+      financialStatementDoc: 'FINANCIAL_STATEMENT'
+    };
+    
+    const docType = typeMap[name];
+    if (docType && file) {
+      setUploadedDocuments(prev => {
+        const next = new Set(prev);
+        next.delete(docType);
+        return next;
+      });
+      setExistingDocuments(prev => {
+        const next = { ...prev };
+        delete next[docType];
+        return next;
+      });
+    }
+    
     if (errors[name]) {
       setErrors(prev => {
         const newErrors = { ...prev };
@@ -255,6 +380,14 @@ export default function SMELoanApplicationPage() {
 
   const openPreview = (file: File, title: string) => {
     setPreview({ file, title });
+  };
+
+  const openExistingPreview = (type: string) => {
+    const doc = existingDocuments[type];
+    if (doc) {
+      setViewerDocs([{ name: doc.fileName, fileUrl: doc.fileUrl, documentType: type }]);
+      setIsViewerOpen(true);
+    }
   };
 
   const handleSaveDraft = async (): Promise<string | null> => {
@@ -313,6 +446,45 @@ export default function SMELoanApplicationPage() {
 
       // Step 2: Update the draft with the actual data (unvalidated)
       await updateSMEApplication(id, backendData);
+
+      // Step 3: Upload documents if any are present (only upload new ones)
+      try {
+        const uploadTasks = [];
+        
+        if (formData.idDocument && !uploadedDocuments.has('ID_DOCUMENT')) {
+          uploadTasks.push(
+            uploadDocument(id, formData.idDocument, 'ID_DOCUMENT')
+              .then(() => {
+                setUploadedDocuments(prev => new Set(prev).add('ID_DOCUMENT'));
+              })
+          );
+        }
+        
+        if (formData.businessRegistrationDoc && !uploadedDocuments.has('BUSINESS_REGISTRATION')) {
+          uploadTasks.push(
+            uploadDocument(id, formData.businessRegistrationDoc, 'BUSINESS_REGISTRATION')
+              .then(() => {
+                setUploadedDocuments(prev => new Set(prev).add('BUSINESS_REGISTRATION'));
+              })
+          );
+        }
+        
+        if (formData.financialStatementDoc && !uploadedDocuments.has('FINANCIAL_STATEMENT')) {
+          uploadTasks.push(
+            uploadDocument(id, formData.financialStatementDoc, 'FINANCIAL_STATEMENT')
+              .then(() => {
+                setUploadedDocuments(prev => new Set(prev).add('FINANCIAL_STATEMENT'));
+              })
+          );
+        }
+
+        if (uploadTasks.length > 0) {
+          await Promise.all(uploadTasks);
+        }
+      } catch (docError) {
+        console.error('Document upload error during draft save:', docError);
+        // Continue even if document upload fails
+      }
 
       // Save metadata to localStorage
       const draftMetadata = {
@@ -802,6 +974,7 @@ export default function SMELoanApplicationPage() {
               Required Documents
             </Typography>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+              {/* ID Document */}
               <Box>
                 <Typography variant="body2" sx={{ mb: 1, fontWeight: 600, color: isDarkMode ? '#a1a1aa' : '#71717a' }}>
                   ID Document (Required) *
@@ -821,21 +994,33 @@ export default function SMELoanApplicationPage() {
                     justifyContent: 'flex-start',
                   }}
                 >
-                  {formData.idDocument ? formData.idDocument.name : 'Choose ID Document'}
+                  {formData.idDocument ? formData.idDocument.name : 
+                   existingDocuments['ID_DOCUMENT'] ? `Already uploaded: ${existingDocuments['ID_DOCUMENT'].fileName}` : 
+                   'Choose ID Document'}
                   <VisuallyHiddenInput type="file" onChange={handleFileUpload('idDocument')} accept=".pdf,.jpg,.jpeg,.png" />
                 </Button>
-                {formData.idDocument && (
-                  <Box sx={{ mt: 1, display: 'flex', justifyContent: 'flex-end' }}>
+                <Box sx={{ mt: 1, display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
+                  {formData.idDocument && (
                     <Button
                       size="small"
                       variant="text"
                       onClick={() => openPreview(formData.idDocument as File, 'ID Document')}
                       sx={{ textTransform: 'none', color: isDarkMode ? '#a3e635' : '#65a30d' }}
                     >
-                      Preview
+                      Preview Selected
                     </Button>
-                  </Box>
-                )}
+                  )}
+                  {existingDocuments['ID_DOCUMENT'] && (
+                    <Button
+                      size="small"
+                      variant="text"
+                      onClick={() => openExistingPreview('ID_DOCUMENT')}
+                      sx={{ textTransform: 'none', color: isDarkMode ? '#a3e635' : '#65a30d' }}
+                    >
+                      View Current
+                    </Button>
+                  )}
+                </Box>
                 {errors.idDocument && (
                   <Typography variant="caption" color="error" sx={{ mt: 0.5, display: 'block' }}>
                     {errors.idDocument}
@@ -843,6 +1028,7 @@ export default function SMELoanApplicationPage() {
                 )}
               </Box>
 
+              {/* Business Registration */}
               <Box>
                 <Typography variant="body2" sx={{ mb: 1, fontWeight: 600, color: isDarkMode ? '#a1a1aa' : '#71717a' }}>
                   Business Registration Document (Required) *
@@ -862,21 +1048,33 @@ export default function SMELoanApplicationPage() {
                     justifyContent: 'flex-start',
                   }}
                 >
-                  {formData.businessRegistrationDoc ? formData.businessRegistrationDoc.name : 'Choose Business Registration'}
+                  {formData.businessRegistrationDoc ? formData.businessRegistrationDoc.name : 
+                   existingDocuments['BUSINESS_REGISTRATION'] ? `Already uploaded: ${existingDocuments['BUSINESS_REGISTRATION'].fileName}` : 
+                   'Choose Business Registration'}
                   <VisuallyHiddenInput type="file" onChange={handleFileUpload('businessRegistrationDoc')} accept=".pdf,.jpg,.jpeg,.png" />
                 </Button>
-                {formData.businessRegistrationDoc && (
-                  <Box sx={{ mt: 1, display: 'flex', justifyContent: 'flex-end' }}>
+                <Box sx={{ mt: 1, display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
+                  {formData.businessRegistrationDoc && (
                     <Button
                       size="small"
                       variant="text"
                       onClick={() => openPreview(formData.businessRegistrationDoc as File, 'Business Registration Document')}
                       sx={{ textTransform: 'none', color: isDarkMode ? '#a3e635' : '#65a30d' }}
                     >
-                      Preview
+                      Preview Selected
                     </Button>
-                  </Box>
-                )}
+                  )}
+                  {existingDocuments['BUSINESS_REGISTRATION'] && (
+                    <Button
+                      size="small"
+                      variant="text"
+                      onClick={() => openExistingPreview('BUSINESS_REGISTRATION')}
+                      sx={{ textTransform: 'none', color: isDarkMode ? '#a3e635' : '#65a30d' }}
+                    >
+                      View Current
+                    </Button>
+                  )}
+                </Box>
                 {errors.businessRegistrationDoc && (
                   <Typography variant="caption" color="error" sx={{ mt: 0.5, display: 'block' }}>
                     {errors.businessRegistrationDoc}
@@ -884,6 +1082,7 @@ export default function SMELoanApplicationPage() {
                 )}
               </Box>
 
+              {/* Financial Statement */}
               <Box>
                 <Typography variant="body2" sx={{ mb: 1, fontWeight: 600, color: isDarkMode ? '#a1a1aa' : '#71717a' }}>
                   Financial Statement (Optional)
@@ -903,21 +1102,33 @@ export default function SMELoanApplicationPage() {
                     justifyContent: 'flex-start',
                   }}
                 >
-                  {formData.financialStatementDoc ? formData.financialStatementDoc.name : 'Choose Financial Statement'}
+                  {formData.financialStatementDoc ? formData.financialStatementDoc.name : 
+                   existingDocuments['FINANCIAL_STATEMENT'] ? `Already uploaded: ${existingDocuments['FINANCIAL_STATEMENT'].fileName}` : 
+                   'Choose Financial Statement'}
                   <VisuallyHiddenInput type="file" onChange={handleFileUpload('financialStatementDoc')} accept=".pdf,.jpg,.jpeg,.png" />
                 </Button>
-                {formData.financialStatementDoc && (
-                  <Box sx={{ mt: 1, display: 'flex', justifyContent: 'flex-end' }}>
+                <Box sx={{ mt: 1, display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
+                  {formData.financialStatementDoc && (
                     <Button
                       size="small"
                       variant="text"
                       onClick={() => openPreview(formData.financialStatementDoc as File, 'Financial Statement')}
                       sx={{ textTransform: 'none', color: isDarkMode ? '#a3e635' : '#65a30d' }}
                     >
-                      Preview
+                      Preview Selected
                     </Button>
-                  </Box>
-                )}
+                  )}
+                  {existingDocuments['FINANCIAL_STATEMENT'] && (
+                    <Button
+                      size="small"
+                      variant="text"
+                      onClick={() => openExistingPreview('FINANCIAL_STATEMENT')}
+                      sx={{ textTransform: 'none', color: isDarkMode ? '#a3e635' : '#65a30d' }}
+                    >
+                      View Current
+                    </Button>
+                  )}
+                </Box>
               </Box>
             </Box>
           </Box>
@@ -1333,6 +1544,13 @@ export default function SMELoanApplicationPage() {
           file={preview.file}
           title={preview.title}
           onClose={() => setPreview(null)}
+        />
+      )}
+
+      {isViewerOpen && (
+        <DocumentViewer
+          documents={viewerDocs}
+          onClose={() => setIsViewerOpen(false)}
         />
       )}
     </>
