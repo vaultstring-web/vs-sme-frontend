@@ -246,7 +246,6 @@ export default function ApplicationDetailPage() {
       {app.status === 'DRAFT' && (
         <div className="flex flex-wrap gap-3">
           <button
-            onClick={() => router.push(`/dashboard/applications/${app.id}/edit`)}
             className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
           >
             <Edit className="w-4 h-4" />
@@ -500,22 +499,6 @@ export default function ApplicationDetailPage() {
                   </div>
                 </div>
               )}
-            </div>
-          </div>
-
-          {/* Quick Actions */}
-          <div className="bento-card p-6">
-            <h2 className="text-lg font-semibold text-foreground mb-4">Quick Actions</h2>
-            <div className="space-y-2">
-              <button className="w-full px-4 py-2 text-left text-foreground hover:bg-card/50 rounded-lg transition-colors">
-                Print Application
-              </button>
-              <button className="w-full px-4 py-2 text-left text-foreground hover:bg-card/50 rounded-lg transition-colors">
-                Download PDF
-              </button>
-              <button className="w-full px-4 py-2 text-left text-foreground hover:bg-card/50 rounded-lg transition-colors">
-                Contact Support
-              </button>
             </div>
           </div>
         </div>

@@ -20,12 +20,6 @@ export default function ApplicationInsights({ stats }: ApplicationInsightsProps)
           <h2 className="text-xl font-bold">Application Insights</h2>
           <p className="text-sm text-foreground/60">Track your loan applications progress</p>
         </div>
-        <Link
-          href="/dashboard/applications"
-          className="text-sm text-primary-600 dark:text-primary-400 hover:underline"
-        >
-          View Analytics
-        </Link>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
