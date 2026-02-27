@@ -117,7 +117,7 @@ interface ApplicationsContextType extends ApplicationsState {
   createDraftApplication: (type: ApplicationType) => Promise<{ id: string }>;
   updateSMEApplication: (id: string, data: any) => Promise<void>;
   updatePayrollApplication: (id: string, data: any) => Promise<void>;
-  uploadDocument: (applicationId: string, file: File, documentType: string) => Promise<void>;
+  uploadDocument: (applicationId: string, file: File, documentType: string) => Promise<any>;
   submitApplication: (id: string) => Promise<void>;
   deleteApplication: (id: string) => Promise<void>;
   setCurrentApplication: (application: ApplicationDetail | null) => void;
@@ -281,39 +281,43 @@ export const ApplicationsProvider = ({ children }: { children: ReactNode }) => {
     try {
       const response = await apiClient.post('/applications/sme', data);
       setState(prev => ({ ...prev, isLoading: false }));
+      await refreshApplications();
       return { id: response.data.data.id };
     } catch (err: any) {
       const errorMessage = err.response?.data?.message || err.message || 'Failed to create SME application';
       setState(prev => ({ ...prev, isLoading: false, error: errorMessage }));
       throw err;
     }
-  }, []);
+  }, [refreshApplications]);
 
   const createPayrollApplication = useCallback(async (data: any) => {
     setState(prev => ({ ...prev, isLoading: true, error: null }));
     try {
       const response = await apiClient.post('/applications/payroll', data);
       setState(prev => ({ ...prev, isLoading: false }));
+      await refreshApplications();
       return { id: response.data.data.id };
     } catch (err: any) {
       const errorMessage = err.response?.data?.message || err.message || 'Failed to create payroll application';
       setState(prev => ({ ...prev, isLoading: false, error: errorMessage }));
       throw err;
     }
-  }, []);
+  }, [refreshApplications]);
 
   const createDraftApplication = useCallback(async (type: ApplicationType) => {
     setState(prev => ({ ...prev, isLoading: true, error: null }));
     try {
+      // Backend route is POST /applications/draft
       const response = await apiClient.post('/applications/draft', { type });
       setState(prev => ({ ...prev, isLoading: false }));
+      await refreshApplications();
       return { id: response.data.data.id };
     } catch (err: any) {
       const errorMessage = err.response?.data?.message || err.message || 'Failed to create draft application';
       setState(prev => ({ ...prev, isLoading: false, error: errorMessage }));
       throw err;
     }
-  }, []);
+  }, [refreshApplications]);
 
   const setCurrentApplication = useCallback((application: ApplicationDetail | null) => {
     setState(prev => ({ ...prev, currentApplication: application }));
@@ -326,7 +330,7 @@ export const ApplicationsProvider = ({ children }: { children: ReactNode }) => {
     try {
       // Backend route is PATCH /applications/:id/draft or PATCH /applications/:id
       // Both use the same handler (saveDraftApplication)
-      await apiClient.patch(`/applications/${id}`, data);
+      await apiClient.patch(`/applications/${id}/draft`, data);
       setState(prev => ({ ...prev, isLoading: false }));
     } catch (err: any) {
       const errorMessage = err.response?.data?.message || err.message || 'Failed to update SME application';
@@ -339,7 +343,7 @@ export const ApplicationsProvider = ({ children }: { children: ReactNode }) => {
     setState(prev => ({ ...prev, isLoading: true, error: null }));
     try {
       // Backend route is PATCH /applications/:id/draft or PATCH /applications/:id
-      await apiClient.patch(`/applications/${id}`, data);
+      await apiClient.patch(`/applications/${id}/draft`, data);
       setState(prev => ({ ...prev, isLoading: false }));
     } catch (err: any) {
       const errorMessage = err.response?.data?.message || err.message || 'Failed to update payroll application';
@@ -355,13 +359,14 @@ export const ApplicationsProvider = ({ children }: { children: ReactNode }) => {
       formData.append('file', file);
       formData.append('documentType', documentType);
 
-      await apiClient.post(`/applications/${applicationId}/documents/upload`, formData, {
+      const response = await apiClient.post(`/applications/${applicationId}/documents/upload`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       });
       
       setState(prev => ({ ...prev, isLoading: false }));
+      return response.data;
     } catch (err: any) {
       const errorMessage = err.response?.data?.message || err.message || 'Failed to upload document';
       setState(prev => ({ ...prev, isLoading: false, error: errorMessage }));

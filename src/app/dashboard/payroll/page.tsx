@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useState, ChangeEvent, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
+import apiClient from '@/lib/apiClient';
 import {
   Box,
   Button,
@@ -52,6 +54,7 @@ import { useTheme } from '@/context/ThemeContext';
 import { useApplications } from '@/hooks/useApplications';
 import { useRouter } from 'next/navigation';
 import LocalFilePreviewModal from '@/components/shared/LocalFilePreviewModal';
+import DocumentViewer from '@/components/shared/DocumentViewer';
 
 const VisuallyHiddenInput = styled('input')({
   clip: 'rect(0 0 0 0)',
@@ -136,16 +139,22 @@ const DOCUMENT_TYPES = {
 
 export default function PayrollLoanApplicationPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [activeStep, setActiveStep] = useState(0);
+  const [isLoadingDraft, setIsLoadingDraft] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [showSnackbar, setShowSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [applicationId, setApplicationId] = useState<string | null>(null);
   const [preview, setPreview] = useState<{ file: File; title: string } | null>(null);
+  const [uploadedDocuments, setUploadedDocuments] = useState<Set<string>>(new Set());
+  const [existingDocuments, setExistingDocuments] = useState<Record<string, { fileName: string; fileUrl: string }>>({});
+  const [isViewerOpen, setIsViewerOpen] = useState(false);
+  const [viewerDocs, setViewerDocs] = useState<{ id?: string; name: string; fileUrl: string; documentType?: string }[]>([]);
   
   const {
-    createPayrollApplication,
+    createDraftApplication,
     updatePayrollApplication,
     uploadDocument,
     submitApplication,
@@ -189,20 +198,116 @@ export default function PayrollLoanApplicationPage() {
   
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // Load draft from localStorage on mount
+  // Load draft from URL parameter (takes precedence over localStorage)
   useEffect(() => {
-    const savedDraft = localStorage.getItem('payrollLoanDraft');
-    if (savedDraft) {
-      try {
-        const draft = JSON.parse(savedDraft);
-        setFormData(draft.formData || draft);
-        if (draft.step !== undefined) setActiveStep(draft.step);
-        if (draft.applicationId) setApplicationId(draft.applicationId);
-      } catch (error) {
-        console.error('Failed to load draft:', error);
+    const draftId = searchParams?.get('id');
+    const isNew = searchParams?.get('new');
+    
+    // If starting a new application, clear localStorage
+    if (isNew === 'true') {
+      localStorage.removeItem('payrollLoanDraft');
+      setApplicationId(null);
+      setActiveStep(0);
+      return;
+    }
+    
+    if (draftId) {
+      setIsLoadingDraft(true);
+      const loadDraftFromBackend = async () => {
+        try {
+          const response = await apiClient.get(`/applications/${draftId}`);
+          const application = response.data.app;
+
+          // Verify it's a draft and PAYROLL type
+          if (application.status !== 'DRAFT') {
+            setSnackbarMessage('This application is not a draft and cannot be edited');
+            setShowSnackbar(true);
+            setTimeout(() => router.push('/dashboard/applications'), 2000);
+            return;
+          }
+
+          if (application.type !== 'PAYROLL') {
+            setSnackbarMessage('This is not a Payroll application');
+            setShowSnackbar(true);
+            setTimeout(() => router.push('/dashboard/applications'), 2000);
+            return;
+          }
+
+          // Load the Payroll data into the form
+          const payrollData = application.payrollData;
+          if (payrollData) {
+            setFormData({
+              dateOfBirth: payrollData.dateOfBirth ? new Date(payrollData.dateOfBirth).toISOString().split('T')[0] : '',
+              gender: payrollData.gender || '',
+              maritalStatus: payrollData.maritalStatus || '',
+              nextOfKinName: payrollData.nextOfKinName || '',
+              nextOfKinRelationship: payrollData.nextOfKinRelationship || '',
+              nextOfKinPhone: payrollData.nextOfKinPhone || '',
+              employerName: payrollData.employerName || '',
+              employerAddress: payrollData.employerAddress || '',
+              jobTitle: payrollData.jobTitle || '',
+              employeeNumber: payrollData.employeeNumber || '',
+              dateOfEmployment: payrollData.dateOfEmployment ? new Date(payrollData.dateOfEmployment).toISOString().split('T')[0] : '',
+              grossMonthlySalary: payrollData.grossMonthlySalary || 0,
+              netMonthlySalary: payrollData.netMonthlySalary || 0,
+              loanAmount: payrollData.loanAmount || 0,
+              paybackPeriodMonths: payrollData.paybackPeriodMonths || 0,
+              payrollDeductionConfirmed: payrollData.payrollDeductionConfirmed || false,
+              hasOutstandingLoans: payrollData.hasOutstandingLoans || false,
+              outstandingLoanDetails: payrollData.outstandingLoanDetails || '',
+              hasDefaulted: payrollData.hasDefaulted || false,
+              defaultExplanation: payrollData.defaultExplanation || '',
+              idDocument: null,
+              employerLetter: null,
+              payslip1: null,
+              payslip2: null,
+              payslip3: null,
+              agreeToTerms: false,
+              consentToCreditCheck: false,
+            });
+          }
+
+          setApplicationId(draftId);
+          
+          // Mark documents as uploaded if they exist in the backend
+          if (application.documents && application.documents.length > 0) {
+            const uploadedDocs = new Set<string>();
+            const existingDocs: Record<string, { fileName: string; fileUrl: string }> = {};
+            application.documents.forEach((doc: any) => {
+              uploadedDocs.add(doc.documentType);
+              existingDocs[doc.documentType] = { fileName: doc.fileName, fileUrl: doc.fileUrl };
+            });
+            setUploadedDocuments(uploadedDocs);
+            setExistingDocuments(existingDocs);
+          }
+          
+          setSnackbarMessage('Draft loaded successfully');
+          setShowSnackbar(true);
+        } catch (error) {
+          console.error('Error loading draft:', error);
+          setSnackbarMessage('Failed to load draft application');
+          setShowSnackbar(true);
+        } finally {
+          setIsLoadingDraft(false);
+        }
+      };
+
+      loadDraftFromBackend();
+    } else {
+      // Load draft from localStorage only if no URL parameter
+      const savedDraft = localStorage.getItem('payrollLoanDraft');
+      if (savedDraft) {
+        try {
+          const draft = JSON.parse(savedDraft);
+          setFormData(draft.formData || draft);
+          if (draft.step !== undefined) setActiveStep(draft.step);
+          if (draft.applicationId) setApplicationId(draft.applicationId);
+        } catch (error) {
+          console.error('Failed to load draft:', error);
+        }
       }
     }
-  }, []);
+  }, [searchParams, router]);
 
   // Show error from context
   useEffect(() => {
@@ -271,7 +376,7 @@ export default function PayrollLoanApplicationPage() {
       case 4:
         if (!formData.payrollDeductionConfirmed)
           newErrors.payrollDeductionConfirmed = 'Payroll deduction confirmation is required for approval';
-        if (formData.payrollDeductionConfirmed && !formData.employerLetter)
+        if (formData.payrollDeductionConfirmed && !formData.employerLetter && !existingDocuments[DOCUMENT_TYPES.EMPLOYER_LETTER])
           newErrors.employerLetter = 'Employer letter is required for payroll deduction';
         break;
       
@@ -283,8 +388,10 @@ export default function PayrollLoanApplicationPage() {
         break;
       
       case 6:
-        if (!formData.idDocument) newErrors.idDocument = 'ID document is required';
-        if (!formData.payslip1) newErrors.payslip1 = 'Recent payslip is required';
+        if (!formData.idDocument && !existingDocuments[DOCUMENT_TYPES.ID_DOCUMENT])
+          newErrors.idDocument = 'ID document is required';
+        if (!formData.payslip1 && !existingDocuments[DOCUMENT_TYPES.PAYSLIP_1])
+          newErrors.payslip1 = 'Recent payslip is required';
         break;
       
       case 7:
@@ -330,9 +437,8 @@ export default function PayrollLoanApplicationPage() {
       return;
     }
 
-    // Calculate current total size
+    // Calculate current total size (excluding idDocument)
     const currentTotalSize = 
-      (formData.idDocument?.size || 0) +
       (formData.payslip1?.size || 0) +
       (formData.payslip2?.size || 0) +
       (formData.payslip3?.size || 0) +
@@ -356,6 +462,29 @@ export default function PayrollLoanApplicationPage() {
       ...prev,
       [name]: file
     }));
+    
+    // Clear the "uploaded" status if a new file is selected
+    const typeMap: Record<string, string> = {
+      idDocument: DOCUMENT_TYPES.ID_DOCUMENT,
+      employerLetter: DOCUMENT_TYPES.EMPLOYER_LETTER,
+      payslip1: DOCUMENT_TYPES.PAYSLIP_1,
+      payslip2: DOCUMENT_TYPES.PAYSLIP_2,
+      payslip3: DOCUMENT_TYPES.PAYSLIP_3
+    };
+    
+    const docType = typeMap[name];
+    if (docType && file) {
+      setUploadedDocuments(prev => {
+        const next = new Set(prev);
+        next.delete(docType);
+        return next;
+      });
+      setExistingDocuments(prev => {
+        const next = { ...prev };
+        delete next[docType];
+        return next;
+      });
+    }
     
     if (errors[name]) {
       setErrors(prev => {
@@ -395,6 +524,14 @@ export default function PayrollLoanApplicationPage() {
     setPreview({ file, title });
   };
 
+  const openExistingPreview = (type: string) => {
+    const doc = existingDocuments[type];
+    if (doc) {
+      setViewerDocs([{ name: doc.fileName, fileUrl: doc.fileUrl, documentType: type }]);
+      setIsViewerOpen(true);
+    }
+  };
+
   // Prepare data for backend - match the exact backend schema
   const prepareBackendData = () => ({
     dateOfBirth: formData.dateOfBirth,
@@ -419,79 +556,138 @@ export default function PayrollLoanApplicationPage() {
     defaultExplanation: formData.hasDefaulted ? formData.defaultExplanation : undefined,
   });
 
-  const handleSaveDraft = async (): Promise<string> => {
+  const handleSaveDraft = async (): Promise<string | null> => {
     try {
+      // Prepare data for backend – allow nulls for missing fields
       const backendData = prepareBackendData();
+
       let id = applicationId;
 
       if (!id) {
-        const result = await createPayrollApplication(backendData);
+        // Step 1: Create an empty draft (no validation)
+        const result = await createDraftApplication('PAYROLL');
         id = result.id;
         setApplicationId(id);
-      } else {
-        await updatePayrollApplication(id, backendData);
       }
 
-      // Save to localStorage (optional, but keep as backup)
-      const draft = { formData, applicationId: id, savedAt: new Date().toISOString(), step: activeStep };
-      localStorage.setItem('payrollLoanDraft', JSON.stringify(draft));
+      // Step 2: Update the draft with the actual data (unvalidated)
+      await updatePayrollApplication(id, backendData);
+
+      // Step 3: Upload any documents selected
+      await uploadDocuments(id);
+
+      // Save metadata to localStorage (optional, as backup)
+      const draftMetadata = {
+        formData: {
+          ...formData,
+          // Store file metadata only (actual File objects cannot be stringified)
+          idDocument: formData.idDocument ? {
+            name: formData.idDocument.name,
+            type: formData.idDocument.type,
+            size: formData.idDocument.size,
+            lastModified: formData.idDocument.lastModified,
+          } : null,
+          employerLetter: formData.employerLetter ? {
+            name: formData.employerLetter.name,
+            type: formData.employerLetter.type,
+            size: formData.employerLetter.size,
+            lastModified: formData.employerLetter.lastModified,
+          } : null,
+          payslip1: formData.payslip1 ? {
+            name: formData.payslip1.name,
+            type: formData.payslip1.type,
+            size: formData.payslip1.size,
+            lastModified: formData.payslip1.lastModified,
+          } : null,
+          payslip2: formData.payslip2 ? {
+            name: formData.payslip2.name,
+            type: formData.payslip2.type,
+            size: formData.payslip2.size,
+            lastModified: formData.payslip2.lastModified,
+          } : null,
+          payslip3: formData.payslip3 ? {
+            name: formData.payslip3.name,
+            type: formData.payslip3.type,
+            size: formData.payslip3.size,
+            lastModified: formData.payslip3.lastModified,
+          } : null,
+        },
+        applicationId: id,
+        savedAt: new Date().toISOString(),
+        step: activeStep,
+      };
+
+      localStorage.setItem('payrollLoanDraft', JSON.stringify(draftMetadata));
 
       setSnackbarMessage('Draft saved successfully!');
       setShowSnackbar(true);
 
       return id;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Save draft error:', error);
-      throw error;
+      setSnackbarMessage(error.message || 'Failed to save draft');
+      setShowSnackbar(true);
+      return null;
     }
   };
 
   const uploadDocuments = async (appId: string): Promise<void> => {
-    const requiredTasks: Promise<any>[] = [];
-    const optionalTasks: Promise<any>[] = [];
+    const tasks: Promise<any>[] = [];
 
-    // Required documents
-    if (formData.idDocument) {
-      requiredTasks.push(
-        uploadDocument(appId, formData.idDocument, DOCUMENT_TYPES.ID_DOCUMENT)
-      );
-    }
-    if (formData.payslip1) {
-      requiredTasks.push(
-        uploadDocument(appId, formData.payslip1, DOCUMENT_TYPES.PAYSLIP_1)
-      );
-    }
-    if (formData.payrollDeductionConfirmed && formData.employerLetter) {
-      requiredTasks.push(
-        uploadDocument(appId, formData.employerLetter, DOCUMENT_TYPES.EMPLOYER_LETTER)
-      );
+    // Map form fields to their document types
+    const docMappings = [
+      { field: 'idDocument', type: DOCUMENT_TYPES.ID_DOCUMENT },
+      { field: 'employerLetter', type: DOCUMENT_TYPES.EMPLOYER_LETTER },
+      { field: 'payslip1', type: DOCUMENT_TYPES.PAYSLIP_1 },
+      { field: 'payslip2', type: DOCUMENT_TYPES.PAYSLIP_2 },
+      { field: 'payslip3', type: DOCUMENT_TYPES.PAYSLIP_3 },
+    ];
+
+    for (const mapping of docMappings) {
+      const file = formData[mapping.field as keyof PayrollApplicationData] as File | null;
+      
+      // Only upload if:
+      // 1. A file is selected in the form
+      // 2. It hasn't been uploaded yet in this session
+      if (file && !uploadedDocuments.has(mapping.type)) {
+        const uploadTask = uploadDocument(appId, file, mapping.type)
+          .then((response) => {
+            // After successful upload, update our tracking states
+            setUploadedDocuments(prev => new Set(prev).add(mapping.type));
+            
+            // The response from uploadDocument is response.data (JSON body)
+            // Backend returns: { success: true, data: { fileUrl: '...', ... } }
+            const fileUrl = response?.data?.fileUrl || response?.fileUrl;
+            
+            if (fileUrl) {
+              setExistingDocuments(prev => ({
+                ...prev,
+                [mapping.type]: {
+                  fileName: file.name,
+                  fileUrl: fileUrl
+                }
+              }));
+            }
+            
+            // Clear the local file from formData since it's now on the server
+            setFormData(prev => ({
+              ...prev,
+              [mapping.field]: null
+            }));
+          })
+          .catch(err => {
+            console.error(`Upload failed for ${mapping.type}:`, err);
+            // Re-throw if it's a required document in the final submission step
+            if (activeStep === 7) throw err;
+          });
+        
+        tasks.push(uploadTask);
+      }
     }
 
-    // Optional documents
-    if (formData.payslip2) {
-      optionalTasks.push(
-        uploadDocument(appId, formData.payslip2, DOCUMENT_TYPES.PAYSLIP_2)
-          .catch(err => console.warn('Payslip 2 upload failed (optional):', err))
-      );
+    if (tasks.length > 0) {
+      await Promise.allSettled(tasks);
     }
-    if (formData.payslip3) {
-      optionalTasks.push(
-        uploadDocument(appId, formData.payslip3, DOCUMENT_TYPES.PAYSLIP_3)
-          .catch(err => console.warn('Payslip 3 upload failed (optional):', err))
-      );
-    }
-    // If employerLetter exists but payrollDeductionConfirmed = false, treat as optional
-    if (!formData.payrollDeductionConfirmed && formData.employerLetter) {
-      optionalTasks.push(
-        uploadDocument(appId, formData.employerLetter, DOCUMENT_TYPES.EMPLOYER_LETTER)
-          .catch(err => console.warn('Employer letter upload failed (optional):', err))
-      );
-    }
-
-    // Wait for all required uploads – if any fails, this throws and stops submission
-    await Promise.all(requiredTasks);
-    // Fire off optional uploads but don't await them (or await with allSettled)
-    await Promise.allSettled(optionalTasks);
   };
 
   const handleSubmit = async () => {
@@ -956,14 +1152,11 @@ export default function PayrollLoanApplicationPage() {
         const totalDeductions = processingFee + insuranceFee;
         const amountReceived = loanAmount - totalDeductions;
         
-        // Calculate monthly repayment with 7.5% monthly interest
-        const monthlyInterestRate = 0.075; // 7.5% per month
-        const paybackPeriod = formData.paybackPeriodMonths || 1;
-        
-        // Total interest = principal * monthly rate * number of months
-        const totalInterest = loanAmount * monthlyInterestRate * paybackPeriod;
+        // Interest calculation: 7.5% annual interest charged once
+        const annualInterestRate = 0.075;
+        const totalInterest = loanAmount * annualInterestRate;
         const totalRepayment = loanAmount + totalInterest;
-        const monthlyPayment = totalRepayment / paybackPeriod;
+        const monthlyPayment = totalRepayment / (formData.paybackPeriodMonths || 1);
 
         return (
           <Box sx={{ mt: 2 }}>
@@ -1035,7 +1228,7 @@ export default function PayrollLoanApplicationPage() {
                 />
               </Box>
 
-              {loanAmount > 0 && paybackPeriod > 0 && (
+              {loanAmount > 0 && formData.paybackPeriodMonths > 0 && (
                 <Box sx={{ 
                   p: 3, 
                   borderRadius: '16px', 
@@ -1122,7 +1315,7 @@ export default function PayrollLoanApplicationPage() {
                       bgcolor: alpha(limeColors[500], 0.05),
                     }}>
                       <Typography variant="subtitle2" sx={{ color: limeColors[500], fontWeight: 600, mb: 2 }}>
-                        Repayment Calculation (7.5% Monthly Interest)
+                        Interest Calculation (7.5% Annual Interest – One‑time Fee)
                       </Typography>
                       
                       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
@@ -1136,7 +1329,7 @@ export default function PayrollLoanApplicationPage() {
                       
                       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
                         <Typography sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a' }}>
-                          Total Interest ({paybackPeriod} months @ 7.5%/month):
+                          Interest (7.5% one‑time):
                         </Typography>
                         <Typography sx={{ color: isDarkMode ? 'white' : '#18181b' }}>
                           MK {totalInterest.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
@@ -1175,10 +1368,10 @@ export default function PayrollLoanApplicationPage() {
                         MK {monthlyPayment.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                       </Typography>
                       <Typography variant="caption" sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a' }}>
-                        (Principal + Interest) ÷ {paybackPeriod} months
+                        (Total repayment ÷ {formData.paybackPeriodMonths} months)
                       </Typography>
                       <Typography variant="caption" sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a', display: 'block', mt: 1 }}>
-                        Total interest: MK {(totalInterest).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                        One‑time interest: MK {totalInterest.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                       </Typography>
                     </Box>
                   </Box>
@@ -1282,20 +1475,28 @@ export default function PayrollLoanApplicationPage() {
                       }
                     }}
                   >
-                    {formData.employerLetter ? 'Change File' : 'Upload Letter'}
+                    {formData.employerLetter ? 'Change File' : 
+                     existingDocuments[DOCUMENT_TYPES.EMPLOYER_LETTER] ? 'Change File' : 'Upload Letter'}
                     <VisuallyHiddenInput type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={handleFileUpload('employerLetter')} />
                   </Button>
-                  {formData.employerLetter && (
+                  {(formData.employerLetter || existingDocuments[DOCUMENT_TYPES.EMPLOYER_LETTER]) && (
                     <Typography variant="caption" sx={{ display: 'block', mt: 2, color: limeColors[500] }}>
-                      ✓ {formData.employerLetter.name} ({(formData.employerLetter.size / (1024 * 1024)).toFixed(2)}MB)
+                      ✓ {formData.employerLetter ? formData.employerLetter.name : existingDocuments[DOCUMENT_TYPES.EMPLOYER_LETTER]?.fileName}
+                      {formData.employerLetter && ` (${(formData.employerLetter.size / (1024 * 1024)).toFixed(2)}MB)`}
                     </Typography>
                   )}
-                  {formData.employerLetter && (
+                  {(formData.employerLetter || existingDocuments[DOCUMENT_TYPES.EMPLOYER_LETTER]) && (
                     <Box sx={{ mt: 1, display: 'flex', justifyContent: 'center' }}>
                       <Button
                         size="small"
                         variant="text"
-                        onClick={() => openPreview(formData.employerLetter as File, 'Employer Authorization Letter')}
+                        onClick={() => {
+                          if (formData.employerLetter) {
+                            openPreview(formData.employerLetter as File, 'Employer Authorization Letter');
+                          } else {
+                            openExistingPreview(DOCUMENT_TYPES.EMPLOYER_LETTER);
+                          }
+                        }}
                         sx={{ textTransform: 'none', color: limeColors[500] }}
                       >
                         Preview
@@ -1436,9 +1637,8 @@ export default function PayrollLoanApplicationPage() {
         );
 
       case 6:
-        // Calculate total file size
+        // Calculate total file size (excluding idDocument)
         const totalFileSize = 
-          (formData.idDocument?.size || 0) +
           (formData.payslip1?.size || 0) +
           (formData.payslip2?.size || 0) +
           (formData.payslip3?.size || 0) +
@@ -1549,20 +1749,28 @@ export default function PayrollLoanApplicationPage() {
                       }
                     }}
                   >
-                    {formData.idDocument ? 'Change File' : 'Upload'}
+                    {formData.idDocument ? 'Change File' : 
+                     existingDocuments[DOCUMENT_TYPES.ID_DOCUMENT] ? 'Change File' : 'Upload'}
                     <VisuallyHiddenInput type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={handleFileUpload('idDocument')} />
                   </Button>
-                  {formData.idDocument && (
+                  {(formData.idDocument || existingDocuments[DOCUMENT_TYPES.ID_DOCUMENT]) && (
                     <Typography variant="caption" sx={{ display: 'block', mt: 2, color: limeColors[500] }}>
-                      ✓ {formData.idDocument.name} ({(formData.idDocument.size / (1024 * 1024)).toFixed(2)}MB)
+                      ✓ {formData.idDocument ? formData.idDocument.name : existingDocuments[DOCUMENT_TYPES.ID_DOCUMENT]?.fileName}
+                      {formData.idDocument && ` (${(formData.idDocument.size / (1024 * 1024)).toFixed(2)}MB)`}
                     </Typography>
                   )}
-                  {formData.idDocument && (
+                  {(formData.idDocument || existingDocuments[DOCUMENT_TYPES.ID_DOCUMENT]) && (
                     <Box sx={{ mt: 1, display: 'flex', justifyContent: 'center' }}>
                       <Button
                         size="small"
                         variant="text"
-                        onClick={() => openPreview(formData.idDocument as File, 'ID Document')}
+                        onClick={() => {
+                          if (formData.idDocument) {
+                            openPreview(formData.idDocument as File, 'ID Document');
+                          } else {
+                            openExistingPreview(DOCUMENT_TYPES.ID_DOCUMENT);
+                          }
+                        }}
                         sx={{ textTransform: 'none', color: limeColors[500] }}
                       >
                         Preview
@@ -1612,20 +1820,28 @@ export default function PayrollLoanApplicationPage() {
                       }
                     }}
                   >
-                    {formData.payslip1 ? 'Change File' : 'Upload'}
+                    {formData.payslip1 ? 'Change File' : 
+                     existingDocuments[DOCUMENT_TYPES.PAYSLIP_1] ? 'Change File' : 'Upload'}
                     <VisuallyHiddenInput type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={handleFileUpload('payslip1')} />
                   </Button>
-                  {formData.payslip1 && (
+                  {(formData.payslip1 || existingDocuments[DOCUMENT_TYPES.PAYSLIP_1]) && (
                     <Typography variant="caption" sx={{ display: 'block', mt: 2, color: limeColors[500] }}>
-                      ✓ {formData.payslip1.name} ({(formData.payslip1.size / (1024 * 1024)).toFixed(2)}MB)
+                      ✓ {formData.payslip1 ? formData.payslip1.name : existingDocuments[DOCUMENT_TYPES.PAYSLIP_1]?.fileName}
+                      {formData.payslip1 && ` (${(formData.payslip1.size / (1024 * 1024)).toFixed(2)}MB)`}
                     </Typography>
                   )}
-                  {formData.payslip1 && (
+                  {(formData.payslip1 || existingDocuments[DOCUMENT_TYPES.PAYSLIP_1]) && (
                     <Box sx={{ mt: 1, display: 'flex', justifyContent: 'center' }}>
                       <Button
                         size="small"
                         variant="text"
-                        onClick={() => openPreview(formData.payslip1 as File, 'Recent Payslip 1')}
+                        onClick={() => {
+                          if (formData.payslip1) {
+                            openPreview(formData.payslip1 as File, 'Recent Payslip 1');
+                          } else {
+                            openExistingPreview(DOCUMENT_TYPES.PAYSLIP_1);
+                          }
+                        }}
                         sx={{ textTransform: 'none', color: limeColors[500] }}
                       >
                         Preview
@@ -1638,9 +1854,7 @@ export default function PayrollLoanApplicationPage() {
                     </Typography>
                   )}
                 </Box>
-              </Box>
-              
-              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3 }}>
+                
                 <Box sx={{ 
                   p: 4, 
                   borderRadius: '16px', 
@@ -1678,20 +1892,28 @@ export default function PayrollLoanApplicationPage() {
                       }
                     }}
                   >
-                    {formData.payslip2 ? 'Change File' : 'Upload'}
+                    {formData.payslip2 ? 'Change File' : 
+                     existingDocuments[DOCUMENT_TYPES.PAYSLIP_2] ? 'Change File' : 'Upload'}
                     <VisuallyHiddenInput type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={handleFileUpload('payslip2')} />
                   </Button>
-                  {formData.payslip2 && (
+                  {(formData.payslip2 || existingDocuments[DOCUMENT_TYPES.PAYSLIP_2]) && (
                     <Typography variant="caption" sx={{ display: 'block', mt: 2, color: limeColors[500] }}>
-                      ✓ {formData.payslip2.name} ({(formData.payslip2.size / (1024 * 1024)).toFixed(2)}MB)
+                      ✓ {formData.payslip2 ? formData.payslip2.name : existingDocuments[DOCUMENT_TYPES.PAYSLIP_2]?.fileName}
+                      {formData.payslip2 && ` (${(formData.payslip2.size / (1024 * 1024)).toFixed(2)}MB)`}
                     </Typography>
                   )}
-                  {formData.payslip2 && (
+                  {(formData.payslip2 || existingDocuments[DOCUMENT_TYPES.PAYSLIP_2]) && (
                     <Box sx={{ mt: 1, display: 'flex', justifyContent: 'center' }}>
                       <Button
                         size="small"
                         variant="text"
-                        onClick={() => openPreview(formData.payslip2 as File, 'Recent Payslip 2')}
+                        onClick={() => {
+                          if (formData.payslip2) {
+                            openPreview(formData.payslip2 as File, 'Recent Payslip 2');
+                          } else {
+                            openExistingPreview(DOCUMENT_TYPES.PAYSLIP_2);
+                          }
+                        }}
                         sx={{ textTransform: 'none', color: limeColors[500] }}
                       >
                         Preview
@@ -1699,7 +1921,9 @@ export default function PayrollLoanApplicationPage() {
                     </Box>
                   )}
                 </Box>
-                
+              </Box>
+              
+              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3 }}>
                 <Box sx={{ 
                   p: 4, 
                   borderRadius: '16px', 
@@ -1737,20 +1961,28 @@ export default function PayrollLoanApplicationPage() {
                       }
                     }}
                   >
-                    {formData.payslip3 ? 'Change File' : 'Upload'}
+                    {formData.payslip3 ? 'Change File' : 
+                     existingDocuments[DOCUMENT_TYPES.PAYSLIP_3] ? 'Change File' : 'Upload'}
                     <VisuallyHiddenInput type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={handleFileUpload('payslip3')} />
                   </Button>
-                  {formData.payslip3 && (
+                  {(formData.payslip3 || existingDocuments[DOCUMENT_TYPES.PAYSLIP_3]) && (
                     <Typography variant="caption" sx={{ display: 'block', mt: 2, color: limeColors[500] }}>
-                      ✓ {formData.payslip3.name} ({(formData.payslip3.size / (1024 * 1024)).toFixed(2)}MB)
+                      ✓ {formData.payslip3 ? formData.payslip3.name : existingDocuments[DOCUMENT_TYPES.PAYSLIP_3]?.fileName}
+                      {formData.payslip3 && ` (${(formData.payslip3.size / (1024 * 1024)).toFixed(2)}MB)`}
                     </Typography>
                   )}
-                  {formData.payslip3 && (
+                  {(formData.payslip3 || existingDocuments[DOCUMENT_TYPES.PAYSLIP_3]) && (
                     <Box sx={{ mt: 1, display: 'flex', justifyContent: 'center' }}>
                       <Button
                         size="small"
                         variant="text"
-                        onClick={() => openPreview(formData.payslip3 as File, 'Recent Payslip 3')}
+                        onClick={() => {
+                          if (formData.payslip3) {
+                            openPreview(formData.payslip3 as File, 'Recent Payslip 3');
+                          } else {
+                            openExistingPreview(DOCUMENT_TYPES.PAYSLIP_3);
+                          }
+                        }}
                         sx={{ textTransform: 'none', color: limeColors[500] }}
                       >
                         Preview
@@ -2282,6 +2514,12 @@ export default function PayrollLoanApplicationPage() {
           onClose={() => setPreview(null)}
         />
       )}
+
+      <DocumentViewer 
+        open={isViewerOpen}
+        onClose={() => setIsViewerOpen(false)}
+        documents={viewerDocs}
+      />
     </>
   );
 }

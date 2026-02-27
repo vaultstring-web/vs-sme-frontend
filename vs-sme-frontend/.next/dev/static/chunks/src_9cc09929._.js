@@ -606,12 +606,12 @@ var _s = __turbopack_context__.k.signature();
 const ApplicationsContext = /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$16$2e$1$2e$6_$40$babel$2b$core$40$7$2e$2_64d5eeabc3e5d7da937e2327328eb8d4$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["createContext"])(undefined);
 const ApplicationsProvider = (t0)=>{
     _s();
-    const $ = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$16$2e$1$2e$6_$40$babel$2b$core$40$7$2e$2_64d5eeabc3e5d7da937e2327328eb8d4$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$compiler$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["c"])(35);
-    if ($[0] !== "964aa68fea9989d7762e4c916cab9a272459b8289ed662d992eec7a00b889c0e") {
-        for(let $i = 0; $i < 35; $i += 1){
+    const $ = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$16$2e$1$2e$6_$40$babel$2b$core$40$7$2e$2_64d5eeabc3e5d7da937e2327328eb8d4$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$compiler$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["c"])(41);
+    if ($[0] !== "4974dfb6d95c2fbd1c48c65c226d196f2689d3ef6cf164184c369c8cdcfa1956") {
+        for(let $i = 0; $i < 41; $i += 1){
             $[$i] = Symbol.for("react.memo_cache_sentinel");
         }
-        $[0] = "964aa68fea9989d7762e4c916cab9a272459b8289ed662d992eec7a00b889c0e";
+        $[0] = "4974dfb6d95c2fbd1c48c65c226d196f2689d3ef6cf164184c369c8cdcfa1956";
     }
     const { children } = t0;
     let t1;
@@ -902,13 +902,14 @@ const ApplicationsProvider = (t0)=>{
     }
     const fetchApplicationById = t13;
     let t14;
-    if ($[15] === Symbol.for("react.memo_cache_sentinel")) {
+    if ($[15] !== refreshApplications) {
         t14 = async (data)=>{
             setState(_temp10);
             ;
             try {
                 const response_3 = await __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$apiClient$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].post("/applications/sme", data);
                 setState(_temp11);
+                await refreshApplications();
                 return {
                     id: response_3.data.data.id
                 };
@@ -923,19 +924,21 @@ const ApplicationsProvider = (t0)=>{
                 throw err_5;
             }
         };
-        $[15] = t14;
+        $[15] = refreshApplications;
+        $[16] = t14;
     } else {
-        t14 = $[15];
+        t14 = $[16];
     }
     const createSMEApplication = t14;
     let t15;
-    if ($[16] === Symbol.for("react.memo_cache_sentinel")) {
+    if ($[17] !== refreshApplications) {
         t15 = async (data_0)=>{
             setState(_temp12);
             ;
             try {
                 const response_4 = await __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$apiClient$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].post("/applications/payroll", data_0);
                 setState(_temp13);
+                await refreshApplications();
                 return {
                     id: response_4.data.data.id
                 };
@@ -950,13 +953,14 @@ const ApplicationsProvider = (t0)=>{
                 throw err_6;
             }
         };
-        $[16] = t15;
+        $[17] = refreshApplications;
+        $[18] = t15;
     } else {
-        t15 = $[16];
+        t15 = $[18];
     }
     const createPayrollApplication = t15;
     let t16;
-    if ($[17] === Symbol.for("react.memo_cache_sentinel")) {
+    if ($[19] !== refreshApplications) {
         t16 = async (type)=>{
             setState(_temp14);
             ;
@@ -965,6 +969,7 @@ const ApplicationsProvider = (t0)=>{
                     type
                 });
                 setState(_temp15);
+                await refreshApplications();
                 return {
                     id: response_5.data.data.id
                 };
@@ -979,31 +984,32 @@ const ApplicationsProvider = (t0)=>{
                 throw err_7;
             }
         };
-        $[17] = t16;
+        $[19] = refreshApplications;
+        $[20] = t16;
     } else {
-        t16 = $[17];
+        t16 = $[20];
     }
     const createDraftApplication = t16;
     let t17;
-    if ($[18] === Symbol.for("react.memo_cache_sentinel")) {
+    if ($[21] === Symbol.for("react.memo_cache_sentinel")) {
         t17 = (application)=>{
             setState((prev_27)=>({
                     ...prev_27,
                     currentApplication: application
                 }));
         };
-        $[18] = t17;
+        $[21] = t17;
     } else {
-        t17 = $[18];
+        t17 = $[21];
     }
     const setCurrentApplication = t17;
     let t18;
-    if ($[19] === Symbol.for("react.memo_cache_sentinel")) {
+    if ($[22] === Symbol.for("react.memo_cache_sentinel")) {
         t18 = async (id_3, data_1)=>{
             setState(_temp16);
             ;
             try {
-                await __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$apiClient$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].patch(`/applications/${id_3}`, data_1);
+                await __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$apiClient$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].patch(`/applications/${id_3}/draft`, data_1);
                 setState(_temp17);
             } catch (t19) {
                 const err_8 = t19;
@@ -1016,18 +1022,18 @@ const ApplicationsProvider = (t0)=>{
                 throw err_8;
             }
         };
-        $[19] = t18;
+        $[22] = t18;
     } else {
-        t18 = $[19];
+        t18 = $[22];
     }
     const updateSMEApplication = t18;
     let t19;
-    if ($[20] === Symbol.for("react.memo_cache_sentinel")) {
+    if ($[23] === Symbol.for("react.memo_cache_sentinel")) {
         t19 = async (id_4, data_2)=>{
             setState(_temp18);
             ;
             try {
-                await __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$apiClient$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].patch(`/applications/${id_4}`, data_2);
+                await __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$apiClient$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].patch(`/applications/${id_4}/draft`, data_2);
                 setState(_temp19);
             } catch (t20) {
                 const err_9 = t20;
@@ -1040,13 +1046,13 @@ const ApplicationsProvider = (t0)=>{
                 throw err_9;
             }
         };
-        $[20] = t19;
+        $[23] = t19;
     } else {
-        t19 = $[20];
+        t19 = $[23];
     }
     const updatePayrollApplication = t19;
     let t20;
-    if ($[21] === Symbol.for("react.memo_cache_sentinel")) {
+    if ($[24] === Symbol.for("react.memo_cache_sentinel")) {
         t20 = async (applicationId, file, documentType)=>{
             setState(_temp20);
             ;
@@ -1054,12 +1060,13 @@ const ApplicationsProvider = (t0)=>{
                 const formData = new FormData();
                 formData.append("file", file);
                 formData.append("documentType", documentType);
-                await __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$apiClient$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].post(`/applications/${applicationId}/documents/upload`, formData, {
+                const response_6 = await __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$apiClient$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].post(`/applications/${applicationId}/documents/upload`, formData, {
                     headers: {
                         "Content-Type": "multipart/form-data"
                     }
                 });
                 setState(_temp21);
+                return response_6.data;
             } catch (t21) {
                 const err_10 = t21;
                 const errorMessage_10 = err_10.response?.data?.message || err_10.message || "Failed to upload document";
@@ -1071,13 +1078,13 @@ const ApplicationsProvider = (t0)=>{
                 throw err_10;
             }
         };
-        $[21] = t20;
+        $[24] = t20;
     } else {
-        t20 = $[21];
+        t20 = $[24];
     }
     const uploadDocument = t20;
     let t21;
-    if ($[22] !== refreshApplications) {
+    if ($[25] !== refreshApplications) {
         t21 = async (id_5)=>{
             setState(_temp22);
             ;
@@ -1096,14 +1103,14 @@ const ApplicationsProvider = (t0)=>{
                 throw err_11;
             }
         };
-        $[22] = refreshApplications;
-        $[23] = t21;
+        $[25] = refreshApplications;
+        $[26] = t21;
     } else {
-        t21 = $[23];
+        t21 = $[26];
     }
     const submitApplication = t21;
     let t22;
-    if ($[24] !== refreshApplications) {
+    if ($[27] !== refreshApplications) {
         t22 = async (id_6)=>{
             setState(_temp24);
             ;
@@ -1122,24 +1129,24 @@ const ApplicationsProvider = (t0)=>{
                 throw err_12;
             }
         };
-        $[24] = refreshApplications;
-        $[25] = t22;
+        $[27] = refreshApplications;
+        $[28] = t22;
     } else {
-        t22 = $[25];
+        t22 = $[28];
     }
     const deleteApplication = t22;
     let t23;
-    if ($[26] === Symbol.for("react.memo_cache_sentinel")) {
+    if ($[29] === Symbol.for("react.memo_cache_sentinel")) {
         t23 = ()=>{
             setState(_temp26);
         };
-        $[26] = t23;
+        $[29] = t23;
     } else {
-        t23 = $[26];
+        t23 = $[29];
     }
     const clearError = t23;
     let t24;
-    if ($[27] !== deleteApplication || $[28] !== refreshApplications || $[29] !== state || $[30] !== submitApplication) {
+    if ($[30] !== createDraftApplication || $[31] !== createPayrollApplication || $[32] !== createSMEApplication || $[33] !== deleteApplication || $[34] !== refreshApplications || $[35] !== state || $[36] !== submitApplication) {
         t24 = {
             ...state,
             fetchApplications,
@@ -1161,29 +1168,32 @@ const ApplicationsProvider = (t0)=>{
             updateAdminApplicationData,
             clearAdminError
         };
-        $[27] = deleteApplication;
-        $[28] = refreshApplications;
-        $[29] = state;
-        $[30] = submitApplication;
-        $[31] = t24;
+        $[30] = createDraftApplication;
+        $[31] = createPayrollApplication;
+        $[32] = createSMEApplication;
+        $[33] = deleteApplication;
+        $[34] = refreshApplications;
+        $[35] = state;
+        $[36] = submitApplication;
+        $[37] = t24;
     } else {
-        t24 = $[31];
+        t24 = $[37];
     }
     let t25;
-    if ($[32] !== children || $[33] !== t24) {
+    if ($[38] !== children || $[39] !== t24) {
         t25 = /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$16$2e$1$2e$6_$40$babel$2b$core$40$7$2e$2_64d5eeabc3e5d7da937e2327328eb8d4$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(ApplicationsContext.Provider, {
             value: t24,
             children: children
         }, void 0, false, {
             fileName: "[project]/src/context/ApplicationsContext.tsx",
-            lineNumber: 695,
+            lineNumber: 705,
             columnNumber: 11
         }, ("TURBOPACK compile-time value", void 0));
-        $[32] = children;
-        $[33] = t24;
-        $[34] = t25;
+        $[38] = children;
+        $[39] = t24;
+        $[40] = t25;
     } else {
-        t25 = $[34];
+        t25 = $[40];
     }
     return t25;
 };

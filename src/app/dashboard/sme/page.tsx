@@ -642,6 +642,60 @@ export default function SMELoanApplicationPage() {
       '& .MuiInputLabel-root.Mui-focused': {
         color: limeColors[500],
       },
+      // Make input text white in dark mode
+      '& .MuiInputBase-input': {
+        color: isDarkMode ? '#ffffff' : 'inherit',
+      },
+      '& .MuiInputBase-input::placeholder': {
+        color: isDarkMode ? 'rgba(255, 255, 255, 0.5)' : 'inherit',
+      },
+      // Make InputAdornment text white in dark mode
+      '& .MuiInputAdornment-root': {
+        color: isDarkMode ? '#ffffff' : 'inherit',
+      },
+      '& .MuiInputAdornment-root p': {
+        color: isDarkMode ? '#ffffff' : 'inherit',
+      },
+    }
+  };
+
+  const baseSelectProps = {
+    sx: {
+      '& .MuiSelect-select': {
+        bgcolor: isDarkMode ? 'rgba(255, 255, 255, 0.02)' : 'rgba(255, 255, 255, 0.9)',
+        backdropFilter: 'blur(10px)',
+        borderRadius: '12px',
+        color: isDarkMode ? '#ffffff' : 'inherit',
+      },
+      '& .MuiOutlinedInput-root': {
+        borderRadius: '12px',
+        '& fieldset': {
+          borderColor: isDarkMode ? 'rgba(132, 204, 22, 0.2)' : 'rgba(132, 204, 22, 0.15)',
+          borderWidth: '1.5px',
+        },
+        '&:hover fieldset': {
+          borderColor: isDarkMode ? 'rgba(132, 204, 22, 0.4)' : 'rgba(132, 204, 22, 0.3)',
+        },
+        '&.Mui-focused fieldset': {
+          borderColor: limeColors[500],
+          borderWidth: '2px',
+        },
+      },
+      '& .MuiInputLabel-root': {
+        color: isDarkMode ? '#a1a1aa' : '#71717a',
+        fontWeight: 500,
+      },
+      '& .MuiInputLabel-root.Mui-focused': {
+        color: limeColors[500],
+      },
+      // Make selected text white in dark mode
+      '& .MuiSelect-select.MuiSelect-outlined': {
+        color: isDarkMode ? '#ffffff' : 'inherit',
+      },
+      // Make FormHelperText white in dark mode
+      '& .MuiFormHelperText-root': {
+        color: isDarkMode ? '#a1a1aa' : '#71717a',
+      },
     }
   };
 
@@ -672,7 +726,7 @@ export default function SMELoanApplicationPage() {
                 onChange={handleInputChange}
                 helperText="Optional if not registered"
               />
-              <FormControl fullWidth error={!!errors.businessType}>
+              <FormControl fullWidth error={!!errors.businessType} {...baseSelectProps}>
                 <InputLabel>Business Type</InputLabel>
                 <Select
                   name="businessType"
@@ -680,10 +734,6 @@ export default function SMELoanApplicationPage() {
                   onChange={handleSelectChange('businessType')}
                   label="Business Type"
                   required
-                  sx={{
-                    bgcolor: isDarkMode ? 'rgba(255, 255, 255, 0.02)' : 'rgba(255, 255, 255, 0.9)',
-                    borderRadius: '12px',
-                  }}
                 >
                   {businessTypes.map((type) => (
                     <MenuItem key={type} value={type}>{type}</MenuItem>
@@ -718,7 +768,7 @@ export default function SMELoanApplicationPage() {
               Loan Details
             </Typography>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-              <FormControl fullWidth error={!!errors.loanProduct}>
+              <FormControl fullWidth error={!!errors.loanProduct} {...baseSelectProps}>
                 <InputLabel>Loan Product</InputLabel>
                 <Select
                   name="loanProduct"
@@ -726,10 +776,6 @@ export default function SMELoanApplicationPage() {
                   onChange={handleSelectChange('loanProduct')}
                   label="Loan Product"
                   required
-                  sx={{
-                    bgcolor: isDarkMode ? 'rgba(255, 255, 255, 0.02)' : 'rgba(255, 255, 255, 0.9)',
-                    borderRadius: '12px',
-                  }}
                 >
                   {loanProducts.map((product) => (
                     <MenuItem key={product} value={product}>{product}</MenuItem>
@@ -779,7 +825,7 @@ export default function SMELoanApplicationPage() {
                 multiline
                 rows={3}
               />
-              <FormControl fullWidth error={!!errors.repaymentMethod}>
+              <FormControl fullWidth error={!!errors.repaymentMethod} {...baseSelectProps}>
                 <InputLabel>Repayment Method</InputLabel>
                 <Select
                   name="repaymentMethod"
@@ -787,10 +833,6 @@ export default function SMELoanApplicationPage() {
                   onChange={handleSelectChange('repaymentMethod')}
                   label="Repayment Method"
                   required
-                  sx={{
-                    bgcolor: isDarkMode ? 'rgba(255, 255, 255, 0.02)' : 'rgba(255, 255, 255, 0.9)',
-                    borderRadius: '12px',
-                  }}
                 >
                   {repaymentMethods.map((method) => (
                     <MenuItem key={method} value={method}>{method}</MenuItem>
@@ -1142,33 +1184,44 @@ export default function SMELoanApplicationPage() {
             </Typography>
             
             {/* Summary */}
-            <Paper elevation={0} sx={{ p: 3, mb: 3, bgcolor: isDarkMode ? 'rgba(255, 255, 255, 0.02)' : 'rgba(0, 0, 0, 0.02)', borderRadius: '12px' }}>
-              <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>Application Summary</Typography>
+            <Paper 
+              elevation={0} 
+              sx={{ 
+                p: 3, 
+                mb: 3, 
+                bgcolor: isDarkMode ? 'rgba(255, 255, 255, 0.02)' : 'rgba(0, 0, 0, 0.02)', 
+                borderRadius: '12px',
+                border: `1.5px solid ${isDarkMode ? 'rgba(132, 204, 22, 0.2)' : 'rgba(132, 204, 22, 0.15)'}`
+              }}
+            >
+              <Typography variant="h6" sx={{ mb: 2, fontWeight: 600, color: isDarkMode ? 'white' : '#18181b' }}>
+                Application Summary
+              </Typography>
               
               <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 2 }}>
                 <Box>
-                  <Typography variant="caption" color="textSecondary">Business Name</Typography>
-                  <Typography variant="body2" fontWeight={600}>{formData.businessName}</Typography>
+                  <Typography variant="caption" sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a' }}>Business Name</Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 600, color: isDarkMode ? 'white' : '#18181b' }}>{formData.businessName}</Typography>
                 </Box>
                 <Box>
-                  <Typography variant="caption" color="textSecondary">Business Type</Typography>
-                  <Typography variant="body2" fontWeight={600}>{formData.businessType}</Typography>
+                  <Typography variant="caption" sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a' }}>Business Type</Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 600, color: isDarkMode ? 'white' : '#18181b' }}>{formData.businessType}</Typography>
                 </Box>
                 <Box>
-                  <Typography variant="caption" color="textSecondary">Loan Product</Typography>
-                  <Typography variant="body2" fontWeight={600}>{formData.loanProduct}</Typography>
+                  <Typography variant="caption" sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a' }}>Loan Product</Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 600, color: isDarkMode ? 'white' : '#18181b' }}>{formData.loanProduct}</Typography>
                 </Box>
                 <Box>
-                  <Typography variant="caption" color="textSecondary">Loan Amount</Typography>
-                  <Typography variant="body2" fontWeight={600}>MK {formData.loanAmount.toLocaleString()}</Typography>
+                  <Typography variant="caption" sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a' }}>Loan Amount</Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 600, color: limeColors[500] }}>MK {formData.loanAmount.toLocaleString()}</Typography>
                 </Box>
                 <Box>
-                  <Typography variant="caption" color="textSecondary">Payback Period</Typography>
-                  <Typography variant="body2" fontWeight={600}>{formData.paybackPeriodMonths} months</Typography>
+                  <Typography variant="caption" sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a' }}>Payback Period</Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 600, color: isDarkMode ? 'white' : '#18181b' }}>{formData.paybackPeriodMonths} months</Typography>
                 </Box>
                 <Box>
-                  <Typography variant="caption" color="textSecondary">Repayment Method</Typography>
-                  <Typography variant="body2" fontWeight={600}>{formData.repaymentMethod}</Typography>
+                  <Typography variant="caption" sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a' }}>Repayment Method</Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 600, color: isDarkMode ? 'white' : '#18181b' }}>{formData.repaymentMethod}</Typography>
                 </Box>
               </Box>
             </Paper>
@@ -1197,7 +1250,11 @@ export default function SMELoanApplicationPage() {
                     }}
                   />
                 }
-                label="I agree to the terms and conditions"
+                label={
+                  <Typography sx={{ color: isDarkMode ? 'white' : '#18181b', fontWeight: 500 }}>
+                    I agree to the terms and conditions
+                  </Typography>
+                }
               />
               {errors.agreeToTerms && (
                 <Typography variant="caption" color="error">
@@ -1227,7 +1284,11 @@ export default function SMELoanApplicationPage() {
                     }}
                   />
                 }
-                label="I consent to a credit check"
+                label={
+                  <Typography sx={{ color: isDarkMode ? 'white' : '#18181b', fontWeight: 500 }}>
+                    I consent to a credit check
+                  </Typography>
+                }
               />
               {errors.consentToCreditCheck && (
                 <Typography variant="caption" color="error">
@@ -1252,12 +1313,21 @@ export default function SMELoanApplicationPage() {
   if (submitSuccess) {
     return (
       <Container maxWidth="md" sx={{ py: 8 }}>
-        <Paper elevation={0} sx={{ p: 6, textAlign: 'center', borderRadius: '24px' }}>
+        <Paper 
+          elevation={0} 
+          sx={{ 
+            p: 6, 
+            textAlign: 'center', 
+            borderRadius: '24px',
+            bgcolor: isDarkMode ? 'rgba(255, 255, 255, 0.02)' : 'white',
+            border: `1.5px solid ${isDarkMode ? 'rgba(132, 204, 22, 0.2)' : 'rgba(132, 204, 22, 0.15)'}`
+          }}
+        >
           <CheckCircle size={64} color={limeColors[500]} style={{ marginBottom: 16 }} />
-          <Typography variant="h4" sx={{ mb: 2, fontWeight: 700 }}>
+          <Typography variant="h4" sx={{ mb: 2, fontWeight: 700, color: isDarkMode ? 'white' : '#18181b' }}>
             Application Submitted!
           </Typography>
-          <Typography variant="body1" color="textSecondary" sx={{ mb: 3 }}>
+          <Typography variant="body1" sx={{ mb: 3, color: isDarkMode ? '#a1a1aa' : '#71717a' }}>
             Your SME loan application has been successfully submitted. We'll review it and get back to you soon.
           </Typography>
           <Button

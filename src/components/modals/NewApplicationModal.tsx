@@ -50,7 +50,7 @@ export default function NewApplicationModal({ isOpen, onClose }: NewApplicationM
         {/* Selection Buttons */}
         <div className="grid grid-cols-1 gap-4">
           <Link 
-            href="/dashboard/sme"
+            href="/dashboard/sme?new=true"
             onClick={onClose}
             className="group flex items-center gap-4 p-4 rounded-xl border border-border hover:border-primary-500 hover:bg-primary-500/5 transition-all"
           >
@@ -64,7 +64,7 @@ export default function NewApplicationModal({ isOpen, onClose }: NewApplicationM
           </Link>
 
           <Link 
-            href="/dashboard/payroll"
+            href="/dashboard/payroll?new=true"
             onClick={onClose}
             className="group flex items-center gap-4 p-4 rounded-xl border border-border hover:border-primary-500 hover:bg-primary-500/5 transition-all"
           >
