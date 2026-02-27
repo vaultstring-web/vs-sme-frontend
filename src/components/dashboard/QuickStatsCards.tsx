@@ -26,7 +26,6 @@ export default function QuickStatsCards({ stats }: QuickStatsCardsProps) {
       badge: 'In Progress',
       icon: FileText,
       color: 'blue',
-      href: hasDrafts ? `/dashboard/applications/${latestDraftId}` : undefined,
     },
     {
       title: 'In Review',
@@ -34,7 +33,6 @@ export default function QuickStatsCards({ stats }: QuickStatsCardsProps) {
       badge: 'Under Review',
       icon: Clock,
       color: 'yellow',
-      href: '/dashboard/applications?status=SUBMITTED,UNDER_REVIEW',
     },
     {
       title: 'Approved',
@@ -42,7 +40,6 @@ export default function QuickStatsCards({ stats }: QuickStatsCardsProps) {
       badge: `MWK ${stats.totalDisbursed.toLocaleString()}`,
       icon: CheckCircle2,
       color: 'green',
-      href: '/dashboard/applications?status=APPROVED,DISBURSED,REPAYED',
     },
     {
       title: 'Rejected',
@@ -83,19 +80,6 @@ export default function QuickStatsCards({ stats }: QuickStatsCardsProps) {
               </div>
             </div>
             <div className="mt-4 pt-4 border-t border-border/50">
-              <div className="flex items-center justify-between text-sm">
-                {card.href ? (
-                  <Link
-                    href={card.href}
-                    className="text-primary-600 dark:text-primary-400 hover:underline flex items-center gap-1"
-                  >
-                    {card.title === 'Draft Applications' ? 'Continue' : 'View All'}
-                    <ArrowRight className="w-3 h-3" />
-                  </Link>
-                ) : (
-                  <span className="text-foreground/40">No drafts</span>
-                )}
-              </div>
             </div>
           </div>
         );
