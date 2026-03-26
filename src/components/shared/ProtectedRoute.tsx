@@ -21,7 +21,8 @@ const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) => {
                 router.push(`/login?returnUrl=${returnUrl}`);
             } else if (allowedRoles && user && !allowedRoles.includes(user.role)) {
                 // Redirect to unauthorized page or dashboard if role doesn't match
-                router.push('/dashboard'); // Assuming dashboard is the default for authenticated users
+                const isAdmin = user.role === 'ADMIN_TIER1' || user.role === 'ADMIN_TIER2' || user.role === 'AUDITOR';
+                router.push(isAdmin ? '/admin/dashboard' : '/dashboard');
             }
         }
     }, [isAuthenticated, isLoading, router, pathname, user, allowedRoles]);

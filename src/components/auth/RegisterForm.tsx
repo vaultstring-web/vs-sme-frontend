@@ -4,7 +4,8 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../hooks/useAuth';
-import { validateEmail, validatePassword, validateConfirmPassword } from '../../utils/validators';
+import { getSession } from '../../utils/sessionStorage';
+import { validateEmail, validatePassword, validateConfirmPassword, validateMalawiNationalId } from '../../utils/validators';
 
 const STEPS = [
     { id: 1, title: 'Personal', description: 'Basic info' },
@@ -36,7 +37,7 @@ const RegisterForm = () => {
     const [formData, setFormData] = useState({
         email: '',
         fullName: '',
-        nationalIdOrPassport: '',
+        nationalId: '',
         primaryPhone: '',
         secondaryPhone: '',
         physicalAddress: '',
@@ -66,7 +67,13 @@ const RegisterForm = () => {
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value, type } = e.target;
-        const val = type === 'checkbox' ? (e.target as HTMLInputElement).checked : value;
+        let val = type === 'checkbox' ? (e.target as HTMLInputElement).checked : value;
+
+        // Apply constraints to National ID
+        if (name === 'nationalId' && typeof val === 'string') {
+            val = val.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 8);
+        }
+
         setFormData(prev => ({ ...prev, [name]: val }));
         
         // Clear individual field error when user types
@@ -97,8 +104,8 @@ const RegisterForm = () => {
             case 'fullName':
                 if (!formData.fullName.trim()) error = 'Full name is required';
                 break;
-            case 'nationalIdOrPassport':
-                if (!formData.nationalIdOrPassport.trim()) error = 'ID/Passport is required';
+            case 'nationalId':
+                error = validateMalawiNationalId(formData.nationalId) || '';
                 break;
             case 'email':
                 error = validateEmail(formData.email) || '';
@@ -137,7 +144,8 @@ const RegisterForm = () => {
         
         if (step === 1) {
             if (!formData.fullName.trim()) newErrors.fullName = 'Full name is required';
-            if (!formData.nationalIdOrPassport.trim()) newErrors.nationalIdOrPassport = 'ID/Passport is required';
+            const idErr = validateMalawiNationalId(formData.nationalId);
+            if (idErr) newErrors.nationalId = idErr;
             const emailErr = validateEmail(formData.email);
             if (emailErr) newErrors.email = emailErr;
         } else if (step === 2) {
@@ -159,7 +167,7 @@ const RegisterForm = () => {
     const nextStep = () => {
         // Mark all fields in current step as touched when trying to proceed
         if (currentStep === 1) {
-            setTouchedFields(prev => new Set([...prev, 'fullName', 'nationalIdOrPassport', 'email']));
+            setTouchedFields(prev => new Set([...prev, 'fullName', 'nationalId', 'email']));
         } else if (currentStep === 2) {
             setTouchedFields(prev => new Set([...prev, 'primaryPhone', 'physicalAddress']));
         }
@@ -200,7 +208,10 @@ const RegisterForm = () => {
 
             try {
                 await register(formData);
-                router.push('/dashboard');
+                // 🛡️ Role-based redirection (mostly for applicants, but good for consistency)
+                const { user } = getSession(); // Get user from session since state might not be immediate
+                const isAdmin = user?.role === 'ADMIN_TIER1' || user?.role === 'ADMIN_TIER2';
+                router.push(isAdmin ? '/admin/dashboard' : '/dashboard');
             } catch (err) {
                 console.error('Registration failed:', err);
             } finally {
@@ -259,7 +270,7 @@ const RegisterForm = () => {
                             >
                                 <header>
                                     <h2 className="text-2xl font-bold text-gray-900">Personal Details</h2>
-                                    <p className="text-gray-500 text-sm font-medium">Let's get your basic account information set up.</p>
+                                    <p className="text-gray-500 text-sm font-medium">Let&apos;s get your basic account information set up.</p>
                                 </header>
                                 
                                 <div className="space-y-4">
@@ -286,14 +297,15 @@ const RegisterForm = () => {
                                                 className={inputClass(!!shouldShowError('email'))} 
                                             />
                                         </FormGroup>
-                                        <FormGroup label="ID / Passport Number" error={shouldShowError('nationalIdOrPassport') ? errors.nationalIdOrPassport : ''}>
+                                        <FormGroup label="National ID" error={shouldShowError('nationalId') ? errors.nationalId : ''}>
                                             <input 
-                                                name="nationalIdOrPassport" 
-                                                value={formData.nationalIdOrPassport} 
+                                                name="nationalId" 
+                                                value={formData.nationalId} 
                                                 onChange={handleChange} 
-                                                onBlur={() => handleBlur('nationalIdOrPassport')}
-                                                placeholder="12345678" 
-                                                className={inputClass(!!shouldShowError('nationalIdOrPassport'))} 
+                                                onBlur={() => handleBlur('nationalId')}
+                                                placeholder="8-character ID (e.g. A1B2C3D4)" 
+                                                maxLength={8}
+                                                className={inputClass(!!shouldShowError('nationalId'))} 
                                             />
                                         </FormGroup>
                                     </div>
@@ -471,7 +483,13 @@ const RegisterForm = () => {
 };
 
 // --- Sub-Components (unchanged) ---
-const FormGroup = ({ label, error, children }: any) => (
+interface FormGroupProps {
+    label: string;
+    error?: string;
+    children: React.ReactNode;
+}
+
+const FormGroup = ({ label, error, children }: FormGroupProps) => (
     <div className="flex flex-col gap-1.5">
         <label className="text-xs font-bold text-gray-500 uppercase tracking-widest">{label}</label>
         {children}
@@ -490,7 +508,17 @@ const FormGroup = ({ label, error, children }: any) => (
     </div>
 );
 
-const PasswordInput = ({ name, value, onChange, onBlur, isVisible, toggleVisible, hasError }: any) => (
+interface PasswordInputProps {
+    name: string;
+    value: string;
+    onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    onBlur: (e: React.FocusEvent<HTMLInputElement>) => void;
+    isVisible: boolean;
+    toggleVisible: () => void;
+    hasError: boolean;
+}
+
+const PasswordInput = ({ name, value, onChange, onBlur, isVisible, toggleVisible, hasError }: PasswordInputProps) => (
     <div className="relative group">
         <input
             name={name}
@@ -516,7 +544,15 @@ const PasswordInput = ({ name, value, onChange, onBlur, isVisible, toggleVisible
     </div>
 );
 
-const Checkbox = ({ name, checked, onChange, label, error }: any) => (
+interface CheckboxProps {
+    name: string;
+    checked: boolean;
+    onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    label: React.ReactNode;
+    error?: string;
+}
+
+const Checkbox = ({ name, checked, onChange, label, error }: CheckboxProps) => (
     <div className="flex flex-col gap-1">
         <div className="flex items-start gap-3">
             <input 

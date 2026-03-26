@@ -1,9 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { 
   Search, 
-  Filter, 
   Download, 
   ChevronLeft, 
   ChevronRight, 
@@ -15,6 +14,7 @@ import {
 import Link from 'next/link';
 import apiClient from '@/lib/apiClient';
 import { Input, Select } from '@/components/ui/FormELements';
+import { useAuth } from '@/hooks/useAuth';
 
 interface Application {
   id: string;
@@ -56,8 +56,10 @@ export default function AdminApplicationTable() {
   // Sorting
   const [sortBy, setSortBy] = useState('createdAt');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const { user: currentUser } = useAuth();
+  const isAuditor = currentUser?.role === 'AUDITOR';
 
-  const fetchApplications = async () => {
+  const fetchApplications = useCallback(async () => {
     setIsLoading(true);
     try {
       const params = new URLSearchParams({
@@ -80,14 +82,14 @@ export default function AdminApplicationTable() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [meta.page, meta.pageSize, sortBy, sortOrder, search, status, dateFrom, dateTo]);
 
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       fetchApplications();
     }, 300); // Debounce search
     return () => clearTimeout(timeoutId);
-  }, [meta.page, meta.pageSize, sortBy, sortOrder, search, status, dateFrom, dateTo]);
+  }, [fetchApplications]);
 
   const handleSort = (field: string) => {
     if (sortBy === field) {
@@ -215,7 +217,7 @@ export default function AdminApplicationTable() {
       </div>
 
       {/* Bulk Action Bar */}
-            {selectedIds.size > 0 && (
+      {selectedIds.size > 0 && !isAuditor && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 bg-foreground text-background px-6 py-3 rounded-full shadow-xl flex items-center gap-4 animate-in slide-in-from-bottom-4 duration-200" role="region" aria-label="Bulk actions">
           <span className="font-medium text-sm">{selectedIds.size} selected</span>
           <div className="h-4 w-px bg-background/20" />
@@ -250,15 +252,17 @@ export default function AdminApplicationTable() {
           <table className="w-full text-sm text-left">
             <thead className="sticky top-0 z-10 text-xs text-foreground/50 uppercase bg-slate-50 dark:bg-zinc-800/50">
               <tr>
-                <th className="px-4 py-3 w-10">
-                  <button onClick={handleSelectAll} className="flex items-center">
-                    {applications.length > 0 && selectedIds.size === applications.length ? (
-                      <CheckSquare className="w-4 h-4 text-primary-600" />
-                    ) : (
-                      <Square className="w-4 h-4 text-foreground/30" />
-                    )}
-                  </button>
-                </th>
+                {!isAuditor && (
+                  <th className="px-4 py-3 w-10">
+                    <button onClick={handleSelectAll} className="flex items-center">
+                      {applications.length > 0 && selectedIds.size === applications.length ? (
+                        <CheckSquare className="w-4 h-4 text-primary-600" />
+                      ) : (
+                        <Square className="w-4 h-4 text-foreground/30" />
+                      )}
+                    </button>
+                  </th>
+                )}
                 <th className="px-6 py-3 font-medium cursor-pointer hover:text-primary-600" onClick={() => handleSort('createdAt')}>
                   <div className="flex items-center gap-1">
                     Date
@@ -291,16 +295,18 @@ export default function AdminApplicationTable() {
                 </tr>
               ) : (
                 applications.map((app) => (
-                  <tr key={app.id} className={`hover:bg-slate-50 dark:hover:bg-zinc-800/50 transition-colors ${selectedIds.has(app.id) ? 'bg-primary-50/50 dark:bg-primary-900/10' : ''}`}>
-                    <td className="px-4 py-4">
-                      <button onClick={() => handleSelectOne(app.id)} className="flex items-center">
-                        {selectedIds.has(app.id) ? (
-                          <CheckSquare className="w-4 h-4 text-primary-600" />
-                        ) : (
-                          <Square className="w-4 h-4 text-foreground/30" />
-                        )}
-                      </button>
-                    </td>
+                  <tr key={app.id} className={`hover:bg-slate-50 dark:hover:bg-zinc-800/50 transition-colors ${selectedIds.has(app.id) && !isAuditor ? 'bg-primary-50/50 dark:bg-primary-900/10' : ''}`}>
+                    {!isAuditor && (
+                      <td className="px-4 py-4">
+                        <button onClick={() => handleSelectOne(app.id)} className="flex items-center">
+                          {selectedIds.has(app.id) ? (
+                            <CheckSquare className="w-4 h-4 text-primary-600" />
+                          ) : (
+                            <Square className="w-4 h-4 text-foreground/30" />
+                          )}
+                        </button>
+                      </td>
+                    )}
                     <td className="px-6 py-4 whitespace-nowrap text-foreground/60">
                       {new Date(app.createdAt).toLocaleDateString()}
                     </td>

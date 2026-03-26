@@ -17,6 +17,7 @@ import ApplicationTimeline from "./ApplicationTimeline";
 import { useApplications } from "@/hooks/useApplications"; // adjust path as needed
 import DocumentViewer from "@/components/shared/DocumentViewer";
 import { API_BASE_URL } from "@/lib/apiClient";
+import { useAuth } from "@/hooks/useAuth";
 
 interface AdminApplicationDetailClientProps {
   id: string;
@@ -35,6 +36,8 @@ export default function AdminApplicationDetailClient({
     updateAdminApplicationData,
     clearAdminError,
   } = useApplications();
+  const { user: currentUser } = useAuth();
+  const isAuditor = currentUser?.role === 'AUDITOR';
 
   const [isEditMode, setIsEditMode] = useState(false);
   const [isStatusModalOpen, setIsStatusModalOpen] = useState(false);
@@ -98,26 +101,30 @@ export default function AdminApplicationDetailClient({
         </button>
 
         <div className="flex items-center gap-3">
-          <button
-            onClick={() => setIsEditMode(!isEditMode)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all border
-              ${
-                isEditMode
-                  ? "bg-primary-50 text-primary-700 border-primary-200 dark:bg-primary-900/20 dark:text-primary-400 dark:border-primary-800"
-                  : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50 dark:bg-zinc-900 dark:text-zinc-300 dark:border-zinc-700"
-              }`}
-          >
-            {isEditMode ? <Eye size={16} /> : <Edit2 size={16} />}
-            {isEditMode ? "View Mode" : "Edit Mode"}
-          </button>
+          {!isAuditor && (
+            <button
+              onClick={() => setIsEditMode(!isEditMode)}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all border
+                ${
+                  isEditMode
+                    ? "bg-primary-50 text-primary-700 border-primary-200 dark:bg-primary-900/20 dark:text-primary-400 dark:border-primary-800"
+                    : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50 dark:bg-zinc-900 dark:text-zinc-300 dark:border-zinc-700"
+                }`}
+            >
+              {isEditMode ? <Eye size={16} /> : <Edit2 size={16} />}
+              {isEditMode ? "View Mode" : "Edit Mode"}
+            </button>
+          )}
 
-          <button
-            onClick={() => setIsStatusModalOpen(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-slate-900 dark:bg-zinc-100 text-white dark:text-slate-900 rounded-lg hover:bg-slate-800 dark:hover:bg-zinc-200 transition-colors text-sm font-medium shadow-sm"
-          >
-            <ShieldCheck size={16} />
-            Update Status
-          </button>
+          {!isAuditor && (
+            <button
+              onClick={() => setIsStatusModalOpen(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-slate-900 dark:bg-zinc-100 text-white dark:text-slate-900 rounded-lg hover:bg-slate-800 dark:hover:bg-zinc-200 transition-colors text-sm font-medium shadow-sm"
+            >
+              <ShieldCheck size={16} />
+              Update Status
+            </button>
+          )}
         </div>
       </div>
 
@@ -224,7 +231,7 @@ export default function AdminApplicationDetailClient({
               </p>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {app.documents.map((doc: any, idx: number) => (
+                {app.documents.map((doc, idx: number) => (
                   <div
                     key={doc.id}
                     className="flex items-center justify-between p-3 border border-border rounded-lg hover:bg-slate-50 dark:hover:bg-zinc-800/50 transition-colors"
@@ -290,7 +297,7 @@ export default function AdminApplicationDetailClient({
       />
       {isViewerOpen && app && (
         <DocumentViewer
-          documents={app.documents.map((d: any) => ({ id: d.id, name: d.fileName, fileUrl: d.fileUrl, documentType: d.documentType }))}
+          documents={app.documents.map((d) => ({ id: d.id, name: d.fileName, fileUrl: d.fileUrl, documentType: d.documentType }))}
           initialIndex={viewerIndex}
           onClose={() => setIsViewerOpen(false)}
         />

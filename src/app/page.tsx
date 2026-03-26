@@ -12,11 +12,9 @@ export default function HomePage() {
   useEffect(() => {
     if (!isLoading) {
       if (isAuthenticated && user) {
-        // Redirect based on role
-        const dashboardPath = user.role === 'ADMIN_TIER1' || user.role === 'ADMIN_TIER2'
-          ? '/admin/dashboard'
-          : '/dashboard';
-        router.replace(dashboardPath);
+        // 🛡️ Role-based redirection
+        const isAdmin = user.role === 'ADMIN_TIER1' || user.role === 'ADMIN_TIER2' || user.role === 'AUDITOR';
+        router.replace(isAdmin ? '/admin/dashboard' : '/dashboard');
       } else {
         // Not authenticated – go to dashboard (which will likely redirect to login)
         router.replace('/dashboard');

@@ -22,13 +22,22 @@ const LoginForm = () => {
     useEffect(() => {
         if (isAuthenticated && !isLoading && user) {
             // Determine the default dashboard based on user role
-            const defaultDashboard = user.role === 'ADMIN_TIER1' || user.role === 'ADMIN_TIER2'
-                ? '/admin/dashboard'
-                : '/dashboard';
-            
+            const isAdmin = user.role === 'ADMIN_TIER1' || user.role === 'ADMIN_TIER2' || user.role === 'AUDITOR';
+            const defaultDashboard = isAdmin ? '/admin/dashboard' : '/dashboard';
+
             // Use returnUrl from query param if present, otherwise role-based default
-            const returnUrl = searchParams.get('returnUrl') || defaultDashboard;
-            
+            let returnUrl = searchParams.get('returnUrl') || defaultDashboard;
+
+            // 🛡️ Security & UX: If an admin logs in, ensure they go to an admin page.
+            // If they were redirected to login from a non-admin page, or came directly,
+            // we override to the admin dashboard.
+            if (isAdmin && !returnUrl.startsWith('/admin')) {
+                returnUrl = '/admin/dashboard';
+            } else if (!isAdmin && returnUrl.startsWith('/admin')) {
+                // Conversely, if a non-admin tried to reach an admin page, send them to user dashboard
+                returnUrl = '/dashboard';
+            }
+
             // Small delay to ensure state is stable
             const timer = setTimeout(() => {
                 router.push(returnUrl);
@@ -40,7 +49,7 @@ const LoginForm = () => {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        
+
         setErrors({});
         setLocalError(null);
 
@@ -57,14 +66,15 @@ const LoginForm = () => {
 
         // Prevent double submission
         if (isSubmitting) return;
-        
+
         setIsSubmitting(true);
 
         try {
             await login({ email, password });
             // Don't redirect here - let the useEffect handle it
-        } catch (err: any) {
-            setLocalError(err.message || 'Login failed');
+        } catch (err: unknown) {
+            const error = err as { response?: { data?: { message?: string } }; message?: string };
+            setLocalError(error.response?.data?.message || error.message || 'Login failed');
         } finally {
             setIsSubmitting(false);
         }
@@ -130,9 +140,8 @@ const LoginForm = () => {
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 disabled={isSubmitting}
-                                className={`block w-full rounded-md border p-3 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm text-gray-900 placeholder:text-gray-400 ${
-                                    errors.email ? 'border-red-500' : 'border-gray-300'
-                                }`}
+                                className={`block w-full rounded-md border p-3 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm text-gray-900 placeholder:text-gray-400 ${errors.email ? 'border-red-500' : 'border-gray-300'
+                                    }`}
                             />
                             {errors.email && (
                                 <p className="mt-1 text-sm text-red-600">{errors.email}</p>
@@ -154,9 +163,8 @@ const LoginForm = () => {
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 disabled={isSubmitting}
-                                className={`block w-full rounded-md border p-3 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm text-gray-900 placeholder:text-gray-400 ${
-                                    errors.password ? 'border-red-500' : 'border-gray-300'
-                                }`}
+                                className={`block w-full rounded-md border p-3 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm text-gray-900 placeholder:text-gray-400 ${errors.password ? 'border-red-500' : 'border-gray-300'
+                                    }`}
                             />
                             <button
                                 type="button"
@@ -196,7 +204,7 @@ const LoginForm = () => {
                 </div>
 
                 <div className="text-center text-sm text-gray-500">
-                    Don't have an account?{' '}
+                    Don&apos;t have an account?{' '}
                     <Link href="/register" className="font-semibold text-primary-600 hover:text-primary-500">
                         Sign up
                     </Link>

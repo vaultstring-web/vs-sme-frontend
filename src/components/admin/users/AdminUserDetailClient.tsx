@@ -42,7 +42,7 @@ interface UserDetail {
   id: string;
   email: string;
   fullName: string;
-  nationalIdOrPassport: string;
+  nationalId: string;
   primaryPhone: string;
   secondaryPhone?: string;
   physicalAddress: string;
@@ -79,7 +79,8 @@ export default function AdminUserDetailClient({ id }: AdminUserDetailClientProps
       setUser({ ...userCore, documents });
     } catch (err: unknown) {
       console.error('Failed to fetch user details:', err);
-      const errorMessage = (err as any)?.response?.data?.message || 'Failed to load user details';
+      const error = err as { response?: { data?: { message?: string } }; message?: string };
+      const errorMessage = error.response?.data?.message || 'Failed to load user details';
       setError(errorMessage);
     } finally {
       setIsLoading(false);
@@ -184,8 +185,8 @@ export default function AdminUserDetailClient({ id }: AdminUserDetailClientProps
               <div className="flex items-start gap-3">
                 <Shield className="w-5 h-5 text-slate-400 mt-0.5" />
                 <div>
-                  <p className="text-xs font-medium text-slate-500 dark:text-zinc-500 uppercase">National ID / Passport</p>
-                  <p className="text-sm text-slate-900 dark:text-zinc-100">{user.nationalIdOrPassport}</p>
+                  <p className="text-xs font-medium text-slate-500 dark:text-zinc-500 uppercase">National ID</p>
+                  <p className="text-sm text-slate-900 dark:text-zinc-100">{user.nationalId}</p>
                 </div>
               </div>
 

@@ -18,3 +18,10 @@ export const validateConfirmPassword = (password: string, confirm: string): stri
     if (password !== confirm) return 'Passwords do not match';
     return null;
 };
+
+export const validateMalawiNationalId = (id: string): string | null => {
+  if (!id) return 'National ID is required';
+  const idRegex = /^[A-Z0-9]{8}$/;
+  if (!idRegex.test(id)) return 'National ID must be exactly 8 alphanumeric characters';
+  return null;
+};

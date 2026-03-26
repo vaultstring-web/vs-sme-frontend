@@ -83,7 +83,7 @@ export default function SMELoanApplicationPage() {
   const [existingDocuments, setExistingDocuments] = useState<Record<string, { fileName: string; fileUrl: string }>>({});
   const [isViewerOpen, setIsViewerOpen] = useState(false);
   const [viewerDocs, setViewerDocs] = useState<{ id?: string; name: string; fileUrl: string; documentType?: string }[]>([]);
-  
+
   const {
     createDraftApplication,
     updateSMEApplication,
@@ -93,10 +93,10 @@ export default function SMELoanApplicationPage() {
     error,
     clearError
   } = useApplications();
-  
+
   const { theme } = useTheme();
   const isDarkMode = theme === 'dark';
-  
+
   const [formData, setFormData] = useState<SmeFormData>({
     businessName: '',
     registrationNo: '',
@@ -122,14 +122,14 @@ export default function SMELoanApplicationPage() {
     agreeToTerms: false,
     consentToCreditCheck: false,
   });
-  
+
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   // Load draft from URL parameter (takes precedence over localStorage)
   useEffect(() => {
     const draftId = searchParams?.get('id');
     const isNew = searchParams?.get('new');
-    
+
     // If starting a new application, clear localStorage
     if (isNew === 'true') {
       localStorage.removeItem('smeLoanDraft');
@@ -137,7 +137,7 @@ export default function SMELoanApplicationPage() {
       setActiveStep(0);
       return;
     }
-    
+
     if (draftId) {
       setIsLoadingDraft(true);
       const loadDraftFromBackend = async () => {
@@ -191,7 +191,7 @@ export default function SMELoanApplicationPage() {
           }
 
           setApplicationId(draftId);
-          
+
           // Mark documents as uploaded if they exist in the backend
           if (application.documents && application.documents.length > 0) {
             const uploadedDocs = new Set<string>();
@@ -203,7 +203,7 @@ export default function SMELoanApplicationPage() {
             setUploadedDocuments(uploadedDocs);
             setExistingDocuments(existingDocs);
           }
-          
+
           setSnackbarMessage('Draft loaded successfully');
           setShowSnackbar(true);
         } catch (error) {
@@ -243,12 +243,12 @@ export default function SMELoanApplicationPage() {
 
   const validateStep = (step: number): boolean => {
     const newErrors: Record<string, string> = {};
-    
+
     switch (step) {
       case 0: // Business
         if (!formData.businessName.trim()) newErrors.businessName = 'Business name is required';
         if (!formData.businessType) newErrors.businessType = 'Business type is required';
-        if (!formData.yearsInOperation || formData.yearsInOperation <= 0) 
+        if (!formData.yearsInOperation || formData.yearsInOperation <= 0)
           newErrors.yearsInOperation = 'Years in operation is required';
         break;
       case 1: // Loan Details
@@ -256,7 +256,7 @@ export default function SMELoanApplicationPage() {
         if (!formData.loanAmount || formData.loanAmount <= 0) newErrors.loanAmount = 'Loan amount is required';
         else if (formData.loanAmount < 100000 || formData.loanAmount > 5000000)
           newErrors.loanAmount = 'Loan amount must be between MK100,000 and MK5,000,000';
-        if (!formData.paybackPeriodMonths || formData.paybackPeriodMonths <= 0) 
+        if (!formData.paybackPeriodMonths || formData.paybackPeriodMonths <= 0)
           newErrors.paybackPeriodMonths = 'Payback period is required';
         else if (formData.paybackPeriodMonths < 1 || formData.paybackPeriodMonths > 120)
           newErrors.paybackPeriodMonths = 'Payback period must be 1-120 months';
@@ -266,7 +266,7 @@ export default function SMELoanApplicationPage() {
       case 2: // Group Lending
         if (formData.isGroupLending) {
           if (!formData.groupName.trim()) newErrors.groupName = 'Group name is required';
-          if (!formData.groupMemberCount || formData.groupMemberCount <= 0) 
+          if (!formData.groupMemberCount || formData.groupMemberCount <= 0)
             newErrors.groupMemberCount = 'Number of members is required';
           else if (formData.groupMemberCount < 2 || formData.groupMemberCount > 20)
             newErrors.groupMemberCount = 'Group must have 2-20 members';
@@ -288,11 +288,11 @@ export default function SMELoanApplicationPage() {
         break;
       case 5: // Review
         if (!formData.agreeToTerms) newErrors.agreeToTerms = 'You must agree to the terms and conditions';
-        if (!formData.consentToCreditCheck) 
+        if (!formData.consentToCreditCheck)
           newErrors.consentToCreditCheck = 'You must consent to credit check';
         break;
     }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -301,12 +301,12 @@ export default function SMELoanApplicationPage() {
     const { name, value } = e.target as { name: string; value: any };
     const inputElement = e.target as HTMLInputElement;
     const parsedValue = inputElement.type === 'number' ? parseFloat(value) || 0 : value;
-    
+
     setFormData(prev => ({
       ...prev,
       [name]: parsedValue
     }));
-    
+
     if (errors[name]) {
       setErrors(prev => {
         const newErrors = { ...prev };
@@ -322,14 +322,14 @@ export default function SMELoanApplicationPage() {
       ...prev,
       [name]: file
     }));
-    
+
     // Clear the "uploaded" status if a new file is selected
     const typeMap: Record<string, string> = {
       idDocument: 'ID_DOCUMENT',
       businessRegistrationDoc: 'BUSINESS_REGISTRATION',
       financialStatementDoc: 'FINANCIAL_STATEMENT'
     };
-    
+
     const docType = typeMap[name];
     if (docType && file) {
       setUploadedDocuments(prev => {
@@ -343,7 +343,7 @@ export default function SMELoanApplicationPage() {
         return next;
       });
     }
-    
+
     if (errors[name]) {
       setErrors(prev => {
         const newErrors = { ...prev };
@@ -358,7 +358,7 @@ export default function SMELoanApplicationPage() {
       ...prev,
       [name]: e.target.value
     }));
-    
+
     if (errors[name]) {
       setErrors(prev => {
         const newErrors = { ...prev };
@@ -450,7 +450,7 @@ export default function SMELoanApplicationPage() {
       // Step 3: Upload documents if any are present (only upload new ones)
       try {
         const uploadTasks = [];
-        
+
         if (formData.idDocument && !uploadedDocuments.has('ID_DOCUMENT')) {
           uploadTasks.push(
             uploadDocument(id, formData.idDocument, 'ID_DOCUMENT')
@@ -459,7 +459,7 @@ export default function SMELoanApplicationPage() {
               })
           );
         }
-        
+
         if (formData.businessRegistrationDoc && !uploadedDocuments.has('BUSINESS_REGISTRATION')) {
           uploadTasks.push(
             uploadDocument(id, formData.businessRegistrationDoc, 'BUSINESS_REGISTRATION')
@@ -468,7 +468,7 @@ export default function SMELoanApplicationPage() {
               })
           );
         }
-        
+
         if (formData.financialStatementDoc && !uploadedDocuments.has('FINANCIAL_STATEMENT')) {
           uploadTasks.push(
             uploadDocument(id, formData.financialStatementDoc, 'FINANCIAL_STATEMENT')
@@ -531,19 +531,19 @@ export default function SMELoanApplicationPage() {
   const uploadDocuments = async (appId: string): Promise<boolean> => {
     try {
       const uploadTasks = [];
-      
+
       if (formData.idDocument) {
         uploadTasks.push(
           uploadDocument(appId, formData.idDocument, 'ID_DOCUMENT')
         );
       }
-      
+
       if (formData.businessRegistrationDoc) {
         uploadTasks.push(
           uploadDocument(appId, formData.businessRegistrationDoc, 'BUSINESS_REGISTRATION')
         );
       }
-      
+
       if (formData.financialStatementDoc) {
         uploadTasks.push(
           uploadDocument(appId, formData.financialStatementDoc, 'FINANCIAL_STATEMENT')
@@ -560,15 +560,15 @@ export default function SMELoanApplicationPage() {
 
   const handleSubmit = async () => {
     if (!validateStep(5)) return;
-    
+
     setIsSubmitting(true);
-    
+
     try {
       // First ensure we have an application ID by saving the draft
       let id = applicationId;
       if (!id) {
         id = await handleSaveDraft(); // Get ID directly from the function
-        
+
         if (!id) {
           throw new Error('Failed to create application');
         }
@@ -582,16 +582,16 @@ export default function SMELoanApplicationPage() {
 
       // Clear local storage
       localStorage.removeItem('smeLoanDraft');
-      
+
       setSubmitSuccess(true);
       setSnackbarMessage('Application submitted successfully!');
       setShowSnackbar(true);
-      
+
       // Redirect to applications page after a brief delay
       setTimeout(() => {
         router.push('/dashboard/applications');
       }, 2000);
-      
+
     } catch (error: any) {
       console.error('Submission error:', error);
       // Error will be shown via the error state from context
@@ -642,14 +642,12 @@ export default function SMELoanApplicationPage() {
       '& .MuiInputLabel-root.Mui-focused': {
         color: limeColors[500],
       },
-      // Make input text white in dark mode
       '& .MuiInputBase-input': {
         color: isDarkMode ? '#ffffff' : 'inherit',
       },
       '& .MuiInputBase-input::placeholder': {
         color: isDarkMode ? 'rgba(255, 255, 255, 0.5)' : 'inherit',
       },
-      // Make InputAdornment text white in dark mode
       '& .MuiInputAdornment-root': {
         color: isDarkMode ? '#ffffff' : 'inherit',
       },
@@ -688,11 +686,9 @@ export default function SMELoanApplicationPage() {
       '& .MuiInputLabel-root.Mui-focused': {
         color: limeColors[500],
       },
-      // Make selected text white in dark mode
       '& .MuiSelect-select.MuiSelect-outlined': {
         color: isDarkMode ? '#ffffff' : 'inherit',
       },
-      // Make FormHelperText white in dark mode
       '& .MuiFormHelperText-root': {
         color: isDarkMode ? '#a1a1aa' : '#71717a',
       },
@@ -761,7 +757,22 @@ export default function SMELoanApplicationPage() {
           </Box>
         );
 
-      case 1:
+      case 1: {
+        // SME Loan Calculation — 6% p.a. reducing balance
+        const loanAmount = formData.loanAmount || 0;
+        const processingFee = loanAmount * 0.05;        // 5% one-time
+        const insuranceFee = loanAmount * 0.012;         // 1.2% one-time
+        const totalDeductions = processingFee + insuranceFee;
+        const amountReceived = loanAmount - totalDeductions;
+
+        const monthlyRate = 0.06 / 12; // 6% p.a. → 0.5% per month
+        const months = formData.paybackPeriodMonths || 1;
+        const monthlyPayment = months > 0 && loanAmount > 0
+          ? loanAmount * monthlyRate / (1 - Math.pow(1 + monthlyRate, -months))
+          : 0;
+        const totalRepayment = monthlyPayment * months;
+        const totalInterest = totalRepayment - loanAmount;
+
         return (
           <Box>
             <Typography variant="h5" sx={{ mb: 3, fontWeight: 700, color: isDarkMode ? 'white' : '#18181b' }}>
@@ -787,32 +798,166 @@ export default function SMELoanApplicationPage() {
                   </Typography>
                 )}
               </FormControl>
-              <TextField
-                {...baseTextFieldProps}
-                type="number"
-                label="Loan Amount"
-                name="loanAmount"
-                value={formData.loanAmount || ''}
-                onChange={handleInputChange}
-                error={!!errors.loanAmount}
-                helperText={errors.loanAmount || 'Amount between MK100,000 and MK5,000,000'}
-                required
-                InputProps={{
-                  startAdornment: <InputAdornment position="start">MK</InputAdornment>,
-                }}
-              />
-              <TextField
-                {...baseTextFieldProps}
-                type="number"
-                label="Payback Period (Months)"
-                name="paybackPeriodMonths"
-                value={formData.paybackPeriodMonths || ''}
-                onChange={handleInputChange}
-                error={!!errors.paybackPeriodMonths}
-                helperText={errors.paybackPeriodMonths || '1-120 months'}
-                required
-                inputProps={{ min: 1, max: 120, step: 1 }}
-              />
+
+              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3 }}>
+                <TextField
+                  {...baseTextFieldProps}
+                  type="number"
+                  label="Loan Amount"
+                  name="loanAmount"
+                  value={formData.loanAmount || ''}
+                  onChange={handleInputChange}
+                  error={!!errors.loanAmount}
+                  helperText={errors.loanAmount || 'Amount between MK100,000 and MK5,000,000'}
+                  required
+                  InputProps={{
+                    startAdornment: <InputAdornment position="start">MK</InputAdornment>,
+                  }}
+                />
+                <TextField
+                  {...baseTextFieldProps}
+                  type="number"
+                  label="Payback Period (Months)"
+                  name="paybackPeriodMonths"
+                  value={formData.paybackPeriodMonths || ''}
+                  onChange={handleInputChange}
+                  error={!!errors.paybackPeriodMonths}
+                  helperText={errors.paybackPeriodMonths || '1-120 months'}
+                  required
+                  inputProps={{ min: 1, max: 120, step: 1 }}
+                />
+              </Box>
+
+              {/* Loan Breakdown — only shown when both fields are filled */}
+              {loanAmount > 0 && formData.paybackPeriodMonths > 0 && (
+                <Box sx={{
+                  p: 3,
+                  borderRadius: '16px',
+                  bgcolor: alpha(limeColors[500], 0.05),
+                  border: `1.5px solid ${alpha(limeColors[500], 0.2)}`,
+                }}>
+                  <Typography variant="h6" sx={{ color: isDarkMode ? 'white' : '#18181b', fontWeight: 600, mb: 3 }}>
+                    Loan Breakdown
+                  </Typography>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+
+                    {/* Loan Amount */}
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <Typography sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a' }}>Loan Amount:</Typography>
+                      <Typography sx={{ color: isDarkMode ? 'white' : '#18181b', fontWeight: 600 }}>
+                        MK {loanAmount.toLocaleString()}
+                      </Typography>
+                    </Box>
+
+                    {/* Processing Fee */}
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <Typography sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a' }}>
+                        Processing Fee (5% one-time):
+                      </Typography>
+                      <Typography sx={{ color: '#ef4444', fontWeight: 600 }}>
+                        - MK {processingFee.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                      </Typography>
+                    </Box>
+
+                    {/* Insurance */}
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <Typography sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a' }}>
+                        Insurance (1.2% one-time):
+                      </Typography>
+                      <Typography sx={{ color: '#ef4444', fontWeight: 600 }}>
+                        - MK {insuranceFee.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                      </Typography>
+                    </Box>
+
+                    {/* Total Deductions */}
+                    <Box sx={{
+                      display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                      pt: 1, borderTop: `1px dashed ${isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`
+                    }}>
+                      <Typography sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a', fontWeight: 600 }}>
+                        Total Deductions:
+                      </Typography>
+                      <Typography sx={{ color: '#ef4444', fontWeight: 700 }}>
+                        - MK {totalDeductions.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                      </Typography>
+                    </Box>
+
+                    {/* Amount Received */}
+                    <Box sx={{
+                      p: 2, borderRadius: '12px',
+                      bgcolor: alpha(limeColors[500], 0.1),
+                      border: `1px solid ${limeColors[500]}`,
+                    }}>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <Typography sx={{ color: limeColors[500], fontWeight: 700 }}>
+                          Amount You'll Receive:
+                        </Typography>
+                        <Typography variant="h5" sx={{ color: limeColors[500], fontWeight: 800 }}>
+                          MK {amountReceived.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                        </Typography>
+                      </Box>
+                      <Typography variant="caption" sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a', display: 'block', mt: 0.5 }}>
+                        After one-time deductions (5% processing + 1.2% insurance)
+                      </Typography>
+                    </Box>
+
+                    {/* Repayment Breakdown */}
+                    <Box sx={{ p: 2, borderRadius: '12px', bgcolor: alpha(limeColors[500], 0.05), mt: 1 }}>
+                      <Typography variant="subtitle2" sx={{ color: limeColors[500], fontWeight: 600, mb: 2 }}>
+                        Repayment Breakdown (6% p.a. – Reducing Balance)
+                      </Typography>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                        <Typography sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a' }}>Principal:</Typography>
+                        <Typography sx={{ color: isDarkMode ? 'white' : '#18181b' }}>
+                          MK {loanAmount.toLocaleString()}
+                        </Typography>
+                      </Box>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                        <Typography sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a' }}>
+                          Total Interest (reducing balance):
+                        </Typography>
+                        <Typography sx={{ color: isDarkMode ? 'white' : '#18181b' }}>
+                          MK {totalInterest.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                        </Typography>
+                      </Box>
+                      <Box sx={{
+                        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                        pt: 1, borderTop: `1px solid ${isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`
+                      }}>
+                        <Typography sx={{ color: isDarkMode ? 'white' : '#18181b', fontWeight: 600 }}>
+                          Total Repayment (Principal + Interest):
+                        </Typography>
+                        <Typography sx={{ color: limeColors[500], fontWeight: 700 }}>
+                          MK {totalRepayment.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                        </Typography>
+                      </Box>
+                    </Box>
+
+                    {/* Monthly Payment highlight */}
+                    <Box sx={{
+                      p: 3, borderRadius: '12px', mt: 1,
+                      bgcolor: alpha(limeColors[500], 0.1),
+                      border: `2px solid ${limeColors[500]}`,
+                      textAlign: 'center',
+                    }}>
+                      <Typography variant="body2" sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a', mb: 1 }}>
+                        Monthly Repayment Amount
+                      </Typography>
+                      <Typography variant="h3" sx={{ color: limeColors[500], fontWeight: 800, mb: 1 }}>
+                        MK {monthlyPayment.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                      </Typography>
+                      <Typography variant="caption" sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a' }}>
+                        Equal monthly instalments – reducing balance over {formData.paybackPeriodMonths} months
+                      </Typography>
+                      <Typography variant="caption" sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a', display: 'block', mt: 1 }}>
+                        Total interest paid: MK {totalInterest.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                      </Typography>
+                    </Box>
+
+                  </Box>
+                </Box>
+              )}
+
               <TextField
                 {...baseTextFieldProps}
                 label="Purpose of Loan"
@@ -871,6 +1016,7 @@ export default function SMELoanApplicationPage() {
             </Box>
           </Box>
         );
+      }
 
       case 2:
         return (
@@ -970,7 +1116,7 @@ export default function SMELoanApplicationPage() {
                   rows={3}
                 />
               )}
-              
+
               <FormControlLabel
                 control={
                   <Checkbox
@@ -1036,9 +1182,9 @@ export default function SMELoanApplicationPage() {
                     justifyContent: 'flex-start',
                   }}
                 >
-                  {formData.idDocument ? formData.idDocument.name : 
-                   existingDocuments['ID_DOCUMENT'] ? `Already uploaded: ${existingDocuments['ID_DOCUMENT'].fileName}` : 
-                   'Choose ID Document'}
+                  {formData.idDocument ? formData.idDocument.name :
+                    existingDocuments['ID_DOCUMENT'] ? `Already uploaded: ${existingDocuments['ID_DOCUMENT'].fileName}` :
+                      'Choose ID Document'}
                   <VisuallyHiddenInput type="file" onChange={handleFileUpload('idDocument')} accept=".pdf,.jpg,.jpeg,.png" />
                 </Button>
                 <Box sx={{ mt: 1, display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
@@ -1090,9 +1236,9 @@ export default function SMELoanApplicationPage() {
                     justifyContent: 'flex-start',
                   }}
                 >
-                  {formData.businessRegistrationDoc ? formData.businessRegistrationDoc.name : 
-                   existingDocuments['BUSINESS_REGISTRATION'] ? `Already uploaded: ${existingDocuments['BUSINESS_REGISTRATION'].fileName}` : 
-                   'Choose Business Registration'}
+                  {formData.businessRegistrationDoc ? formData.businessRegistrationDoc.name :
+                    existingDocuments['BUSINESS_REGISTRATION'] ? `Already uploaded: ${existingDocuments['BUSINESS_REGISTRATION'].fileName}` :
+                      'Choose Business Registration'}
                   <VisuallyHiddenInput type="file" onChange={handleFileUpload('businessRegistrationDoc')} accept=".pdf,.jpg,.jpeg,.png" />
                 </Button>
                 <Box sx={{ mt: 1, display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
@@ -1144,9 +1290,9 @@ export default function SMELoanApplicationPage() {
                     justifyContent: 'flex-start',
                   }}
                 >
-                  {formData.financialStatementDoc ? formData.financialStatementDoc.name : 
-                   existingDocuments['FINANCIAL_STATEMENT'] ? `Already uploaded: ${existingDocuments['FINANCIAL_STATEMENT'].fileName}` : 
-                   'Choose Financial Statement'}
+                  {formData.financialStatementDoc ? formData.financialStatementDoc.name :
+                    existingDocuments['FINANCIAL_STATEMENT'] ? `Already uploaded: ${existingDocuments['FINANCIAL_STATEMENT'].fileName}` :
+                      'Choose Financial Statement'}
                   <VisuallyHiddenInput type="file" onChange={handleFileUpload('financialStatementDoc')} accept=".pdf,.jpg,.jpeg,.png" />
                 </Button>
                 <Box sx={{ mt: 1, display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
@@ -1182,14 +1328,14 @@ export default function SMELoanApplicationPage() {
             <Typography variant="h5" sx={{ mb: 3, fontWeight: 700, color: isDarkMode ? 'white' : '#18181b' }}>
               Review & Submit
             </Typography>
-            
+
             {/* Summary */}
-            <Paper 
-              elevation={0} 
-              sx={{ 
-                p: 3, 
-                mb: 3, 
-                bgcolor: isDarkMode ? 'rgba(255, 255, 255, 0.02)' : 'rgba(0, 0, 0, 0.02)', 
+            <Paper
+              elevation={0}
+              sx={{
+                p: 3,
+                mb: 3,
+                bgcolor: isDarkMode ? 'rgba(255, 255, 255, 0.02)' : 'rgba(0, 0, 0, 0.02)',
                 borderRadius: '12px',
                 border: `1.5px solid ${isDarkMode ? 'rgba(132, 204, 22, 0.2)' : 'rgba(132, 204, 22, 0.15)'}`
               }}
@@ -1197,7 +1343,7 @@ export default function SMELoanApplicationPage() {
               <Typography variant="h6" sx={{ mb: 2, fontWeight: 600, color: isDarkMode ? 'white' : '#18181b' }}>
                 Application Summary
               </Typography>
-              
+
               <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 2 }}>
                 <Box>
                   <Typography variant="caption" sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a' }}>Business Name</Typography>
@@ -1313,11 +1459,11 @@ export default function SMELoanApplicationPage() {
   if (submitSuccess) {
     return (
       <Container maxWidth="md" sx={{ py: 8 }}>
-        <Paper 
-          elevation={0} 
-          sx={{ 
-            p: 6, 
-            textAlign: 'center', 
+        <Paper
+          elevation={0}
+          sx={{
+            p: 6,
+            textAlign: 'center',
             borderRadius: '24px',
             bgcolor: isDarkMode ? 'rgba(255, 255, 255, 0.02)' : 'white',
             border: `1.5px solid ${isDarkMode ? 'rgba(132, 204, 22, 0.2)' : 'rgba(132, 204, 22, 0.15)'}`
@@ -1356,257 +1502,257 @@ export default function SMELoanApplicationPage() {
   return (
     <>
       <Container maxWidth="lg" sx={{ py: 5 }}>
-      <Typography 
-        variant="h3" 
-        sx={{ 
-          mb: 2, 
-          fontWeight: 800,
-          background: `linear-gradient(135deg, ${limeColors[500]} 0%, ${limeColors[600]} 100%)`,
-          WebkitBackgroundClip: 'text',
-          WebkitTextFillColor: 'transparent',
-          backgroundClip: 'text'
-        }}
-      >
-        SME Loan Application
-      </Typography>
-      <Typography variant="body1" sx={{ mb: 4, color: isDarkMode ? '#a1a1aa' : '#71717a' }}>
-        Complete all steps to submit your application
-      </Typography>
+        <Typography
+          variant="h3"
+          sx={{
+            mb: 2,
+            fontWeight: 800,
+            background: `linear-gradient(135deg, ${limeColors[500]} 0%, ${limeColors[600]} 100%)`,
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text'
+          }}
+        >
+          SME Loan Application
+        </Typography>
+        <Typography variant="body1" sx={{ mb: 4, color: isDarkMode ? '#a1a1aa' : '#71717a' }}>
+          Complete all steps to submit your application
+        </Typography>
 
-      {/* Progress Bar */}
-      <Box sx={{ mb: 4 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-          <Typography variant="body2" sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a', fontWeight: 600 }}>
-            Step {activeStep + 1} of {steps.length}
-          </Typography>
-          <Typography variant="body2" sx={{ color: limeColors[500], fontWeight: 700 }}>
-            {progress}% Complete
-          </Typography>
-        </Box>
-        <Box sx={{ 
-          height: 12, 
-          bgcolor: isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)', 
-          borderRadius: '100px',
-          overflow: 'hidden',
-          position: 'relative'
-        }}>
-          <Box 
-            sx={{ 
-              height: '100%', 
-              bgcolor: `linear-gradient(90deg, ${limeColors[500]} 0%, ${limeColors[400]} 100%)`,
-              background: `linear-gradient(90deg, ${limeColors[500]} 0%, ${limeColors[400]} 100%)`,
-              width: `${progress}%`,
-              transition: 'width 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
-              borderRadius: '100px',
-              boxShadow: `0 0 20px ${alpha(limeColors[500], 0.4)}`
-            }}
-          />
-        </Box>
-      </Box>
-
-      {/* Custom Stepper */}
-      <Box sx={{ 
-        mb: 5,
-        display: 'flex',
-        justifyContent: 'space-between',
-        position: 'relative',
-        '&::before': {
-          content: '""',
-          position: 'absolute',
-          top: '24px',
-          left: '5%',
-          right: '5%',
-          height: '2px',
-          bgcolor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
-          zIndex: 0
-        }
-      }}>
-        {steps.map((step, index) => {
-          const Icon = step.icon;
-          const isActive = index === activeStep;
-          const isCompleted = index < activeStep;
-          
-          return (
-            <Box 
-              key={step.label} 
-              sx={{ 
-                display: 'flex', 
-                flexDirection: 'column', 
-                alignItems: 'center',
-                flex: 1,
-                position: 'relative',
-                zIndex: 1
+        {/* Progress Bar */}
+        <Box sx={{ mb: 4 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+            <Typography variant="body2" sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a', fontWeight: 600 }}>
+              Step {activeStep + 1} of {steps.length}
+            </Typography>
+            <Typography variant="body2" sx={{ color: limeColors[500], fontWeight: 700 }}>
+              {progress}% Complete
+            </Typography>
+          </Box>
+          <Box sx={{
+            height: 12,
+            bgcolor: isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
+            borderRadius: '100px',
+            overflow: 'hidden',
+            position: 'relative'
+          }}>
+            <Box
+              sx={{
+                height: '100%',
+                bgcolor: `linear-gradient(90deg, ${limeColors[500]} 0%, ${limeColors[400]} 100%)`,
+                background: `linear-gradient(90deg, ${limeColors[500]} 0%, ${limeColors[400]} 100%)`,
+                width: `${progress}%`,
+                transition: 'width 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
+                borderRadius: '100px',
+                boxShadow: `0 0 20px ${alpha(limeColors[500], 0.4)}`
               }}
-            >
-              <Box sx={{ 
-                width: '48px', 
-                height: '48px', 
-                borderRadius: '50%', 
-                bgcolor: isCompleted ? limeColors[500] : isActive ? alpha(limeColors[500], 0.15) : (isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)'),
-                border: `2px solid ${isActive || isCompleted ? limeColors[500] : 'transparent'}`,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                mb: 1,
-                transition: 'all 0.3s ease',
-                boxShadow: isActive ? `0 0 20px ${alpha(limeColors[500], 0.4)}` : 'none'
-              }}>
-                {isCompleted ? (
-                  <CheckCircle size={24} color="white" />
-                ) : (
-                  <Icon size={24} color={isActive ? limeColors[500] : (isDarkMode ? '#52525b' : '#a1a1aa')} />
-                )}
-              </Box>
-              <Typography 
-                variant="caption" 
-                sx={{ 
-                  color: isActive || isCompleted ? (isDarkMode ? 'white' : '#18181b') : (isDarkMode ? '#71717a' : '#a1a1aa'),
-                  fontWeight: isActive ? 600 : 400,
-                  textAlign: 'center',
-                  display: { xs: 'none', sm: 'block' }
+            />
+          </Box>
+        </Box>
+
+        {/* Custom Stepper */}
+        <Box sx={{
+          mb: 5,
+          display: 'flex',
+          justifyContent: 'space-between',
+          position: 'relative',
+          '&::before': {
+            content: '""',
+            position: 'absolute',
+            top: '24px',
+            left: '5%',
+            right: '5%',
+            height: '2px',
+            bgcolor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+            zIndex: 0
+          }
+        }}>
+          {steps.map((step, index) => {
+            const Icon = step.icon;
+            const isActive = index === activeStep;
+            const isCompleted = index < activeStep;
+
+            return (
+              <Box
+                key={step.label}
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  flex: 1,
+                  position: 'relative',
+                  zIndex: 1
                 }}
               >
-                {step.label}
-              </Typography>
-            </Box>
-          );
-        })}
-      </Box>
+                <Box sx={{
+                  width: '48px',
+                  height: '48px',
+                  borderRadius: '50%',
+                  bgcolor: isCompleted ? limeColors[500] : isActive ? alpha(limeColors[500], 0.15) : (isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)'),
+                  border: `2px solid ${isActive || isCompleted ? limeColors[500] : 'transparent'}`,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  mb: 1,
+                  transition: 'all 0.3s ease',
+                  boxShadow: isActive ? `0 0 20px ${alpha(limeColors[500], 0.4)}` : 'none'
+                }}>
+                  {isCompleted ? (
+                    <CheckCircle size={24} color="white" />
+                  ) : (
+                    <Icon size={24} color={isActive ? limeColors[500] : (isDarkMode ? '#52525b' : '#a1a1aa')} />
+                  )}
+                </Box>
+                <Typography
+                  variant="caption"
+                  sx={{
+                    color: isActive || isCompleted ? (isDarkMode ? 'white' : '#18181b') : (isDarkMode ? '#71717a' : '#a1a1aa'),
+                    fontWeight: isActive ? 600 : 400,
+                    textAlign: 'center',
+                    display: { xs: 'none', sm: 'block' }
+                  }}
+                >
+                  {step.label}
+                </Typography>
+              </Box>
+            );
+          })}
+        </Box>
 
-      <Paper 
-        elevation={0}
-        sx={{ 
-          p: { xs: 3, sm: 4, md: 5 }, 
-          mb: 4, 
-          borderRadius: '24px',
-          bgcolor: isDarkMode ? 'rgba(255, 255, 255, 0.02)' : 'white',
-          border: `1.5px solid ${isDarkMode ? 'rgba(132, 204, 22, 0.2)' : 'rgba(132, 204, 22, 0.15)'}`,
-          minHeight: '500px'
-        }}
-      >
-        {getStepContent(activeStep)}
-      </Paper>
+        <Paper
+          elevation={0}
+          sx={{
+            p: { xs: 3, sm: 4, md: 5 },
+            mb: 4,
+            borderRadius: '24px',
+            bgcolor: isDarkMode ? 'rgba(255, 255, 255, 0.02)' : 'white',
+            border: `1.5px solid ${isDarkMode ? 'rgba(132, 204, 22, 0.2)' : 'rgba(132, 204, 22, 0.15)'}`,
+            minHeight: '500px'
+          }}
+        >
+          {getStepContent(activeStep)}
+        </Paper>
 
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2 }}>
-        <Box sx={{ display: 'flex', gap: 2 }}>
-          {activeStep > 0 && (
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2 }}>
+          <Box sx={{ display: 'flex', gap: 2 }}>
+            {activeStep > 0 && (
+              <Button
+                onClick={handleBack}
+                startIcon={<ArrowLeft size={18} />}
+                sx={{
+                  color: isDarkMode ? 'white' : '#18181b',
+                  borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+                  borderRadius: '12px',
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  px: 3,
+                  py: 1.5,
+                  '&:hover': {
+                    borderColor: limeColors[500],
+                    bgcolor: alpha(limeColors[500], 0.05)
+                  }
+                }}
+                variant="outlined"
+              >
+                Back
+              </Button>
+            )}
             <Button
-              onClick={handleBack}
-              startIcon={<ArrowLeft size={18} />}
-              sx={{ 
-                color: isDarkMode ? 'white' : '#18181b',
-                borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+              onClick={handleSaveDraft}
+              startIcon={<Save size={18} />}
+              variant="outlined"
+              disabled={isLoading}
+              sx={{
+                color: limeColors[500],
+                borderColor: limeColors[500],
                 borderRadius: '12px',
                 textTransform: 'none',
                 fontWeight: 600,
                 px: 3,
                 py: 1.5,
                 '&:hover': {
-                  borderColor: limeColors[500],
-                  bgcolor: alpha(limeColors[500], 0.05)
-                }
-              }}
-              variant="outlined"
-            >
-              Back
-            </Button>
-          )}
-          <Button
-            onClick={handleSaveDraft}
-            startIcon={<Save size={18} />}
-            variant="outlined"
-            disabled={isLoading}
-            sx={{ 
-              color: limeColors[500],
-              borderColor: limeColors[500],
-              borderRadius: '12px',
-              textTransform: 'none',
-              fontWeight: 600,
-              px: 3,
-              py: 1.5,
-              '&:hover': {
-                borderColor: limeColors[600],
-                bgcolor: alpha(limeColors[500], 0.1)
-              },
-              '&.Mui-disabled': {
-                borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
-                color: isDarkMode ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.3)'
-              }
-            }}
-          >
-            {isLoading ? <CircularProgress size={20} /> : 'Save Draft'}
-          </Button>
-        </Box>
-        <Box>
-          {activeStep === steps.length - 1 ? (
-            <Button
-              variant="contained"
-              onClick={handleSubmit}
-              disabled={isSubmitting}
-              endIcon={isSubmitting ? <CircularProgress size={20} sx={{ color: 'white' }} /> : <CheckCircle size={18} />}
-              sx={{
-                bgcolor: limeColors[500],
-                color: 'white',
-                borderRadius: '12px',
-                textTransform: 'none',
-                fontWeight: 700,
-                px: 4,
-                py: 1.5,
-                boxShadow: `0 4px 20px ${alpha(limeColors[500], 0.4)}`,
-                '&:hover': {
-                  bgcolor: limeColors[600],
-                  boxShadow: `0 6px 25px ${alpha(limeColors[500], 0.5)}`
+                  borderColor: limeColors[600],
+                  bgcolor: alpha(limeColors[500], 0.1)
                 },
                 '&.Mui-disabled': {
-                  bgcolor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+                  borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
                   color: isDarkMode ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.3)'
                 }
               }}
             >
-              {isSubmitting ? 'Submitting...' : 'Submit Application'}
+              {isLoading ? <CircularProgress size={20} /> : 'Save Draft'}
             </Button>
-          ) : (
-            <Button
-              variant="contained"
-              onClick={handleNext}
-              endIcon={<ArrowRight size={18} />}
-              sx={{
-                bgcolor: limeColors[500],
-                color: 'white',
-                borderRadius: '12px',
-                textTransform: 'none',
-                fontWeight: 700,
-                px: 4,
-                py: 1.5,
-                boxShadow: `0 4px 20px ${alpha(limeColors[500], 0.4)}`,
-                '&:hover': {
-                  bgcolor: limeColors[600],
-                  boxShadow: `0 6px 25px ${alpha(limeColors[500], 0.5)}`
-                }
-              }}
-            >
-              Continue
-            </Button>
-          )}
+          </Box>
+          <Box>
+            {activeStep === steps.length - 1 ? (
+              <Button
+                variant="contained"
+                onClick={handleSubmit}
+                disabled={isSubmitting}
+                endIcon={isSubmitting ? <CircularProgress size={20} sx={{ color: 'white' }} /> : <CheckCircle size={18} />}
+                sx={{
+                  bgcolor: limeColors[500],
+                  color: 'white',
+                  borderRadius: '12px',
+                  textTransform: 'none',
+                  fontWeight: 700,
+                  px: 4,
+                  py: 1.5,
+                  boxShadow: `0 4px 20px ${alpha(limeColors[500], 0.4)}`,
+                  '&:hover': {
+                    bgcolor: limeColors[600],
+                    boxShadow: `0 6px 25px ${alpha(limeColors[500], 0.5)}`
+                  },
+                  '&.Mui-disabled': {
+                    bgcolor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+                    color: isDarkMode ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.3)'
+                  }
+                }}
+              >
+                {isSubmitting ? 'Submitting...' : 'Submit Application'}
+              </Button>
+            ) : (
+              <Button
+                variant="contained"
+                onClick={handleNext}
+                endIcon={<ArrowRight size={18} />}
+                sx={{
+                  bgcolor: limeColors[500],
+                  color: 'white',
+                  borderRadius: '12px',
+                  textTransform: 'none',
+                  fontWeight: 700,
+                  px: 4,
+                  py: 1.5,
+                  boxShadow: `0 4px 20px ${alpha(limeColors[500], 0.4)}`,
+                  '&:hover': {
+                    bgcolor: limeColors[600],
+                    boxShadow: `0 6px 25px ${alpha(limeColors[500], 0.5)}`
+                  }
+                }}
+              >
+                Continue
+              </Button>
+            )}
+          </Box>
         </Box>
-      </Box>
 
-      <Snackbar
-        open={showSnackbar}
-        autoHideDuration={3000}
-        onClose={() => setShowSnackbar(false)}
-        message={snackbarMessage}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-        ContentProps={{
-          sx: {
-            bgcolor: limeColors[500],
-            color: 'white',
-            borderRadius: '12px',
-            fontWeight: 600,
-            boxShadow: `0 4px 20px ${alpha(limeColors[500], 0.4)}`
-          }
-        }}
-      />
+        <Snackbar
+          open={showSnackbar}
+          autoHideDuration={3000}
+          onClose={() => setShowSnackbar(false)}
+          message={snackbarMessage}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+          ContentProps={{
+            sx: {
+              bgcolor: limeColors[500],
+              color: 'white',
+              borderRadius: '12px',
+              fontWeight: 600,
+              boxShadow: `0 4px 20px ${alpha(limeColors[500], 0.4)}`
+            }
+          }}
+        />
       </Container>
 
       {preview && (

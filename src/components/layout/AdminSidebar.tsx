@@ -3,12 +3,14 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useTheme } from '@/context/ThemeContext';
+import Image from 'next/image';
 import { 
   LayoutDashboard, 
   FileText, 
   Users, 
   Settings, 
-  ArrowUpRight
+  ClipboardList,
+  X
 } from 'lucide-react';
 
 const menuGroups = [
@@ -23,6 +25,7 @@ const menuGroups = [
     items: [
       { name: 'Applications', href: '/admin/applications', icon: FileText },
       { name: 'Users', href: '/admin/users', icon: Users },
+      { name: 'Audit Logs', href: '/admin/audit-logs', icon: ClipboardList },
     ]
   },
   {
@@ -50,12 +53,27 @@ export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
     >
       <div className="flex flex-col h-full p-6">
         {/* Brand Area with Dynamic Logo */}
-        <Link href="/admin/dashboard" className="flex items-center gap-3 transition-opacity hover:opacity-80">
-          <img 
-            src={theme === "dark" ? "/icons/vs1.svg" : "/icons/vs2.svg"} 
-            alt="Logo" 
-            className="h-20 w-auto md:h-25 lg:h-25"/>
-        </Link>
+        <div className="flex items-center justify-between mb-2">
+          <Link href="/admin/dashboard" className="flex items-center gap-3 transition-opacity hover:opacity-80">
+            <Image 
+              src={theme === "dark" ? "/icons/vs1.svg" : "/icons/vs2.svg"} 
+              alt="Logo" 
+              width={100}
+              height={100}
+              className="h-20 w-auto md:h-25 lg:h-25"
+              priority
+            />
+          </Link>
+          
+          {/* Mobile Close Button */}
+          <button 
+            onClick={onClose}
+            className="lg:hidden p-2 text-foreground/50 hover:text-foreground transition-colors"
+            aria-label="Close sidebar"
+          >
+            <X size={20} />
+          </button>
+        </div>
 
         {/* Navigation Groups */}
         <nav className="flex-1 space-y-8 overflow-y-auto custom-scrollbar">

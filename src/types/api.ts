@@ -8,7 +8,7 @@ export interface RegisterRequest {
   email: string;
   password: string;
   fullName: string;
-  nationalIdOrPassport: string;
+  nationalId: string;
   primaryPhone: string;
   secondaryPhone?: string;
   physicalAddress: string;
@@ -32,7 +32,8 @@ export interface AuthResponse {
     id: string;
     email: string;
     fullName: string;
-    role: "APPLICANT" | "ADMIN_TIER1" | "ADMIN_TIER2";
+    nationalId: string;
+    role: "APPLICANT" | "ADMIN_TIER1" | "ADMIN_TIER2" | "AUDITOR";
   };
 }
 
@@ -59,6 +60,7 @@ export interface User {
   id: string;
   fullName: string;
   email: string;
+  nationalId: string;
   primaryPhone: string;
   secondaryPhone?: string;
 }
@@ -80,14 +82,20 @@ export interface ApplicationDocument {
 export interface AuditLog {
   id: string;
   action: string;
-  notes?: string;
+  comment?: string;
   timestamp: string;
   actor: {
     id: string;
     fullName: string;
+    email: string;
+    role: string;
   };
-  beforeValue?: Record<string, any>;
-  afterValue?: Record<string, any>;
+  application?: {
+    id: string;
+    type: string;
+  };
+  beforeValue?: Record<string, unknown>;
+  afterValue?: Record<string, unknown>;
 }
 
 export interface SMEApplicationData {

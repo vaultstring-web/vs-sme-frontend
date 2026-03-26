@@ -11,7 +11,7 @@ const nextConfig: NextConfig = {
   images: { unoptimized: true },
 
   // Your existing experimental compiler setting
-  reactCompiler: true,
+  reactCompiler: false,
 
   // Optional: specify a different output directory (default is 'out')
   // distDir: 'out', // (already the default for export)

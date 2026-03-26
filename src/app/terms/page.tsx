@@ -28,15 +28,15 @@ export default function TermsPage() {
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white">1. Introduction</h2>
           <div className="mt-4 space-y-4 text-gray-600 dark:text-gray-300">
             <p>
-              VaultString Thrive is a licensed microfinance institution operating under the 
-              Reserve Bank of Malawi (RBM) Microfinance Act (2010) and subsequent directives. 
-              We provide accessible, technology‑enabled credit to salaried employees and 
+              VaultString Thrive is a licensed microfinance institution operating under the
+              Reserve Bank of Malawi (RBM) Microfinance Act (2010) and subsequent directives.
+              We provide accessible, technology‑enabled credit to salaried employees and
               registered small‑to‑medium enterprises (SMEs) in Malawi.
             </p>
             <p>
-              By applying for or using any of our financial products, you agree to be bound 
-              by these Terms and Conditions. Please read them carefully. All loans are subject 
-              to credit approval, affordability checks, and compliance with RBM’s responsible 
+              By applying for or using any of our financial products, you agree to be bound
+              by these Terms and Conditions. Please read them carefully. All loans are subject
+              to credit approval, affordability checks, and compliance with RBM’s responsible
               lending guidelines.
             </p>
           </div>
@@ -74,8 +74,8 @@ export default function TermsPage() {
               <div className="mt-4 space-y-3 text-sm text-gray-600 dark:text-gray-300">
                 <p><span className="font-medium text-gray-900 dark:text-white">Loan amount:</span> MWK 100,000 – MWK 500,000</p>
                 <p><span className="font-medium text-gray-900 dark:text-white">Repayment term:</span> 3 – 12 months</p>
-                <p><span className="font-medium text-gray-900 dark:text-white">Interest rate:</span> 6% – 7.5% per month (declining balance)</p>
-                <p><span className="font-medium text-gray-900 dark:text-white">Processing fee:</span> 10% – 12% of loan amount (deducted upfront)</p>
+                <p><span className="font-medium text-gray-900 dark:text-white">Interest rate:</span> 4.5% per month (reducing balance)</p>
+                <p><span className="font-medium text-gray-900 dark:text-white">Processing fee:</span> 5% of loan amount (deducted upfront)</p>
                 <p><span className="font-medium text-gray-900 dark:text-white">Credit life insurance:</span> 1.2% of loan amount (mandatory, single premium)</p>
                 <p><span className="font-medium text-gray-900 dark:text-white">Repayment method:</span> Payroll deduction via employer’s HR/payroll system.</p>
                 <p className="mt-2 text-xs italic">Minimum salary advance of MWK 50,000 may be available for existing customers.</p>
@@ -88,8 +88,8 @@ export default function TermsPage() {
               <div className="mt-4 space-y-3 text-sm text-gray-600 dark:text-gray-300">
                 <p><span className="font-medium text-gray-900 dark:text-white">Loan amount:</span> MWK 500,000 – MWK 5,000,000</p>
                 <p><span className="font-medium text-gray-900 dark:text-white">Repayment term:</span> 3 – 12 months</p>
-                <p><span className="font-medium text-gray-900 dark:text-white">Interest rate:</span> 6.5% per month (declining balance)</p>
-                <p><span className="font-medium text-gray-900 dark:text-white">Processing fee:</span> 13.2% of loan amount</p>
+                <p><span className="font-medium text-gray-900 dark:text-white">Interest rate:</span> 6% per month (reducing balance)</p>
+                <p><span className="font-medium text-gray-900 dark:text-white">Processing fee:</span> 5% of loan amount (deducted upfront)</p>
                 <p><span className="font-medium text-gray-900 dark:text-white">Security:</span> May require personal guarantee or collateral for larger amounts.</p>
               </div>
             </div>
@@ -164,17 +164,17 @@ export default function TermsPage() {
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white">5. Repayment, Default & Collections</h2>
           <div className="mt-4 space-y-4 text-gray-600 dark:text-gray-300">
             <p>
-              <span className="font-semibold text-gray-900 dark:text-white">Repayment:</span> Payroll loans are repaid via automatic salary deduction. 
-              SME clients must ensure funds are available in their designated account on the due date. 
+              <span className="font-semibold text-gray-900 dark:text-white">Repayment:</span> Payroll loans are repaid via automatic salary deduction.
+              SME clients must ensure funds are available in their designated account on the due date.
               VaultString Thrive also accepts repayments via Airtel Money, Mpamba, or bank transfer.
             </p>
             <p>
-              <span className="font-semibold text-gray-900 dark:text-white">Default:</span> An account is considered delinquent if payment is not received within 7 days of the due date. 
-              After 30 days, the full outstanding balance becomes immediately due. We will report defaulted accounts to the CRB, 
+              <span className="font-semibold text-gray-900 dark:text-white">Default:</span> An account is considered delinquent if payment is not received within 7 days of the due date.
+              After 30 days, the full outstanding balance becomes immediately due. We will report defaulted accounts to the CRB,
               which may affect your future creditworthiness.
             </p>
             <p>
-              <span className="font-semibold text-gray-900 dark:text-white">Collections:</span> We employ fair, ethical collection practices. 
+              <span className="font-semibold text-gray-900 dark:text-white">Collections:</span> We employ fair, ethical collection practices.
               Persistent default may result in legal action to recover the debt. All collection costs will be borne by the client.
             </p>
           </div>
@@ -185,13 +185,13 @@ export default function TermsPage() {
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white">6. Privacy & Data Protection</h2>
           <div className="mt-4 space-y-4 text-gray-600 dark:text-gray-300">
             <p>
-              VaultString Thrive is committed to protecting your personal data in accordance with Malawi’s 
-              Data Protection Act and our internal privacy policy. We collect, store, and process your information 
+              VaultString Thrive is committed to protecting your personal data in accordance with Malawi’s
+              Data Protection Act and our internal privacy policy. We collect, store, and process your information
               solely for loan origination, credit assessment, portfolio monitoring, and regulatory reporting.
             </p>
             <p>
-              By accepting these terms, you consent to: (i) CRB searches; (ii) sharing of your loan performance 
-              with credit bureaus; (iii) use of your data for statistical and risk analysis; and (iv) receiving 
+              By accepting these terms, you consent to: (i) CRB searches; (ii) sharing of your loan performance
+              with credit bureaus; (iii) use of your data for statistical and risk analysis; and (iv) receiving
               marketing communications (you may opt out at any time). We do not sell your data to third parties.
             </p>
           </div>
@@ -202,9 +202,9 @@ export default function TermsPage() {
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white">7. Limitation of Liability</h2>
           <div className="mt-4 space-y-4 text-gray-600 dark:text-gray-300">
             <p>
-              To the fullest extent permitted by Malawian law, VaultString Thrive shall not be liable for any 
-              indirect, incidental, special, consequential, or punitive damages arising out of or related to 
-              your use of our services, even if advised of the possibility of such damages. Our total liability 
+              To the fullest extent permitted by Malawian law, VaultString Thrive shall not be liable for any
+              indirect, incidental, special, consequential, or punitive damages arising out of or related to
+              your use of our services, even if advised of the possibility of such damages. Our total liability
               in connection with any loan shall not exceed the principal amount advanced.
             </p>
           </div>
@@ -215,9 +215,9 @@ export default function TermsPage() {
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white">8. Governing Law & Dispute Resolution</h2>
           <div className="mt-4 space-y-4 text-gray-600 dark:text-gray-300">
             <p>
-              These Terms and Conditions are governed by the laws of the Republic of Malawi. Any dispute arising 
-              from or in connection with this agreement shall first be submitted to mediation under the auspices of 
-              the Malawi Microfinance Network (MAMN). If mediation fails, the matter shall be referred to the 
+              These Terms and Conditions are governed by the laws of the Republic of Malawi. Any dispute arising
+              from or in connection with this agreement shall first be submitted to mediation under the auspices of
+              the Malawi Microfinance Network (MAMN). If mediation fails, the matter shall be referred to the
               courts of Malawi, specifically the Magistrate Court in Lilongwe.
             </p>
           </div>
@@ -228,8 +228,8 @@ export default function TermsPage() {
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white">9. Amendments</h2>
           <div className="mt-4 space-y-4 text-gray-600 dark:text-gray-300">
             <p>
-              VaultString Thrive reserves the right to amend these Terms and Conditions at any time. 
-              Changes will be communicated via our website or through direct notice. Continued use of our 
+              VaultString Thrive reserves the right to amend these Terms and Conditions at any time.
+              Changes will be communicated via our website or through direct notice. Continued use of our
               services after such changes constitutes acceptance of the revised terms.
             </p>
           </div>
@@ -252,7 +252,7 @@ export default function TermsPage() {
         {/* Footer Disclaimer */}
         <div className="mt-12 text-center text-xs text-gray-500 dark:text-gray-500">
           <p>
-            VaultString Thrive is regulated by the Reserve Bank of Malawi. All loans are subject to affordability 
+            VaultString Thrive is regulated by the Reserve Bank of Malawi. All loans are subject to affordability
             assessment and approval. Terms may change in line with RBM directives.
           </p>
           <p className="mt-2">

@@ -2,6 +2,7 @@
 import React, { createContext, useState, useEffect, ReactNode } from 'react';
 import { getSession, setSession, clearSession, initializeSessionSync } from '../utils/sessionStorage';
 import apiClient from '../lib/apiClient';
+import { RegisterRequest, PasswordResetConfirm } from '../types/api';
 
 interface User {
     id: string;
@@ -19,11 +20,12 @@ interface AuthState {
 }
 
 interface AuthContextType extends AuthState {
+    isAdmin: boolean;
     login: (data: { email: string; password: string }) => Promise<void>;
-    register: (data: any) => Promise<void>;
+    register: (data: RegisterRequest) => Promise<void>;
     logout: () => Promise<void>;
     resetPasswordRequest: (email: string) => Promise<void>;
-    resetPasswordConfirm: (data: any) => Promise<void>;
+    resetPasswordConfirm: (data: PasswordResetConfirm) => Promise<void>;
     changePassword: (data: { currentPassword: string; newPassword: string }) => Promise<void>;
     fetchCurrentUser: () => Promise<void>;
     uploadDocuments: (formData: FormData) => Promise<void>;
@@ -41,7 +43,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     });
 
     // 🛡️ Promise cache for duplicate API calls
-    const pendingRegistrations = new Map<string, Promise<any>>();
+    const pendingRegistrations = new Map<string, Promise<void>>();
 
     const uploadDocuments = async (formData: FormData) => {
         setState(prev => ({ ...prev, isLoading: true, error: null }));
@@ -52,8 +54,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 }
             });
             setState(prev => ({ ...prev, isLoading: false }));
-        } catch (err: any) {
-            const errorMessage = err.response?.data?.message || err.message || 'Document upload failed';
+        } catch (err: unknown) {
+            const error = err as { response?: { data?: { message?: string } }; message?: string };
+            const errorMessage = error.response?.data?.message || error.message || 'Document upload failed';
             setState(prev => ({ ...prev, isLoading: false, error: errorMessage }));
             throw err;
         }
@@ -64,8 +67,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         try {
             await apiClient.post('/auth/change-password', data);
             setState(prev => ({ ...prev, isLoading: false }));
-        } catch (err: any) {
-            const errorMessage = err.response?.data?.message || err.message || 'Password change failed';
+        } catch (err: unknown) {
+            const error = err as { response?: { data?: { message?: string } }; message?: string };
+            const errorMessage = error.response?.data?.message || error.message || 'Password change failed';
             setState(prev => ({ ...prev, isLoading: false, error: errorMessage }));
             throw err;
         }
@@ -156,14 +160,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             
             setSession(accessToken, refreshToken, user);
             setState({ user, isAuthenticated: true, isLoading: false, error: null });
-        } catch (err: any) {
-            const errorMessage = err.response?.data?.message || err.message || 'Login failed';
+        } catch (err: unknown) {
+            const error = err as { response?: { data?: { message?: string } }; message?: string };
+            const errorMessage = error.response?.data?.message || error.message || 'Login failed';
             setState(prev => ({ ...prev, isLoading: false, error: errorMessage }));
             throw err;
         }
     };
 
-    const register = async (data: any) => {
+    const register = async (data: RegisterRequest) => {
         // 🛡️ Prevent duplicate registration calls with identical payload
         const key = JSON.stringify(data);
         if (pendingRegistrations.has(key)) {
@@ -187,8 +192,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 
                 setSession(accessToken, refreshToken, user);
                 setState({ user, isAuthenticated: true, isLoading: false, error: null });
-            } catch (err: any) {
-                const errorMessage = err.response?.data?.message || err.message || 'Registration failed';
+            } catch (err: unknown) {
+                const error = err as { response?: { data?: { message?: string } }; message?: string };
+                const errorMessage = error.response?.data?.message || error.message || 'Registration failed';
                 setState(prev => ({ ...prev, isLoading: false, error: errorMessage }));
                 throw err;
             } finally {
@@ -217,20 +223,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         try {
             await apiClient.post('/auth/password-reset/request', { email });
             setState(prev => ({ ...prev, isLoading: false }));
-        } catch (err: any) {
-            const errorMessage = err.response?.data?.message || err.message || 'Password reset request failed';
+        } catch (err: unknown) {
+            const error = err as { response?: { data?: { message?: string } }; message?: string };
+            const errorMessage = error.response?.data?.message || error.message || 'Password reset request failed';
             setState(prev => ({ ...prev, isLoading: false, error: errorMessage }));
             throw err;
         }
     };
 
-    const resetPasswordConfirm = async (data: { token: string; newPassword: string }) => {
+    const resetPasswordConfirm = async (data: PasswordResetConfirm) => {
         setState(prev => ({ ...prev, isLoading: true, error: null }));
         try {
             await apiClient.post('/auth/password-reset/confirm', data);
             setState(prev => ({ ...prev, isLoading: false }));
-        } catch (err: any) {
-            const errorMessage = err.response?.data?.message || err.message || 'Password reset failed';
+        } catch (err: unknown) {
+            const error = err as { response?: { data?: { message?: string } }; message?: string };
+            const errorMessage = error.response?.data?.message || error.message || 'Password reset failed';
             setState(prev => ({ ...prev, isLoading: false, error: errorMessage }));
             throw err;
         }
@@ -240,9 +248,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setState(prev => ({ ...prev, error: null }));
     };
 
+    const isAdmin = state.user?.role === 'ADMIN_TIER1' || state.user?.role === 'ADMIN_TIER2' || state.user?.role === 'AUDITOR';
+
     return (
         <AuthContext.Provider value={{ 
             ...state, 
+            isAdmin,
             login, 
             register, 
             uploadDocuments,

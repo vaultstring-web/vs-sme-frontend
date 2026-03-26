@@ -1,7 +1,7 @@
 // src/components/dashboard/profile/PersonalInfo.tsx
 "use client";
 
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState, useCallback } from 'react';
 import { User as UserIcon, Mail, Phone, MapPin, CreditCard, Loader2, AlertCircle, RefreshCw } from 'lucide-react';
 import { AuthContext } from '@/context/AuthContext';
 import apiClient from '@/lib/apiClient';
@@ -11,7 +11,7 @@ interface ExtendedUserProfile {
   id: string;
   email: string;
   fullName: string;
-  nationalIdOrPassport: string;
+  nationalId: string;
   primaryPhone: string;
   secondaryPhone?: string;
   physicalAddress: string;
@@ -28,7 +28,7 @@ export default function PersonalInfo() {
   const [profileError, setProfileError] = useState<string | null>(null);
 
   // Fetch extended user profile data
-  const fetchUserProfile = async () => {
+  const fetchUserProfile = useCallback(async () => {
     if (!auth?.user?.id) return;
 
     setIsLoadingProfile(true);
@@ -37,20 +37,21 @@ export default function PersonalInfo() {
     try {
       const response = await apiClient.get('/auth/users/me');
       setProfileData(response.data.user);
-    } catch (error: any) {
-      console.error('Failed to fetch user profile:', error);
+    } catch (err: unknown) {
+      console.error('Failed to fetch user profile:', err);
+      const error = err as { response?: { data?: { message?: string } }; message?: string };
       setProfileError(error.response?.data?.message || 'Failed to load profile data');
     } finally {
       setIsLoadingProfile(false);
     }
-  };
+  }, [auth?.user?.id]);
 
   // Fetch profile data on component mount
   useEffect(() => {
     if (auth?.user && !auth.isLoading) {
       fetchUserProfile();
     }
-  }, [auth?.user, auth?.isLoading]);
+  }, [auth?.user, auth?.isLoading, fetchUserProfile]);
 
   // Handle initial auth loading state
   if (auth?.isLoading) {
@@ -158,8 +159,8 @@ export default function PersonalInfo() {
           />
 
           <InfoField 
-            label="National ID / Passport" 
-            value={profile?.nationalIdOrPassport || "Not Provided"} 
+            label="National ID" 
+            value={profile?.nationalId || "Not Provided"} 
             icon={<CreditCard className="w-3.5 h-3.5" />}
             isLoading={isLoadingProfile}
           />
@@ -223,12 +224,3 @@ const InfoField = ({ label, value, icon, isLoading = false }: InfoFieldProps) =>
   </div>
 );
 
-// Helper function to format role names
-function formatRole(role: string): string {
-  const roleMap: Record<string, string> = {
-    'APPLICANT': 'Applicant',
-    'ADMIN_TIER1': 'Admin (Tier 1)',
-    'ADMIN_TIER2': 'Admin (Tier 2)',
-  };
-  return roleMap[role] || role;
-}

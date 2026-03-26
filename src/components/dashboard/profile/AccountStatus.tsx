@@ -1,8 +1,8 @@
 // src/components/dashboard/profile/AccountStatus.tsx
 "use client";
 
-import React, { useContext, useEffect, useState } from 'react';
-import { ShieldCheck, Info, BadgeCheck, AlertCircle, Loader2, RefreshCw } from 'lucide-react';
+import React, { useContext, useEffect, useState, useCallback } from 'react';
+import { ShieldCheck, BadgeCheck, AlertCircle, Loader2, RefreshCw } from 'lucide-react';
 import { AuthContext } from '@/context/AuthContext';
 import apiClient from '@/lib/apiClient';
 
@@ -10,7 +10,7 @@ interface ExtendedUserProfile {
   id: string;
   email: string;
   fullName: string;
-  nationalIdOrPassport: string;
+  nationalId: string;
   primaryPhone: string;
   secondaryPhone?: string;
   physicalAddress: string;
@@ -31,7 +31,7 @@ export const AccountStatus = () => {
   const [profileError, setProfileError] = useState<string | null>(null);
 
   // Fetch extended user profile data
-  const fetchUserProfile = async () => {
+  const fetchUserProfile = useCallback(async () => {
     if (!auth?.user?.id) return;
 
     setIsLoadingProfile(true);
@@ -40,20 +40,21 @@ export const AccountStatus = () => {
     try {
       const response = await apiClient.get('/auth/users/me');
       setProfileData(response.data.user);
-    } catch (error: any) {
-      console.error('Failed to fetch user profile:', error);
-      setProfileError(error.response?.data?.message || 'Failed to load account status');
+    } catch (err: unknown) {
+      console.error('Failed to fetch user profile:', err);
+      const error = err as { response?: { data?: { message?: string } }; message?: string };
+      setProfileError(error.response?.data?.message || error.message || 'Failed to load account status');
     } finally {
       setIsLoadingProfile(false);
     }
-  };
+  }, [auth?.user?.id]);
 
   // Fetch profile data on component mount
   useEffect(() => {
     if (auth?.user && !auth.isLoading) {
       fetchUserProfile();
     }
-  }, [auth?.user, auth?.isLoading]);
+  }, [auth?.user, auth?.isLoading, fetchUserProfile]);
 
   // Helper function to format role names
   const formatRole = (role: string): string => {
@@ -61,6 +62,7 @@ export const AccountStatus = () => {
       'APPLICANT': 'Applicant',
       'ADMIN_TIER1': 'Admin (Tier 1)',
       'ADMIN_TIER2': 'Admin (Tier 2)',
+      'AUDITOR': 'Auditor',
     };
     return roleMap[role] || role;
   };

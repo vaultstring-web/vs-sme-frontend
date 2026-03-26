@@ -34,7 +34,8 @@ const PasswordResetForm = ({ token }: PasswordResetFormProps) => {
         }
 
         try {
-            await resetPasswordConfirm({ token, password: formData.password });
+            // Backend expects `newPassword` in the request body.
+            await resetPasswordConfirm({ token, newPassword: formData.password });
             setMessage('Password has been successfully reset.');
             setTimeout(() => {
                 router.push('/login');
