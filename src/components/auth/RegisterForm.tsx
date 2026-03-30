@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../hooks/useAuth';
 import { getSession } from '../../utils/sessionStorage';
 import { validateEmail, validatePassword, validateConfirmPassword, validateMalawiNationalId } from '../../utils/validators';
+import { getDashboardForRole } from '../../lib/roleRedirects';
 
 const STEPS = [
     { id: 1, title: 'Personal', description: 'Basic info' },
@@ -208,10 +209,10 @@ const RegisterForm = () => {
 
             try {
                 await register(formData);
-                // 🛡️ Role-based redirection (mostly for applicants, but good for consistency)
+                // 🛡️ Role-based redirection
                 const { user } = getSession(); // Get user from session since state might not be immediate
-                const isAdmin = user?.role === 'ADMIN_TIER1' || user?.role === 'ADMIN_TIER2';
-                router.push(isAdmin ? '/admin/dashboard' : '/dashboard');
+                const dashboard = getDashboardForRole(user?.role);
+                router.push(dashboard);
             } catch (err) {
                 console.error('Registration failed:', err);
             } finally {

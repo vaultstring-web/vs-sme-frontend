@@ -2,7 +2,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Facebook, Twitter, Linkedin, Mail, MapPin } from 'lucide-react';
+import { Facebook, Twitter, Linkedin, Mail, MapPin, ShieldCheck } from 'lucide-react';
 import { useTheme } from '@/context/ThemeContext';
 
 export const Footer = () => {
@@ -67,11 +67,14 @@ export const Footer = () => {
         <div className="relative">
           <div className="absolute inset-0 bg-linear-to-br from-primary-500/5 to-emerald-400/5 rounded-xl blur-md -z-10"></div>
           <div className="relative p-5 rounded-xl border border-border/60 bg-card/60">
-            <h4 className="font-mono text-[10px] font-bold uppercase tracking-widest mb-2.5 text-primary-600 dark:text-primary-400">
-              Regulated & Licensed
-            </h4>
+            <div className="flex items-center gap-2 mb-2.5">
+              <ShieldCheck className="w-4 h-4 text-green-600 dark:text-green-400" />
+              <h4 className="font-mono text-[10px] font-bold uppercase tracking-widest text-primary-600 dark:text-primary-400">
+                Regulated & Licensed
+              </h4>
+            </div>
             <p className="text-xs text-muted-foreground leading-relaxed mb-3">
-              Licensed non-deposit-taking Microfinance Institution.
+              Licensed and regulated non-deposit-taking Microfinance Institution by the <span className="font-bold text-foreground">Reserve Bank of Malawi (RBM)</span>.
             </p>
           </div>
         </div>

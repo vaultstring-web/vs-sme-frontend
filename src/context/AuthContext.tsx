@@ -1,15 +1,22 @@
 'use client';
 import React, { createContext, useState, useEffect, ReactNode } from 'react';
-import { getSession, setSession, clearSession, initializeSessionSync } from '../utils/sessionStorage';
+import { getSession, setSession, clearSession, initializeSessionSync, setLoggedInCookie, clearLoggedInCookie } from '../utils/sessionStorage';
 import apiClient from '../lib/apiClient';
-import { RegisterRequest, PasswordResetConfirm } from '../types/api';
+import { RegisterRequest, PasswordResetConfirm, Role, Permission } from '../types/api';
+import { 
+  getUserPermissions, 
+  hasPermission, 
+  hasAnyPermission, 
+  hasAllPermissions 
+} from '../lib/permissions';
 
 interface User {
     id: string;
     email: string;
     name: string;
     fullName: string;
-    role: string;
+    role: Role;
+    permissions: Permission[];
 }
 
 interface AuthState {
@@ -21,6 +28,14 @@ interface AuthState {
 
 interface AuthContextType extends AuthState {
     isAdmin: boolean;
+    isSuperAdmin: boolean;
+    isLoanManager: boolean;
+    isAccountant: boolean;
+    isLoanOfficer: boolean;
+    isAuditor: boolean;
+    hasPermission: (permission: Permission) => boolean;
+    hasAnyPermission: (permissions: Permission[]) => boolean;
+    hasAllPermissions: (permissions: Permission[]) => boolean;
     login: (data: { email: string; password: string }) => Promise<void>;
     register: (data: RegisterRequest) => Promise<void>;
     logout: () => Promise<void>;
@@ -80,12 +95,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             const response = await apiClient.get('/auth/users/me');
             const userData = response.data.user;
             
+            // Type cast role to ensure it's a valid Role type
+            const role = userData.role as Role;
+            
             const user: User = {
                 id: userData.id,
                 email: userData.email,
                 name: userData.fullName || userData.name,
                 fullName: userData.fullName,
-                role: userData.role
+                role,
+                permissions: getUserPermissions(role)
             };
             
             setState(prev => ({ 
@@ -150,15 +169,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             const response = await apiClient.post('/auth/login', data);
             const { accessToken, refreshToken, profile } = response.data;
             
+            // Type cast role to ensure it's a valid Role type
+            const role = profile.role as Role;
+            
             const user: User = {
                 id: profile.id,
                 email: profile.email,
                 name: profile.fullName,
                 fullName: profile.fullName,
-                role: profile.role
+                role,
+                permissions: getUserPermissions(role)
             };
             
             setSession(accessToken, refreshToken, user);
+            setLoggedInCookie();
             setState({ user, isAuthenticated: true, isLoading: false, error: null });
         } catch (err: unknown) {
             const error = err as { response?: { data?: { message?: string } }; message?: string };
@@ -182,15 +206,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 const response = await apiClient.post('/auth/register', data);
                 const { accessToken, refreshToken, profile } = response.data;
                 
+                // Type cast role to ensure it's a valid Role type
+                const role = profile.role as Role;
+                
                 const user: User = {
                     id: profile.id,
                     email: profile.email,
                     name: profile.fullName,
                     fullName: profile.fullName,
-                    role: profile.role
+                    role,
+                    permissions: getUserPermissions(role)
                 };
                 
                 setSession(accessToken, refreshToken, user);
+                setLoggedInCookie();
                 setState({ user, isAuthenticated: true, isLoading: false, error: null });
             } catch (err: unknown) {
                 const error = err as { response?: { data?: { message?: string } }; message?: string };
@@ -214,6 +243,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             console.error('Logout error:', err);
         } finally {
             clearSession();
+            clearLoggedInCookie();
             setState({ user: null, isAuthenticated: false, isLoading: false, error: null });
         }
     };
@@ -248,12 +278,44 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setState(prev => ({ ...prev, error: null }));
     };
 
-    const isAdmin = state.user?.role === 'ADMIN_TIER1' || state.user?.role === 'ADMIN_TIER2' || state.user?.role === 'AUDITOR';
+    // Role checks
+    const isSuperAdmin = state.user?.role === 'SUPER_ADMIN';
+    const isLoanManager = state.user?.role === 'LOAN_MANAGER';
+    const isAccountant = state.user?.role === 'ACCOUNTANT';
+    const isLoanOfficer = state.user?.role === 'LOAN_OFFICER';
+    const isAuditor = state.user?.role === 'AUDITOR';
+    
+    // Legacy admin check (SUPER_ADMIN, LOAN_MANAGER, ACCOUNTANT are considered admins)
+    const isAdmin = isSuperAdmin || isLoanManager || isAccountant;
+
+    // Permission checking helpers
+    const checkPermission = (permission: Permission): boolean => {
+        if (!state.user) return false;
+        return hasPermission(state.user.role, permission);
+    };
+
+    const checkAnyPermission = (permissions: Permission[]): boolean => {
+        if (!state.user) return false;
+        return hasAnyPermission(state.user.role, permissions);
+    };
+
+    const checkAllPermissions = (permissions: Permission[]): boolean => {
+        if (!state.user) return false;
+        return hasAllPermissions(state.user.role, permissions);
+    };
 
     return (
         <AuthContext.Provider value={{ 
             ...state, 
             isAdmin,
+            isSuperAdmin,
+            isLoanManager,
+            isAccountant,
+            isLoanOfficer,
+            isAuditor,
+            hasPermission: checkPermission,
+            hasAnyPermission: checkAnyPermission,
+            hasAllPermissions: checkAllPermissions,
             login, 
             register, 
             uploadDocuments,

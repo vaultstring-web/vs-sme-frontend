@@ -19,7 +19,7 @@ export const Header = ({ toggleSidebar }: { toggleSidebar: () => void }) => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const isAdmin = user?.role === 'ADMIN_TIER1' || user?.role === 'ADMIN_TIER2';
+  const isAdmin = user?.role === 'SUPER_ADMIN' || user?.role === 'AUDITOR';
 
   return (
     <header

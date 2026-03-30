@@ -1,9 +1,12 @@
+import { Role, Permission } from '../types/api';
+
 interface User {
     id: string;
     email: string;
     name: string;
     fullName: string;
-    role: string;
+    role: Role;
+    permissions: Permission[];
 }
 
 interface Session {
@@ -181,4 +184,36 @@ export function getAccessToken(): string | null {
 export function getRefreshToken(): string | null {
     const { refreshToken } = getSession();
     return refreshToken;
+}
+
+/**
+ * Set isLoggedIn cookie for middleware authentication
+ * Lightweight cookie that indicates user is authenticated (role-agnostic)
+ */
+export function setLoggedInCookie(): void {
+    if (typeof window === 'undefined') return;
+    
+    try {
+        // Set cookie with 7-day expiration
+        const expirationDate = new Date();
+        expirationDate.setTime(expirationDate.getTime() + (7 * 24 * 60 * 60 * 1000));
+        const expires = `expires=${expirationDate.toUTCString()}`;
+        document.cookie = `isLoggedIn=true; ${expires}; path=/; SameSite=Strict`;
+    } catch (error) {
+        console.error('Error setting isLoggedIn cookie:', error);
+    }
+}
+
+/**
+ * Clear isLoggedIn cookie on logout
+ */
+export function clearLoggedInCookie(): void {
+    if (typeof window === 'undefined') return;
+    
+    try {
+        // Set expiration date to the past to delete the cookie
+        document.cookie = 'isLoggedIn=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; SameSite=Strict';
+    } catch (error) {
+        console.error('Error clearing isLoggedIn cookie:', error);
+    }
 }

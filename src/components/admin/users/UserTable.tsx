@@ -109,7 +109,7 @@ export default function UserTable() {
         >
           <option value="">All Roles</option>
           <option value="APPLICANT">Applicant</option>
-          <option value="ADMIN_TIER1">Admin Tier 1</option>
+          <option value="SUPER_ADMIN">Super Admin</option>
           <option value="ADMIN_TIER2">Admin Tier 2</option>
         </Select>
       </div>

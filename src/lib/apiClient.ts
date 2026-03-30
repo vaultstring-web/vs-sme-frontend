@@ -79,7 +79,8 @@ apiClient.interceptors.response.use(
             email: profile.email,
             name: profile.fullName || profile.name,
             fullName: profile.fullName,
-            role: profile.role
+            role: profile.role,
+            permissions: user?.permissions || []
           } : user;
           
           setSession(newAccessToken, refreshToken, updatedUser);

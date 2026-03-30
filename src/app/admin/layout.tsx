@@ -4,7 +4,7 @@ import ProtectedRoute from '@/components/shared/ProtectedRoute';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   return (
-    <ProtectedRoute allowedRoles={['ADMIN_TIER1', 'ADMIN_TIER2', 'AUDITOR']}>
+    <ProtectedRoute allowedRoles={['SUPER_ADMIN', 'LOAN_MANAGER', 'ACCOUNTANT', 'LOAN_OFFICER', 'AUDITOR']}>
       <AdminLayoutWrapper>{children}</AdminLayoutWrapper>
     </ProtectedRoute>
   );

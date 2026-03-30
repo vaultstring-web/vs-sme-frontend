@@ -10,11 +10,15 @@ import {
   Edit2,
   Eye,
   FileText,
+  CheckCircle,
+  Wallet,
+  Loader2,
 } from "lucide-react";
 import EditableField from "./EditableField";
 import StatusChangeModal from "./StatusChangeModal";
 import ApplicationTimeline from "./ApplicationTimeline";
 import { useApplications } from "@/hooks/useApplications"; // adjust path as needed
+import { useLoans } from "@/hooks/useLoans";
 import DocumentViewer from "@/components/shared/DocumentViewer";
 import { API_BASE_URL } from "@/lib/apiClient";
 import { useAuth } from "@/hooks/useAuth";
@@ -36,6 +40,7 @@ export default function AdminApplicationDetailClient({
     updateAdminApplicationData,
     clearAdminError,
   } = useApplications();
+  const { disburseLoan, isLoading: isDisbursing } = useLoans();
   const { user: currentUser } = useAuth();
   const isAuditor = currentUser?.role === 'AUDITOR';
 
@@ -113,6 +118,22 @@ export default function AdminApplicationDetailClient({
             >
               {isEditMode ? <Eye size={16} /> : <Edit2 size={16} />}
               {isEditMode ? "View Mode" : "Edit Mode"}
+            </button>
+          )}
+
+          {!isAuditor && app.status === 'APPROVED' && (
+            <button
+              onClick={async () => {
+                if (confirm('Are you sure you want to disburse this loan? This will create a repayment schedule.')) {
+                  await disburseLoan(app.id);
+                  fetchAdminApplicationById(app.id);
+                }
+              }}
+              disabled={isDisbursing}
+              className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors text-sm font-medium shadow-sm disabled:opacity-50"
+            >
+              {isDisbursing ? <Loader2 className="animate-spin w-4 h-4" /> : <Wallet size={16} />}
+              Disburse Loan
             </button>
           )}
 

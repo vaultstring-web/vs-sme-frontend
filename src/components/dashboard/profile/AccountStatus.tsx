@@ -60,7 +60,7 @@ export const AccountStatus = () => {
   const formatRole = (role: string): string => {
     const roleMap: Record<string, string> = {
       'APPLICANT': 'Applicant',
-      'ADMIN_TIER1': 'Admin (Tier 1)',
+      'SUPER_ADMIN': 'Super Admin',
       'ADMIN_TIER2': 'Admin (Tier 2)',
       'AUDITOR': 'Auditor',
     };

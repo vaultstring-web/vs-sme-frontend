@@ -47,7 +47,8 @@ import {
   MapPin,
   CreditCard,
   UserCog,
-  FileCheck
+  FileCheck,
+  ShieldCheck
 } from 'lucide-react';
 import { styled } from '@mui/material/styles';
 import { useTheme } from '@/context/ThemeContext';
@@ -1153,7 +1154,7 @@ export default function PayrollLoanApplicationPage() {
         const amountReceived = loanAmount - totalDeductions;
 
         // Reducing balance (amortising) calculation: 4.5% per month
-        const monthlyRate = 0.045 / 12; // 4.5% per annum → 0.375% per month
+        const monthlyRate = 0.045; // 4.5% per month
         const months = formData.paybackPeriodMonths || 1;
         // PMT formula: M = P * r / (1 - (1+r)^-n)
         const monthlyPayment = months > 0
@@ -2147,6 +2148,23 @@ export default function PayrollLoanApplicationPage() {
                   }
                 />
                 {errors.consentToCreditCheck && <Typography color="error" variant="caption" sx={{ ml: 4, display: 'block' }}>{errors.consentToCreditCheck}</Typography>}
+              </Box>
+
+              {/* RBM Regulatory Info */}
+              <Box sx={{ 
+                mt: 4, 
+                p: 2, 
+                borderRadius: '16px', 
+                bgcolor: isDarkMode ? 'rgba(132, 204, 22, 0.05)' : 'rgba(132, 204, 22, 0.03)',
+                border: `1px dashed ${isDarkMode ? 'rgba(132, 204, 22, 0.3)' : 'rgba(132, 204, 22, 0.2)'}`,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 2
+              }}>
+                <ShieldCheck size={24} color={limeColors[500]} />
+                <Typography variant="caption" sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a', lineHeight: 1.4 }}>
+                  VaultString is a licensed and regulated non-deposit-taking Microfinance Institution by the <Box component="span" sx={{ fontWeight: 700, color: isDarkMode ? 'white' : '#18181b' }}>Reserve Bank of Malawi (RBM)</Box>. Your data and application are protected by national financial regulations.
+                </Typography>
               </Box>
             </Box>
           </Box>

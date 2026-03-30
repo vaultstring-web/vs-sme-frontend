@@ -4,6 +4,7 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
+import { getDashboardForRole } from '@/lib/roleRedirects';
 
 export default function HomePage() {
   const { isAuthenticated, isLoading, user } = useAuth();
@@ -13,8 +14,8 @@ export default function HomePage() {
     if (!isLoading) {
       if (isAuthenticated && user) {
         // 🛡️ Role-based redirection
-        const isAdmin = user.role === 'ADMIN_TIER1' || user.role === 'ADMIN_TIER2' || user.role === 'AUDITOR';
-        router.replace(isAdmin ? '/admin/dashboard' : '/dashboard');
+        const dashboard = getDashboardForRole(user.role);
+        router.replace(dashboard);
       } else {
         // Not authenticated – go to dashboard (which will likely redirect to login)
         router.replace('/dashboard');

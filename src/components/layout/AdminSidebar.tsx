@@ -3,6 +3,8 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useTheme } from '@/context/ThemeContext';
+import { usePermission } from '@/hooks/usePermission';
+import { useAuth } from '@/hooks/useAuth';
 import Image from 'next/image';
 import { 
   LayoutDashboard, 
@@ -10,10 +12,26 @@ import {
   Users, 
   Settings, 
   ClipboardList,
-  X
+  X,
+  Wallet,
+  ShieldCheck,
+  Lock
 } from 'lucide-react';
 
-const menuGroups = [
+interface MenuItem {
+  name: string;
+  href: string;
+  icon: any;
+  requiredPermissions?: string[];
+  requiredRole?: string[];
+}
+
+interface MenuGroup {
+  label: string;
+  items: MenuItem[];
+}
+
+const allMenuGroups: MenuGroup[] = [
   {
     label: 'Overview',
     items: [
@@ -23,9 +41,41 @@ const menuGroups = [
   {
     label: 'Management',
     items: [
-      { name: 'Applications', href: '/admin/applications', icon: FileText },
-      { name: 'Users', href: '/admin/users', icon: Users },
-      { name: 'Audit Logs', href: '/admin/audit-logs', icon: ClipboardList },
+      { 
+        name: 'Applications', 
+        href: '/admin/applications', 
+        icon: FileText,
+        requiredPermissions: ['applications:view:all']
+      },
+      { 
+        name: 'Loans', 
+        href: '/admin/loans', 
+        icon: Wallet,
+        requiredPermissions: ['loans:view:all']
+      },
+      { 
+        name: 'Users', 
+        href: '/admin/users', 
+        icon: Users,
+        requiredRole: ['SUPER_ADMIN', 'LOAN_MANAGER']
+      },
+    ]
+  },
+  {
+    label: 'Compliance',
+    items: [
+      { 
+        name: 'Audit Logs', 
+        href: '/admin/audit-logs', 
+        icon: ClipboardList,
+        requiredPermissions: ['audit:view']
+      },
+      { 
+        name: 'Compliance Report', 
+        href: '/admin/compliance', 
+        icon: ShieldCheck,
+        requiredRole: ['SUPER_ADMIN', 'LOAN_MANAGER']
+      },
     ]
   },
   {
@@ -44,6 +94,61 @@ interface AdminSidebarProps {
 export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
   const pathname = usePathname();
   const { theme } = useTheme();
+  const permission = usePermission();
+  const { user } = useAuth();
+
+  // Filter menu items based on permissions
+  const canViewItem = (item: MenuItem): boolean => {
+    // If no permission requirements, show it
+    if (!item.requiredPermissions && !item.requiredRole) {
+      return true;
+    }
+
+    // Check role
+    if (item.requiredRole) {
+      if (user?.role && item.requiredRole.includes(user.role)) {
+        return true;
+      }
+      // If only role is specified and user doesn't have it, hide
+      if (!item.requiredPermissions) {
+        return false;
+      }
+    }
+
+    // Check permissions
+    if (item.requiredPermissions) {
+      return permission.canAny(item.requiredPermissions as any);
+    }
+
+    return true;
+  };
+
+  const filteredMenuGroups = allMenuGroups
+    .map(group => ({
+      ...group,
+      items: group.items.filter(canViewItem)
+    }))
+    .filter(group => group.items.length > 0);
+
+  const getRoleDisplayName = (): string => {
+    if (!user?.role) return 'User';
+    switch (user.role) {
+      case 'SUPER_ADMIN':
+        return 'Super Admin';
+      case 'LOAN_MANAGER':
+        return 'Loan Manager';
+      case 'ACCOUNTANT':
+        return 'Accountant';
+      case 'LOAN_OFFICER':
+        return 'Loan Officer';
+      case 'AUDITOR':
+        return 'Auditor';
+      case 'APPLICANT':
+        return 'Applicant';
+      default:
+        return 'User';
+    }
+  };
 
   return (
     <aside 
@@ -77,7 +182,7 @@ export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
 
         {/* Navigation Groups */}
         <nav className="flex-1 space-y-8 overflow-y-auto custom-scrollbar">
-          {menuGroups.map((group) => (
+          {filteredMenuGroups.map((group) => (
             <div key={group.label}>
               <h3 className="px-4 text-[10px] font-bold uppercase tracking-[0.25em] text-foreground/50 mb-4">
                 {group.label}
@@ -119,15 +224,15 @@ export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
           ))}
         </nav>
 
-        {/* Admin Badge */}
+        {/* Role Badge */}
         <div className="mt-auto p-5 bg-slate-100 dark:bg-zinc-800/50 rounded-2xl border border-border">
             <div className="flex items-center gap-3">
                 <div className="p-2 bg-primary-100 dark:bg-primary-900/30 rounded-lg">
-                    <Settings className="w-5 h-5 text-primary-600 dark:text-primary-400" />
+                    <Lock className="w-5 h-5 text-primary-600 dark:text-primary-400" />
                 </div>
                 <div>
                     <p className="text-xs font-medium text-foreground/60">Signed in as</p>
-                    <p className="text-sm font-bold text-foreground">Administrator</p>
+                    <p className="text-sm font-bold text-foreground">{getRoleDisplayName()}</p>
                 </div>
             </div>
         </div>

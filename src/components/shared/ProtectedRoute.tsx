@@ -2,6 +2,7 @@
 import { useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '../../hooks/useAuth';
+import { getDashboardForRole } from '../../lib/roleRedirects';
 
 interface ProtectedRouteProps {
     children: React.ReactNode;
@@ -20,9 +21,9 @@ const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) => {
                 const returnUrl = encodeURIComponent(pathname ?? '/');
                 router.push(`/login?returnUrl=${returnUrl}`);
             } else if (allowedRoles && user && !allowedRoles.includes(user.role)) {
-                // Redirect to unauthorized page or dashboard if role doesn't match
-                const isAdmin = user.role === 'ADMIN_TIER1' || user.role === 'ADMIN_TIER2' || user.role === 'AUDITOR';
-                router.push(isAdmin ? '/admin/dashboard' : '/dashboard');
+                // Redirect to role-appropriate dashboard if role doesn't match
+                const dashboard = getDashboardForRole(user.role);
+                router.push(dashboard);
             }
         }
     }, [isAuthenticated, isLoading, router, pathname, user, allowedRoles]);

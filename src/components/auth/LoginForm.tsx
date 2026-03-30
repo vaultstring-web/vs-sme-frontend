@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '../../hooks/useAuth';
 import { validateEmail } from '../../utils/validators';
+import { getDashboardForRole, resolveRedirectUrl } from '../../lib/roleRedirects';
 
 const LoginForm = () => {
     const { login, error: authError, isLoading, isAuthenticated, user } = useAuth();
@@ -21,26 +22,15 @@ const LoginForm = () => {
     // ✅ Handle redirect when authenticated
     useEffect(() => {
         if (isAuthenticated && !isLoading && user) {
-            // Determine the default dashboard based on user role
-            const isAdmin = user.role === 'ADMIN_TIER1' || user.role === 'ADMIN_TIER2' || user.role === 'AUDITOR';
-            const defaultDashboard = isAdmin ? '/admin/dashboard' : '/dashboard';
-
-            // Use returnUrl from query param if present, otherwise role-based default
-            let returnUrl = searchParams.get('returnUrl') || defaultDashboard;
-
-            // 🛡️ Security & UX: If an admin logs in, ensure they go to an admin page.
-            // If they were redirected to login from a non-admin page, or came directly,
-            // we override to the admin dashboard.
-            if (isAdmin && !returnUrl.startsWith('/admin')) {
-                returnUrl = '/admin/dashboard';
-            } else if (!isAdmin && returnUrl.startsWith('/admin')) {
-                // Conversely, if a non-admin tried to reach an admin page, send them to user dashboard
-                returnUrl = '/dashboard';
-            }
+            // Get URL from query params
+            const returnUrl = searchParams.get('returnUrl');
+            
+            // Resolve appropriate redirect URL based on role and requested path
+            const finalUrl = resolveRedirectUrl(returnUrl, user.role);
 
             // Small delay to ensure state is stable
             const timer = setTimeout(() => {
-                router.push(returnUrl);
+                router.push(finalUrl);
             }, 100);
 
             return () => clearTimeout(timer);

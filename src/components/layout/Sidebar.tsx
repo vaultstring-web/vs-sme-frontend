@@ -21,13 +21,7 @@ const menuGroups = [
     items: [
       { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
       { name: 'My Applications', href: '/dashboard/applications', icon: CreditCard },
-    ]
-  },
-  {
-    label: 'Finance',
-    items: [
-      { name: 'SME Loans', href: '/dashboard/sme', icon: Wallet },
-      { name: 'Payroll Advance', href: '/dashboard/payroll', icon: ShieldCheck },
+      { name: 'My Loans', href: '/dashboard/loans', icon: Wallet },
     ]
   },
   {

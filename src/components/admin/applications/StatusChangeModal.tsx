@@ -106,9 +106,6 @@ export default function StatusChangeModal({
                   <option value="APPROVED">Approve</option>
                   <option value="REJECTED">Reject</option>
                   <option value="UNDER_REVIEW">Under Review</option>
-                  <option value="DISBURSED">Disbursed</option>
-                  <option value="REPAYED">Repayed</option>
-                  <option value="DEFAULTED">Defaulted</option>
                 </Select>
               </div>
 
