@@ -10,7 +10,6 @@ import {
   Edit2,
   Eye,
   FileText,
-  CheckCircle,
   Wallet,
   Loader2,
 } from "lucide-react";

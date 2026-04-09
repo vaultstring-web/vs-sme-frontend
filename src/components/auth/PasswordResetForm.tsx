@@ -1,7 +1,7 @@
 'use client';
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '../../hooks/useAuth';
+import { useAuth } from '@/hooks/useAuth';
 import { validatePassword, validateConfirmPassword } from '../../utils/validators';
 
 interface PasswordResetFormProps {

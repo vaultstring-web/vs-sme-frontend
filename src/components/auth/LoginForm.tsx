@@ -3,9 +3,9 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useAuth } from '../../hooks/useAuth';
+import { useAuth } from '@/hooks/useAuth';
 import { validateEmail } from '../../utils/validators';
-import { getDashboardForRole, resolveRedirectUrl } from '../../lib/roleRedirects';
+import { resolveRedirectUrl } from '../../lib/roleRedirects';
 
 const LoginForm = () => {
     const { login, error: authError, isLoading, isAuthenticated, user } = useAuth();

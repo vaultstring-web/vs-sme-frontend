@@ -142,7 +142,6 @@ export default function PayrollLoanApplicationPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [activeStep, setActiveStep] = useState(0);
-  const [isLoadingDraft, setIsLoadingDraft] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [showSnackbar, setShowSnackbar] = useState(false);
@@ -274,7 +273,7 @@ export default function PayrollLoanApplicationPage() {
           if (application.documents && application.documents.length > 0) {
             const uploadedDocs = new Set<string>();
             const existingDocs: Record<string, { fileName: string; fileUrl: string }> = {};
-            application.documents.forEach((doc: any) => {
+            application.documents.forEach((doc: { documentType: string; fileName: string; fileUrl: string }) => {
               uploadedDocs.add(doc.documentType);
               existingDocs[doc.documentType] = { fileName: doc.fileName, fileUrl: doc.fileUrl };
             });
@@ -405,13 +404,13 @@ export default function PayrollLoanApplicationPage() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | { target: { name: string; value: any } }) => {
-    const { name, value } = e.target as { name: string; value: any };
-    const inputElement = e.target as HTMLInputElement;
-    let parsedValue = value;
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | { target: { name: string; value: string | number | boolean } }) => {
+    const { name, value } = e.target;
+    const inputElement = 'type' in e.target ? (e.target as HTMLInputElement) : null;
+    let parsedValue: string | number | boolean = value;
 
-    if (inputElement.type === 'number') {
-      parsedValue = parseFloat(value) || 0;
+    if (inputElement?.type === 'number') {
+      parsedValue = parseFloat(value as string) || 0;
     }
 
     setFormData(prev => ({
@@ -496,7 +495,7 @@ export default function PayrollLoanApplicationPage() {
     }
   };
 
-  const handleSelectChange = (name: string) => (e: { target: { value: any } }) => {
+  const handleSelectChange = (name: string) => (e: { target: { value: string | number | boolean } }) => {
     setFormData(prev => ({
       ...prev,
       [name]: e.target.value
@@ -624,16 +623,17 @@ export default function PayrollLoanApplicationPage() {
       setShowSnackbar(true);
 
       return id;
-    } catch (error: any) {
-      console.error('Save draft error:', error);
-      setSnackbarMessage(error.message || 'Failed to save draft');
+    } catch (error: unknown) {
+      const err = error as { message?: string };
+      console.error('Save draft error:', err);
+      setSnackbarMessage(err.message || 'Failed to save draft');
       setShowSnackbar(true);
       return null;
     }
   };
 
   const uploadDocuments = async (appId: string): Promise<void> => {
-    const tasks: Promise<any>[] = [];
+    const tasks: Promise<unknown>[] = [];
 
     // Map form fields to their document types
     const docMappings = [
@@ -1301,7 +1301,7 @@ export default function PayrollLoanApplicationPage() {
                     }}>
                       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <Typography sx={{ color: limeColors[500], fontWeight: 700 }}>
-                          Amount You'll Receive:
+                          Amount You&apos;ll Receive:
                         </Typography>
                         <Typography variant="h5" sx={{ color: limeColors[500], fontWeight: 800 }}>
                           MK {amountReceived.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
@@ -2508,6 +2508,22 @@ export default function PayrollLoanApplicationPage() {
                 Continue
               </Button>
             )}
+          </Box>
+          {/* RBM Regulatory Info */}
+          <Box sx={{ 
+            mt: 4, 
+            p: 2, 
+            borderRadius: '16px', 
+            bgcolor: isDarkMode ? 'rgba(132, 204, 22, 0.05)' : 'rgba(132, 204, 22, 0.03)',
+            border: `1px dashed ${isDarkMode ? 'rgba(132, 204, 22, 0.3)' : 'rgba(132, 204, 22, 0.2)'}`,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 2
+          }}>
+            <ShieldCheck size={24} color={limeColors[500]} />
+            <Typography variant="caption" sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a', lineHeight: 1.4 }}>
+              VaultString is a licensed and regulated non-deposit-taking Microfinance Institution by the <Box component="span" sx={{ fontWeight: 700, color: isDarkMode ? 'white' : '#18181b' }}>Reserve Bank of Malawi (RBM)</Box>. Your data and application are protected by national financial regulations.
+            </Typography>
           </Box>
         </Box>
 

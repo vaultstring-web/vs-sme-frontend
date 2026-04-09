@@ -80,7 +80,6 @@ export default function ApplicationDetailPage() {
     fetchApplicationById,
     submitApplication,
     deleteApplication,
-    clearError,
   } = useApplications();
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -190,7 +189,7 @@ export default function ApplicationDetailPage() {
             Application Not Found
           </h3>
           <p className="text-foreground/60 mb-4">
-            The application you're looking for doesn't exist or you don't have access to it.
+            The application you&apos;re looking for doesn&apos;t exist or you don&apos;t have access to it.
           </p>
           <Link
             href="/dashboard/applications"
@@ -503,21 +502,6 @@ export default function ApplicationDetailPage() {
             </div>
           </div>
 
-          {/* Quick Actions */}
-          <div className="bento-card p-6">
-            <h2 className="text-lg font-semibold text-foreground mb-4">Quick Actions</h2>
-            <div className="space-y-2">
-              <button className="w-full px-4 py-2 text-left text-foreground hover:bg-card/50 rounded-lg transition-colors">
-                Print Application
-              </button>
-              <button className="w-full px-4 py-2 text-left text-foreground hover:bg-card/50 rounded-lg transition-colors">
-                Download PDF
-              </button>
-              <button className="w-full px-4 py-2 text-left text-foreground hover:bg-card/50 rounded-lg transition-colors">
-                Contact Support
-              </button>
-            </div>
-          </div>
         </div>
       </div>
 

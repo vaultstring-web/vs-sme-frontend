@@ -27,7 +27,6 @@ import {
   ArrowLeft,
   ArrowRight,
   CheckCircle,
-  User,
   Building2,
   DollarSign,
   Users,
@@ -73,7 +72,6 @@ export default function SMELoanApplicationPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [activeStep, setActiveStep] = useState(0);
-  const [isLoadingDraft, setIsLoadingDraft] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [showSnackbar, setShowSnackbar] = useState(false);
@@ -140,7 +138,6 @@ export default function SMELoanApplicationPage() {
     }
 
     if (draftId) {
-      setIsLoadingDraft(true);
       const loadDraftFromBackend = async () => {
         try {
           const response = await apiClient.get(`/applications/${draftId}`);
@@ -197,7 +194,7 @@ export default function SMELoanApplicationPage() {
           if (application.documents && application.documents.length > 0) {
             const uploadedDocs = new Set<string>();
             const existingDocs: Record<string, { fileName: string; fileUrl: string }> = {};
-            application.documents.forEach((doc: any) => {
+            application.documents.forEach((doc: { documentType: string; fileName: string; fileUrl: string }) => {
               uploadedDocs.add(doc.documentType);
               existingDocs[doc.documentType] = { fileName: doc.fileName, fileUrl: doc.fileUrl };
             });
@@ -212,7 +209,6 @@ export default function SMELoanApplicationPage() {
           setSnackbarMessage('Failed to load draft application');
           setShowSnackbar(true);
         } finally {
-          setIsLoadingDraft(false);
         }
       };
 
@@ -298,10 +294,10 @@ export default function SMELoanApplicationPage() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | { target: { name: string; value: any } }) => {
-    const { name, value } = e.target as { name: string; value: any };
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | { target: { name: string; value: string | number } }) => {
+    const { name, value } = e.target as { name: string; value: string | number };
     const inputElement = e.target as HTMLInputElement;
-    const parsedValue = inputElement.type === 'number' ? parseFloat(value) || 0 : value;
+    const parsedValue = inputElement.type === 'number' ? parseFloat(String(value)) || 0 : value;
 
     setFormData(prev => ({
       ...prev,
@@ -354,7 +350,7 @@ export default function SMELoanApplicationPage() {
     }
   };
 
-  const handleSelectChange = (name: string) => (e: { target: { value: any } }) => {
+  const handleSelectChange = (name: string) => (e: { target: { value: string | number } }) => {
     setFormData(prev => ({
       ...prev,
       [name]: e.target.value
@@ -394,7 +390,7 @@ export default function SMELoanApplicationPage() {
   const handleSaveDraft = async (): Promise<string | null> => {
     try {
       // Prepare data for backend - filter out empty/undefined values
-      const backendData: Record<string, any> = {
+      const backendData: Record<string, unknown> = {
         businessName: formData.businessName?.trim() || null,
         registrationNo: formData.registrationNo?.trim() || null,
         businessType: formData.businessType || null,
@@ -521,9 +517,10 @@ export default function SMELoanApplicationPage() {
       setShowSnackbar(true);
 
       return id;
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const err = error as { message?: string };
       console.error('Save draft error:', error);
-      setSnackbarMessage(error.message || 'Failed to save draft');
+      setSnackbarMessage(err?.message || 'Failed to save draft');
       setShowSnackbar(true);
       return null;
     }
@@ -593,7 +590,7 @@ export default function SMELoanApplicationPage() {
         router.push('/dashboard/applications');
       }, 2000);
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Submission error:', error);
       // Error will be shown via the error state from context
     } finally {
@@ -891,7 +888,7 @@ export default function SMELoanApplicationPage() {
                     }}>
                       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <Typography sx={{ color: limeColors[500], fontWeight: 700 }}>
-                          Amount You'll Receive:
+                          Amount You&apos;ll Receive:
                         </Typography>
                         <Typography variant="h5" sx={{ color: limeColors[500], fontWeight: 800 }}>
                           MK {amountReceived.toLocaleString(undefined, { maximumFractionDigits: 0 })}
@@ -1492,7 +1489,7 @@ export default function SMELoanApplicationPage() {
             Application Submitted!
           </Typography>
           <Typography variant="body1" sx={{ mb: 3, color: isDarkMode ? '#a1a1aa' : '#71717a' }}>
-            Your SME loan application has been successfully submitted. We'll review it and get back to you soon.
+            Your SME loan application has been successfully submitted. We&apos;ll review it and get back to you soon.
           </Typography>
           <Button
             variant="contained"
@@ -1752,6 +1749,22 @@ export default function SMELoanApplicationPage() {
                 Continue
               </Button>
             )}
+          </Box>
+          {/* RBM Regulatory Info */}
+          <Box sx={{ 
+            mt: 4, 
+            p: 2, 
+            borderRadius: '16px', 
+            bgcolor: isDarkMode ? 'rgba(132, 204, 22, 0.05)' : 'rgba(132, 204, 22, 0.03)',
+            border: `1px dashed ${isDarkMode ? 'rgba(132, 204, 22, 0.3)' : 'rgba(132, 204, 22, 0.2)'}`,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 2
+          }}>
+            <ShieldCheck size={24} color={limeColors[500]} />
+            <Typography variant="caption" sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a', lineHeight: 1.4 }}>
+              VaultString is a licensed and regulated non-deposit-taking Microfinance Institution by the <Box component="span" sx={{ fontWeight: 700, color: isDarkMode ? 'white' : '#18181b' }}>Reserve Bank of Malawi (RBM)</Box>. Your data and application are protected by national financial regulations.
+            </Typography>
           </Box>
         </Box>
 

@@ -1,15 +1,18 @@
 import React, { useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { useNotifications, type Notification } from '../hooks/useNotifications'
+import { useAuth } from '@/hooks/useAuth'
 
 interface NotificationCenterProps {
-  isOpen: boolean
+  open: boolean
   onClose: () => void
 }
 
 /**
  * Notification center panel showing all notifications
  */
-export function NotificationCenter({ isOpen, onClose }: NotificationCenterProps) {
+export default function NotificationCenter({ open, onClose }: NotificationCenterProps) {
+  const { user } = useAuth()
   const {
     notifications,
     unreadCount,
@@ -22,15 +25,17 @@ export function NotificationCenter({ isOpen, onClose }: NotificationCenterProps)
   } = useNotifications()
 
   useEffect(() => {
-    if (isOpen) {
+    if (open) {
       void fetchNotifications(1)
     }
-  }, [isOpen, fetchNotifications])
+  }, [open, fetchNotifications])
+
+  const userRole = user?.role || 'APPLICANT'
 
   return (
     <>
       {/* Backdrop */}
-      {isOpen && (
+      {open && (
         <div
           className="fixed inset-0 z-30 bg-black bg-opacity-50"
           onClick={onClose}
@@ -41,7 +46,7 @@ export function NotificationCenter({ isOpen, onClose }: NotificationCenterProps)
       {/* Panel */}
       <div
         className={`fixed top-0 right-0 z-40 w-full max-w-md h-full bg-white dark:bg-gray-900 shadow-lg transform transition-transform duration-300 ${
-          isOpen ? 'translate-x-0' : 'translate-x-full'
+          open ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
         {/* Header */}
@@ -69,7 +74,7 @@ export function NotificationCenter({ isOpen, onClose }: NotificationCenterProps)
 
         {/* Content */}
         <div className="overflow-y-auto h-[calc(100%-9rem)] flex flex-col">
-          {loading && (
+          {loading && notifications.length === 0 && (
             <div className="flex items-center justify-center h-32">
               <div className="text-gray-500 dark:text-gray-400">Loading...</div>
             </div>
@@ -94,14 +99,16 @@ export function NotificationCenter({ isOpen, onClose }: NotificationCenterProps)
             </div>
           )}
 
-          {!loading && notifications.length > 0 && (
+          {notifications.length > 0 && (
             <div className="divide-y divide-gray-200 dark:divide-gray-700">
               {notifications.map(notification => (
                 <NotificationItem
                   key={notification.id}
                   notification={notification}
+                  userRole={userRole}
                   onMarkRead={markAsRead}
                   onDelete={deleteNotification}
+                  onClose={onClose}
                 />
               ))}
             </div>
@@ -140,13 +147,47 @@ export function NotificationCenter({ isOpen, onClose }: NotificationCenterProps)
  */
 function NotificationItem({
   notification,
+  userRole,
   onMarkRead,
   onDelete,
+  onClose,
 }: {
   notification: Notification
+  userRole: string
   onMarkRead: (id: string) => Promise<void>
   onDelete: (id: string) => Promise<void>
+  onClose: () => void
 }) {
+  const router = useRouter()
+
+  const handleNotificationClick = async () => {
+    // 1. Mark as read
+    if (!notification.isRead) {
+      await onMarkRead(notification.id)
+    }
+
+    // 2. Navigate
+    if (notification.relatedType && notification.relatedId) {
+      const isAdmin = ['SUPER_ADMIN', 'LOAN_MANAGER', 'LOAN_OFFICER', 'ACCOUNTANT', 'AUDITOR'].includes(userRole)
+      let path = ''
+
+      if (notification.relatedType === 'application') {
+        path = isAdmin 
+          ? `/admin/applications/detail?id=${notification.relatedId}` 
+          : `/dashboard/applications/${notification.relatedId}`
+      } else if (notification.relatedType === 'loan') {
+        path = isAdmin 
+          ? `/admin/loans/${notification.relatedId}` 
+          : `/dashboard/loans`
+      }
+
+      if (path) {
+        router.push(path)
+        onClose()
+      }
+    }
+  }
+
   const formatTime = (dateString: string) => {
     const date = new Date(dateString)
     const now = new Date()
@@ -184,8 +225,9 @@ function NotificationItem({
 
   return (
     <div
-      className={`p-4 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors ${
-        !notification.isRead ? 'bg-blue-50 dark:bg-blue-900/20' : ''
+      onClick={handleNotificationClick}
+      className={`p-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors relative group ${
+        !notification.isRead ? 'bg-blue-50 dark:bg-blue-900/10' : ''
       }`}
     >
       <div className="flex gap-3">
@@ -196,29 +238,21 @@ function NotificationItem({
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2">
             <div>
-              <p className="font-semibold text-gray-900 dark:text-white text-sm">
+              <p className={`text-sm ${!notification.isRead ? 'font-bold text-gray-900 dark:text-white' : 'font-medium text-gray-700 dark:text-gray-300'}`}>
                 {notification.title}
               </p>
-              <p className="text-gray-600 dark:text-gray-400 text-sm mt-1 break-words">
+              <p className={`text-sm mt-1 break-words ${!notification.isRead ? 'text-gray-700 dark:text-gray-200' : 'text-gray-600 dark:text-gray-400'}`}>
                 {notification.message}
               </p>
             </div>
 
             {/* Actions */}
-            <div className="flex-shrink-0 ml-2 flex gap-1">
-              {!notification.isRead && (
-                <button
-                  onClick={() => void onMarkRead(notification.id)}
-                  className="p-1 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded transition-colors"
-                  title="Mark as read"
-                >
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L9 4.414V16a1 1 0 102 0V4.414l6.293 6.293a1 1 0 001.414-1.414l-7-7z" />
-                  </svg>
-                </button>
-              )}
+            <div className="flex-shrink-0 ml-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
               <button
-                onClick={() => void onDelete(notification.id)}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  void onDelete(notification.id)
+                }}
                 className="p-1 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30 rounded transition-colors"
                 title="Delete"
               >
@@ -234,14 +268,21 @@ function NotificationItem({
           </div>
 
           {/* Timestamp */}
-          <p className="text-xs text-gray-500 dark:text-gray-500 mt-2">
-            {formatTime(notification.createdAt)}
-          </p>
+          <div className="flex items-center gap-2 mt-2">
+            <p className="text-xs text-gray-500 dark:text-gray-500">
+              {formatTime(notification.createdAt)}
+            </p>
+            {notification.relatedId && (
+              <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-500 font-medium">
+                Action Required
+              </span>
+            )}
+          </div>
         </div>
 
         {/* Unread indicator */}
         {!notification.isRead && (
-          <div className="flex-shrink-0 w-2 h-2 bg-blue-600 dark:bg-blue-400 rounded-full mt-2" />
+          <div className="flex-shrink-0 w-2.5 h-2.5 bg-blue-600 dark:bg-blue-500 rounded-full mt-1.5 shadow-sm" />
         )}
       </div>
     </div>

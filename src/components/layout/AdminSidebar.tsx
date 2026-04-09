@@ -74,7 +74,7 @@ const allMenuGroups: MenuGroup[] = [
         name: 'Compliance Report', 
         href: '/admin/compliance', 
         icon: ShieldCheck,
-        requiredRole: ['SUPER_ADMIN', 'LOAN_MANAGER']
+        requiredRole: ['SUPER_ADMIN', 'LOAN_MANAGER', 'AUDITOR']
       },
     ]
   },

@@ -5,11 +5,13 @@ import { Menu } from 'lucide-react';
 import { useState, useEffect, useContext } from 'react';
 import { useTheme } from '@/context/ThemeContext';
 import { AuthContext } from '@/context/AuthContext';
-import NotificationCenter from '@/components/admin/layout/NotificationCenter';
+import NotificationBadge from '@/components/NotificationBadge';
+import NotificationCenter from '@/components/NotificationCenter';
 
 export const Header = ({ toggleSidebar }: { toggleSidebar: () => void }) => {
   const [scrolled, setScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isNotificationsOpen, setNotificationsOpen] = useState(false);
   const { theme, toggleTheme } = useTheme();
   const { user, logout } = useContext(AuthContext)!;
 
@@ -19,7 +21,7 @@ export const Header = ({ toggleSidebar }: { toggleSidebar: () => void }) => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const isAdmin = user?.role === 'SUPER_ADMIN' || user?.role === 'AUDITOR';
+  const isAdmin = user && ['SUPER_ADMIN', 'LOAN_MANAGER', 'LOAN_OFFICER', 'ACCOUNTANT', 'AUDITOR'].includes(user.role);
 
   return (
     <header
@@ -42,8 +44,8 @@ export const Header = ({ toggleSidebar }: { toggleSidebar: () => void }) => {
 
       {/* Right: Actions */}
       <div className="flex items-center gap-2 sm:gap-4">
-        {/* Notification Bell - Only for Admin for now */}
-        {isAdmin && <NotificationCenter />}
+        {/* Notification Bell */}
+        <NotificationBadge onClick={() => setNotificationsOpen(true)} />
 
         <div className="hidden sm:block h-6 w-px bg-border dark:bg-border" />
 
@@ -89,6 +91,10 @@ export const Header = ({ toggleSidebar }: { toggleSidebar: () => void }) => {
           </div>
         </div>
       )}
+      <NotificationCenter 
+        open={isNotificationsOpen} 
+        onClose={() => setNotificationsOpen(false)} 
+      />
     </header>
   );
 };

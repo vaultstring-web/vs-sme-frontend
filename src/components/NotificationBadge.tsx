@@ -8,7 +8,7 @@ interface NotificationBadgeProps {
 /**
  * Notification bell icon with badge showing unread count
  */
-export function NotificationBadge({ onClick }: NotificationBadgeProps) {
+export default function NotificationBadge({ onClick }: NotificationBadgeProps) {
   const { unreadCount } = useNotifications()
 
   return (

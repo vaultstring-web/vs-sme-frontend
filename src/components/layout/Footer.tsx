@@ -2,7 +2,8 @@
 'use client';
 
 import Link from 'next/link';
-import { Facebook, Twitter, Linkedin, Mail, MapPin, ShieldCheck } from 'lucide-react';
+import Image from 'next/image';
+import { Mail, MapPin, ShieldCheck } from 'lucide-react';
 import { useTheme } from '@/context/ThemeContext';
 
 export const Footer = () => {
@@ -14,10 +15,13 @@ export const Footer = () => {
         {/* Brand & Mission */}
         <div className="space-y-5">
           <Link href="/" className="inline-block transition-opacity hover:opacity-90">
-            <img 
+            <Image 
               src={theme === "dark" ? "/icons/vs1.svg" : "/icons/vs2.svg"} 
               alt="VaultString Logo"
-              className="h-16 md:h-18 transition-all"
+              width={160}
+              height={64}
+              className="h-16 w-auto md:h-18 transition-all"
+              priority
             />
           </Link>
           <p className="text-sm text-muted-foreground leading-relaxed max-w-xs">
@@ -96,15 +100,6 @@ export const Footer = () => {
   );
 };
 
-const SocialIcon = ({ Icon }: { Icon: React.ComponentType<{ size?: number }> }) => (
-  <button 
-    className="w-9 h-9 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors duration-300 hover:bg-muted/30"
-    aria-label={`${Icon.name} link`}
-  >
-    <Icon size={16} />
-  </button>
-);
-
 const FooterLink = ({ href, children }: { href: string; children: React.ReactNode }) => (
   <li>
     <Link 
@@ -117,12 +112,3 @@ const FooterLink = ({ href, children }: { href: string; children: React.ReactNod
   </li>
 );
 
-const FooterTextLink = ({ href, children }: { href: string; children: React.ReactNode }) => (
-  <Link 
-    href={href} 
-    className="hover:text-primary transition-colors relative group"
-  >
-    {children}
-    <span className="absolute -bottom-0.5 left-0 w-0 h-px bg-primary/60 transition-all duration-300 group-hover:w-full"></span>
-  </Link>
-);

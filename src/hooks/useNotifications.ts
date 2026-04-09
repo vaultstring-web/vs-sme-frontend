@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from 'react'
+import apiClient from '@/lib/apiClient'
 
 export interface Notification {
   id: string
@@ -44,15 +45,9 @@ export function useNotifications() {
       try {
         setLoading(true)
         setError(null)
-        const response = await fetch(`/api/notifications?page=${pageNum}&limit=${limit}`, {
-          credentials: 'include',
-        })
-
-        if (!response.ok) {
-          throw new Error('Failed to fetch notifications')
-        }
-
-        const data: PaginatedNotifications = await response.json()
+        const response = await apiClient.get(`/notifications?page=${pageNum}&limit=${limit}`)
+        const data: PaginatedNotifications = response.data
+        
         setNotifications(data.data)
         setUnreadCount(data.unreadCount)
         setTotal(data.pagination.total)
@@ -70,15 +65,8 @@ export function useNotifications() {
   // Fetch unread notifications
   const fetchUnread = useCallback(async () => {
     try {
-      const response = await fetch('/api/notifications/unread', {
-        credentials: 'include',
-      })
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch unread notifications')
-      }
-
-      const data = await response.json()
+      const response = await apiClient.get('/notifications/unread')
+      const data = response.data
       setNotifications(data.data)
       setUnreadCount(data.unreadCount)
     } catch (err) {
@@ -89,15 +77,8 @@ export function useNotifications() {
   // Get unread count
   const getUnreadCount = useCallback(async () => {
     try {
-      const response = await fetch('/api/notifications/unread/count', {
-        credentials: 'include',
-      })
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch unread count')
-      }
-
-      const data = await response.json()
+      const response = await apiClient.get('/notifications/unread/count')
+      const data = response.data
       setUnreadCount(data.unreadCount)
     } catch (err) {
       console.error('Failed to fetch unread count:', err)
@@ -107,14 +88,7 @@ export function useNotifications() {
   // Mark as read
   const markAsRead = useCallback(async (notificationId: string) => {
     try {
-      const response = await fetch(`/api/notifications/${notificationId}/read`, {
-        method: 'PATCH',
-        credentials: 'include',
-      })
-
-      if (!response.ok) {
-        throw new Error('Failed to mark as read')
-      }
+      await apiClient.patch(`/notifications/${notificationId}/read`)
 
       // Update local state
       setNotifications(prev =>
@@ -133,16 +107,7 @@ export function useNotifications() {
   // Mark multiple as read
   const markMultipleAsRead = useCallback(async (notificationIds: string[]) => {
     try {
-      const response = await fetch('/api/notifications/read-multiple', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ ids: notificationIds }),
-      })
-
-      if (!response.ok) {
-        throw new Error('Failed to mark as read')
-      }
+      await apiClient.patch('/notifications/read-multiple', { ids: notificationIds })
 
       // Update local state
       setNotifications(prev =>
@@ -165,14 +130,7 @@ export function useNotifications() {
   // Delete notification
   const deleteNotification = useCallback(async (notificationId: string) => {
     try {
-      const response = await fetch(`/api/notifications/${notificationId}`, {
-        method: 'DELETE',
-        credentials: 'include',
-      })
-
-      if (!response.ok) {
-        throw new Error('Failed to delete notification')
-      }
+      await apiClient.delete(`/notifications/${notificationId}`)
 
       // Update local state
       setNotifications(prev => prev.filter(n => n.id !== notificationId))
@@ -189,14 +147,7 @@ export function useNotifications() {
   // Clear all
   const clearAll = useCallback(async () => {
     try {
-      const response = await fetch('/api/notifications', {
-        method: 'DELETE',
-        credentials: 'include',
-      })
-
-      if (!response.ok) {
-        throw new Error('Failed to clear notifications')
-      }
+      await apiClient.delete('/notifications')
 
       setNotifications([])
       setUnreadCount(0)

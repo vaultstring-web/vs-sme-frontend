@@ -7,20 +7,14 @@ import { useAuth } from '@/hooks/useAuth';
 import { 
   ArrowLeft, 
   Calendar, 
-  Clock, 
-  CheckCircle2, 
-  AlertCircle,
-  TrendingUp,
   Banknote,
   Receipt,
   User as UserIcon,
   Phone,
   Mail,
-  ShieldCheck,
   Plus,
   RefreshCcw
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
 import RecordPaymentModal from '@/components/admin/loans/RecordPaymentModal';
 import RestructureLoanModal from '@/components/admin/loans/RestructureLoanModal';
 

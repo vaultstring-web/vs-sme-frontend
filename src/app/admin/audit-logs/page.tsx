@@ -10,7 +10,6 @@ import {
   Clock,
   ChevronDown,
   ChevronUp,
-  ArrowRight
 } from 'lucide-react';
 import apiClient from '@/lib/apiClient';
 import { Select } from '@/components/ui/FormELements';
@@ -30,11 +29,11 @@ interface AuditLog {
     id: string;
     type: string;
   };
-  beforeValue?: Record<string, any>;
-  afterValue?: Record<string, any>;
+  beforeValue?: Record<string, unknown>;
+  afterValue?: Record<string, unknown>;
 }
 
-const LogDiff = ({ before, after }: { before?: Record<string, any>; after?: Record<string, any> }) => {
+const LogDiff = ({ before, after }: { before?: Record<string, unknown>; after?: Record<string, unknown> }) => {
   const [isOpen, setIsOpen] = useState(false);
   
   if (!before && !after) return null;

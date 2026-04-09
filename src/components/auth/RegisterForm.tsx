@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useAuth } from '../../hooks/useAuth';
+import { useAuth } from '@/hooks/useAuth';
 import { getSession } from '../../utils/sessionStorage';
 import { validateEmail, validatePassword, validateConfirmPassword, validateMalawiNationalId } from '../../utils/validators';
 import { getDashboardForRole } from '../../lib/roleRedirects';
