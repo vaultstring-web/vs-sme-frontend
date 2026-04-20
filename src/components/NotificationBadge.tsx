@@ -14,13 +14,13 @@ export default function NotificationBadge({ onClick }: NotificationBadgeProps) {
   return (
     <button
       onClick={onClick}
-      className="relative inline-flex items-center justify-center w-10 h-10 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+      className="relative inline-flex items-center justify-center w-10 h-10 rounded-lg hover:bg-foreground/5 transition-colors"
       title={`${unreadCount} unread notifications`}
       aria-label={`Notifications: ${unreadCount} unread`}
     >
       {/* Bell Icon */}
       <svg
-        className="w-6 h-6 text-gray-700 dark:text-gray-200"
+        className="w-6 h-6 text-foreground/70"
         fill="none"
         stroke="currentColor"
         viewBox="0 0 24 24"

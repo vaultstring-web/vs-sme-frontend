@@ -25,6 +25,7 @@ export interface ActiveLoan {
   type: Application['type'];
   employerName?: string;
   businessName?: string;
+  applicantName?: string;
 }
 
 export interface RecentApplication {

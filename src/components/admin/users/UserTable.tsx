@@ -118,7 +118,7 @@ export default function UserTable() {
       <div className="bento-card overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm text-left">
-            <thead className="text-xs text-foreground/50 uppercase bg-slate-50 dark:bg-zinc-800/50">
+            <thead className="text-xs text-foreground/50 uppercase bg-card/50">
               <tr>
                 <th className="px-6 py-3 font-medium">User</th>
                 <th className="px-6 py-3 font-medium">Contact</th>
@@ -142,7 +142,7 @@ export default function UserTable() {
                 </tr>
               ) : (
                 users.map((user) => (
-                  <tr key={user.id} className="hover:bg-slate-50 dark:hover:bg-zinc-800/50 transition-colors">
+                  <tr key={user.id} className="hover:bg-card/50 transition-colors">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center text-primary-600 dark:text-primary-400 font-bold">
@@ -206,14 +206,14 @@ export default function UserTable() {
             <button
               onClick={() => setMeta(prev => ({ ...prev, page: Math.max(1, prev.page - 1) }))}
               disabled={meta.page === 1}
-              className="p-2 border border-border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50 dark:hover:bg-zinc-800 text-foreground/60"
+              className="p-2 border border-border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-card/50 text-foreground/60 transition-colors"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
             <button
               onClick={() => setMeta(prev => ({ ...prev, page: Math.min(meta.totalPages, prev.page + 1) }))}
               disabled={meta.page >= meta.totalPages}
-              className="p-2 border border-border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50 dark:hover:bg-zinc-800 text-foreground/60"
+              className="p-2 border border-border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-card/50 text-foreground/60 transition-colors"
             >
               <ChevronRight className="w-4 h-4" />
             </button>

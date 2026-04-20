@@ -1,11 +1,11 @@
 // src/app/dashboard/applications/page.tsx
 'use client';
 
-import { FileText, Briefcase, X, Clock, CheckCircle2, XCircle, Search, Filter, ChevronDown, AlertCircle, Loader2 } from 'lucide-react';
+import { FileText, Clock, CheckCircle2, XCircle, Search, Filter, ChevronDown, AlertCircle, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useMemo, useEffect } from 'react';
 import { useApplications } from '@/hooks/useApplications';
-import type { ApplicationStatus } from '@/context/ApplicationsContext';
+import type { ApplicationStatus, Application } from '@/context/ApplicationsContext';
 import NewApplicationModal from '@/components/modals/NewApplicationModal';
 
 // Map backend status to frontend display config
@@ -57,7 +57,6 @@ type FilterType = ApplicationStatus | 'all';
 export default function ApplicationsPage() {
   const {
     applications,
-    meta,
     isLoading,
     error,
     fetchApplications,
@@ -89,6 +88,7 @@ export default function ApplicationsPage() {
       const matchesSearch = searchQuery === '' || 
         (app.smeData?.businessName?.toLowerCase().includes(searchTerm)) ||
         (app.payrollData?.employerName?.toLowerCase().includes(searchTerm)) ||
+        (app.user?.fullName?.toLowerCase().includes(searchTerm)) ||
         app.type.toLowerCase().includes(searchTerm);
 
       // Status filter
@@ -150,16 +150,16 @@ export default function ApplicationsPage() {
   };
 
   // Get application name
-  const getApplicationName = (app: any): string => {
+  const getApplicationName = (app: Application): string => {
     if (app.type === 'SME') {
       return app.smeData?.businessName || 'SME Application';
     } else {
-      return app.payrollData?.employerName || 'Payroll Application';
+      return app.user?.fullName || app.payrollData?.employerName || 'Payroll Application';
     }
   };
 
   // Get application amount
-  const getApplicationAmount = (app: any): number => {
+  const getApplicationAmount = (app: Application): number => {
     return app.smeData?.loanAmount || app.payrollData?.loanAmount || 0;
   };
 
@@ -385,7 +385,7 @@ export default function ApplicationsPage() {
           
           {searchQuery && (
             <div className="flex items-center gap-1 px-3 py-1 bg-green-500/10 text-green-600 rounded-full text-sm">
-              <span>Search: "{searchQuery}"</span>
+              <span>Search: &quot;{searchQuery}&quot;</span>
               <button
                 onClick={() => setSearchQuery('')}
                 className="ml-1 hover:text-green-700"

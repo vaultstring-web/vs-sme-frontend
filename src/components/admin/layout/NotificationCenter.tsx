@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Bell, X, CheckCircle2, AlertCircle, Trash2 } from "lucide-react";
 import apiClient from "@/lib/apiClient";
 
@@ -25,9 +25,9 @@ interface ActivityLog {
 
 export default function NotificationCenter() {
   const [isOpen, setIsOpen] = useState(false);
-  const [pendingCount, setPendingCount] = useState(0);
+  const [pendingCount] = useState(0);
   const [activities, setActivities] = useState<ActivityLog[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
 
   // Fetch pending count and recent activity
@@ -227,7 +227,7 @@ export default function NotificationCenter() {
                               </p>
                               {log.notes && (
                                 <p className="text-xs text-foreground/60 mt-1 italic">
-                                  "{log.notes}"
+                                  &quot;{log.notes}&quot;
                                 </p>
                               )}
                             </div>
@@ -266,7 +266,7 @@ export default function NotificationCenter() {
             </div>
 
             {activities.length > 0 && (
-              <div className="p-3 bg-slate-50 dark:bg-zinc-800/50 border-t border-border text-center">
+              <div className="p-3 bg-card border-t border-border text-center">
                 <a
                   href="/admin/activity"
                   className="text-xs font-medium text-primary-600 dark:text-primary-400 hover:underline"

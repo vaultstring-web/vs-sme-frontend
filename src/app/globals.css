@@ -127,37 +127,57 @@ body {
   border-radius: 20px;
 }
 
-/* === STATUS CHIP CONTRAST FIXES FOR LIGHT MODE === */
-:root:not(.dark) .applications-table [data-status="approved"] .status-chip {
-  background-color: var(--color-approved-bg) !important;
-  color: var(--color-approved-text) !important;
+.status-chip {
+  @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider transition-colors border;
 }
 
-:root:not(.dark) .applications-table [data-status="in-review"] .status-chip {
-  background-color: var(--color-in-review-bg) !important;
-  color: var(--color-in-review-text) !important;
+/* Default Status Colors (Dark Mode) */
+.dark .status-chip[data-status="approved"] {
+  @apply bg-green-900/30 text-green-400 border-green-800/50;
+}
+.dark .status-chip[data-status="disbursed"] {
+  @apply bg-blue-900/30 text-blue-400 border-blue-800/50;
+}
+.dark .status-chip[data-status="under-review"],
+.dark .status-chip[data-status="in-review"] {
+  @apply bg-yellow-900/30 text-yellow-400 border-yellow-800/50;
+}
+.dark .status-chip[data-status="draft"],
+.dark .status-chip[data-status="submitted"] {
+  @apply bg-slate-800 text-slate-400 border-slate-700;
+}
+.dark .status-chip[data-status="rejected"] {
+  @apply bg-red-900/30 text-red-400 border-red-800/50;
 }
 
-:root:not(.dark) .applications-table [data-status="draft"] .status-chip {
-  background-color: var(--color-draft-bg) !important;
-  color: var(--color-draft-text) !important;
+/* Light Mode Status Colors (Single Source of Truth) */
+:root:not(.dark) .status-chip[data-status="approved"] {
+  background-color: var(--color-approved-bg);
+  color: var(--color-approved-text);
+  border-color: #bbf7d0; /* green-200 */
+}
+:root:not(.dark) .status-chip[data-status="disbursed"] {
+  background-color: var(--color-in-review-bg);
+  color: var(--color-in-review-text);
+  border-color: #bfdbfe; /* blue-200 */
+}
+:root:not(.dark) .status-chip[data-status="under-review"],
+:root:not(.dark) .status-chip[data-status="in-review"] {
+  background-color: #fef9c3; /* yellow-100 */
+  color: #854d0e; /* yellow-800 */
+  border-color: #fef08a; /* yellow-200 */
+}
+:root:not(.dark) .status-chip[data-status="draft"],
+:root:not(.dark) .status-chip[data-status="submitted"] {
+  background-color: #f1f5f9; /* slate-100 */
+  color: #475569; /* slate-600 */
+  border-color: #e2e8f0; /* slate-200 */
+}
+:root:not(.dark) .status-chip[data-status="rejected"] {
+  background-color: var(--color-rejected-bg);
+  color: var(--color-rejected-text);
+  border-color: #fecaca; /* red-200 */
 }
 
-:root:not(.dark) .applications-table [data-status="rejected"] .status-chip {
-  background-color: var(--color-rejected-bg) !important;
-  color: var(--color-rejected-text) !important;
-}
-
-/* Optional: Enhance icon colors to match text */
-:root:not(.dark) .applications-table [data-status="approved"] svg {
-  color: var(--color-approved-text) !important;
-}
-:root:not(.dark) .applications-table [data-status="in-review"] svg {
-  color: var(--color-in-review-text) !important;
-}
-:root:not(.dark) .applications-table [data-status="draft"] svg {
-  color: var(--color-draft-text) !important;
-}
-:root:not(.dark) .applications-table [data-status="rejected"] svg {
-  color: var(--color-rejected-text) !important;
-}
+/* === STATUS CHIP CONTRAST FIXES FOR LIGHT MODE (DEPRECATED - Use .status-chip instead) === */
+/* Removed old specific selectors */

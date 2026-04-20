@@ -56,6 +56,7 @@ import { useApplications } from '@/hooks/useApplications';
 import { useRouter } from 'next/navigation';
 import LocalFilePreviewModal from '@/components/shared/LocalFilePreviewModal';
 import DocumentViewer from '@/components/shared/DocumentViewer';
+import CustomDatePicker from '@/components/ui/DatePicker';
 
 const VisuallyHiddenInput = styled('input')({
   clip: 'rect(0 0 0 0)',
@@ -858,25 +859,13 @@ export default function PayrollLoanApplicationPage() {
               </Box>
             </Box>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-              <TextField
-                required
-                fullWidth
+              <CustomDatePicker
                 label="Date of Birth"
-                name="dateOfBirth"
-                type="date"
                 value={formData.dateOfBirth}
-                onChange={handleInputChange}
+                onChange={(value) => setFormData(prev => ({ ...prev, dateOfBirth: value }))}
                 error={!!errors.dateOfBirth}
                 helperText={errors.dateOfBirth}
-                InputLabelProps={{ shrink: true }}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <Calendar size={20} color={isDarkMode ? '#ffffff' : '#71717a'} />
-                    </InputAdornment>
-                  ),
-                }}
-                {...baseTextFieldProps}
+                required
               />
               <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3 }}>
                 <FormControl fullWidth required error={!!errors.gender}>
@@ -1086,25 +1075,13 @@ export default function PayrollLoanApplicationPage() {
                 />
               </Box>
               <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3 }}>
-                <TextField
-                  required
-                  fullWidth
+                <CustomDatePicker
                   label="Date of Employment"
-                  name="dateOfEmployment"
-                  type="date"
                   value={formData.dateOfEmployment}
-                  onChange={handleInputChange}
+                  onChange={(value) => setFormData(prev => ({ ...prev, dateOfEmployment: value }))}
                   error={!!errors.dateOfEmployment}
                   helperText={errors.dateOfEmployment}
-                  InputLabelProps={{ shrink: true }}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <Calendar size={20} color={isDarkMode ? '#ffffff' : '#71717a'} />
-                      </InputAdornment>
-                    ),
-                  }}
-                  {...baseTextFieldProps}
+                  required
                 />
               </Box>
               <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3 }}>

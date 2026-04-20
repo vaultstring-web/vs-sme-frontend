@@ -42,6 +42,8 @@ export default function AdminApplicationDetailClient({
   const { disburseLoan, isLoading: isDisbursing } = useLoans();
   const { user: currentUser } = useAuth();
   const isAuditor = currentUser?.role === 'AUDITOR';
+  const canDisburse =
+    currentUser?.role === 'SUPER_ADMIN' || currentUser?.role === 'ACCOUNTANT';
 
   const [isEditMode, setIsEditMode] = useState(false);
   const [isStatusModalOpen, setIsStatusModalOpen] = useState(false);
@@ -120,7 +122,7 @@ export default function AdminApplicationDetailClient({
             </button>
           )}
 
-          {!isAuditor && app.status === 'APPROVED' && (
+          {canDisburse && app.status === 'APPROVED' && (
             <button
               onClick={async () => {
                 if (confirm('Are you sure you want to disburse this loan? This will create a repayment schedule.')) {

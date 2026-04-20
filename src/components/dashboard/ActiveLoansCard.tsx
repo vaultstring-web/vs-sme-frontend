@@ -49,7 +49,7 @@ export default function ActiveLoansCard({ activeLoans, totalAmount }: ActiveLoan
                   </span>
                 </div>
                 <p className="text-sm text-foreground/60 mt-1">
-                  {loan.type === 'SME' ? loan.businessName : loan.employerName}
+                  {loan.type === 'SME' ? loan.businessName : (loan.applicantName || loan.employerName)}
                 </p>
               </div>
               <div className="text-right">

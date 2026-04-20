@@ -19,12 +19,25 @@ export interface SMEData {
   businessName: string;
   loanAmount: number;
   loanProduct: string;
+  registrationNo?: string;
+  businessType?: string;
+  yearsInOperation?: number;
+  paybackPeriodMonths?: number;
+  purposeOfLoan?: string;
+  repaymentMethod?: string;
+  estimatedMonthlyTurnover?: number;
+  estimatedMonthlyProfit?: number;
 }
 
 export interface PayrollData {
   employerName: string;
   loanAmount: number;
   jobTitle: string;
+  paybackPeriodMonths?: number;
+  employeeNumber?: string;
+  dateOfEmployment?: string;
+  grossMonthlySalary?: number;
+  netMonthlySalary?: number;
 }
 
 export interface Application {
@@ -33,14 +46,17 @@ export interface Application {
   status: ApplicationStatus;
   createdAt: string;
   submittedAt: string | null;
+  user?: {
+    fullName: string;
+  };
   smeData?: SMEData | null;
   payrollData?: PayrollData | null;
 }
 
 export interface ApplicationDetail extends Application {
   userId: string;
-  smeData?: any;
-  payrollData?: any;
+  smeData?: SMEData | null;
+  payrollData?: PayrollData | null;
   documents?: Array<{
     id: string;
     fileName: string;

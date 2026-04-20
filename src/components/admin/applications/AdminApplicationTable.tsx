@@ -15,6 +15,7 @@ import Link from 'next/link';
 import apiClient from '@/lib/apiClient';
 import { Input, Select } from '@/components/ui/FormELements';
 import { useAuth } from '@/hooks/useAuth';
+import CustomDatePicker from '@/components/ui/DatePicker';
 
 interface Application {
   id: string;
@@ -192,17 +193,17 @@ export default function AdminApplicationTable() {
           </Select>
           
           <div className="flex gap-2 w-full sm:w-auto">
-            <Input 
-              type="date" 
+            <CustomDatePicker 
+              label="From"
               value={dateFrom}
-              onChange={(e) => setDateFrom(e.target.value)}
-              className="w-full sm:w-auto"
+              onChange={(value) => setDateFrom(value)}
+              fullWidth={false}
             />
-            <Input 
-              type="date" 
+            <CustomDatePicker 
+              label="To"
               value={dateTo}
-              onChange={(e) => setDateTo(e.target.value)}
-              className="w-full sm:w-auto"
+              onChange={(value) => setDateTo(value)}
+              fullWidth={false}
             />
           </div>
         </div>
@@ -250,7 +251,7 @@ export default function AdminApplicationTable() {
       <div className="bento-card overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm text-left">
-            <thead className="sticky top-0 z-10 text-xs text-foreground/50 uppercase bg-slate-50 dark:bg-zinc-800/50">
+            <thead className="sticky top-0 z-10 text-xs text-foreground/50 uppercase bg-card/50">
               <tr>
                 {!isAuditor && (
                   <th className="px-4 py-3 w-10">
@@ -295,7 +296,7 @@ export default function AdminApplicationTable() {
                 </tr>
               ) : (
                 applications.map((app) => (
-                  <tr key={app.id} className={`hover:bg-slate-50 dark:hover:bg-zinc-800/50 transition-colors ${selectedIds.has(app.id) && !isAuditor ? 'bg-primary-50/50 dark:bg-primary-900/10' : ''}`}>
+                  <tr key={app.id} className={`hover:bg-card/50 transition-colors ${selectedIds.has(app.id) && !isAuditor ? 'bg-primary-50/50 dark:bg-primary-900/10' : ''}`}>
                     {!isAuditor && (
                       <td className="px-4 py-4">
                         <button onClick={() => handleSelectOne(app.id)} className="flex items-center">
@@ -351,14 +352,14 @@ export default function AdminApplicationTable() {
             <button
               onClick={() => setMeta(prev => ({ ...prev, page: Math.max(1, prev.page - 1) }))}
               disabled={meta.page === 1}
-              className="p-2 border border-border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50 dark:hover:bg-zinc-800 text-foreground/60"
+              className="p-2 border border-border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-card/50 text-foreground/60 transition-colors"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
             <button
               onClick={() => setMeta(prev => ({ ...prev, page: Math.min(meta.totalPages, prev.page + 1) }))}
               disabled={meta.page >= meta.totalPages}
-              className="p-2 border border-border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50 dark:hover:bg-zinc-800 text-foreground/60"
+              className="p-2 border border-border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-card/50 text-foreground/60 transition-colors"
             >
               <ChevronRight className="w-4 h-4" />
             </button>

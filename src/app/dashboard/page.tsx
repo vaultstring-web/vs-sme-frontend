@@ -76,6 +76,7 @@ export default function DashboardPage() {
         type: app.type,
         employerName: app.payrollData?.employerName,
         businessName: app.smeData?.businessName,
+        applicantName: app.user?.fullName,
       }));
   }, [applications]);
 

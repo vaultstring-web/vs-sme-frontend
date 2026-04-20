@@ -45,25 +45,25 @@ export default function NotificationCenter({ open, onClose }: NotificationCenter
 
       {/* Panel */}
       <div
-        className={`fixed top-0 right-0 z-40 w-full max-w-md h-full bg-white dark:bg-gray-900 shadow-lg transform transition-transform duration-300 ${
+        className={`fixed top-0 right-0 z-40 w-full max-w-md h-full bg-card shadow-lg border-l border-border transform transition-transform duration-300 ${
           open ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
         {/* Header */}
-        <div className="sticky top-0 z-10 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 p-4 flex items-center justify-between">
+        <div className="sticky top-0 z-10 bg-card border-b border-border p-4 flex items-center justify-between">
           <div>
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+            <h2 className="text-lg font-semibold text-foreground">
               Notifications
             </h2>
             {unreadCount > 0 && (
-              <p className="text-sm text-gray-600 dark:text-gray-400">
+              <p className="text-sm text-foreground/60">
                 {unreadCount} unread
               </p>
             )}
           </div>
           <button
             onClick={onClose}
-            className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+            className="text-foreground/40 hover:text-foreground/60 transition-colors"
           >
             <span className="sr-only">Close</span>
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -73,17 +73,17 @@ export default function NotificationCenter({ open, onClose }: NotificationCenter
         </div>
 
         {/* Content */}
-        <div className="overflow-y-auto h-[calc(100%-9rem)] flex flex-col">
+        <div className="overflow-y-auto h-[calc(100%-9rem)] flex flex-col custom-scrollbar">
           {loading && notifications.length === 0 && (
             <div className="flex items-center justify-center h-32">
-              <div className="text-gray-500 dark:text-gray-400">Loading...</div>
+              <div className="text-foreground/40 italic">Loading...</div>
             </div>
           )}
 
           {!loading && notifications.length === 0 && (
-            <div className="flex flex-col items-center justify-center h-32 text-gray-500 dark:text-gray-400">
+            <div className="flex flex-col items-center justify-center h-32 text-foreground/40">
               <svg
-                className="w-12 h-12 mb-2 opacity-50"
+                className="w-12 h-12 mb-2 opacity-30"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -100,7 +100,7 @@ export default function NotificationCenter({ open, onClose }: NotificationCenter
           )}
 
           {notifications.length > 0 && (
-            <div className="divide-y divide-gray-200 dark:divide-gray-700">
+            <div className="divide-y divide-border">
               {notifications.map(notification => (
                 <NotificationItem
                   key={notification.id}
@@ -117,7 +117,7 @@ export default function NotificationCenter({ open, onClose }: NotificationCenter
 
         {/* Footer */}
         {notifications.length > 0 && (
-          <div className="sticky bottom-0 z-10 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 p-4 flex gap-2">
+          <div className="sticky bottom-0 z-10 bg-card border-t border-border p-4 flex gap-2">
             <button
               onClick={() => {
                 const unreadIds = notifications.filter(n => !n.isRead).map(n => n.id)
@@ -125,13 +125,13 @@ export default function NotificationCenter({ open, onClose }: NotificationCenter
                   void markMultipleAsRead(unreadIds)
                 }
               }}
-              className="flex-1 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+              className="flex-1 px-3 py-2 text-sm font-medium text-foreground bg-foreground/5 rounded-lg hover:bg-foreground/10 transition-colors"
             >
               Mark all read
             </button>
             <button
               onClick={clearAll}
-              className="flex-1 px-3 py-2 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+              className="flex-1 px-3 py-2 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
             >
               Clear all
             </button>
@@ -226,8 +226,8 @@ function NotificationItem({
   return (
     <div
       onClick={handleNotificationClick}
-      className={`p-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors relative group ${
-        !notification.isRead ? 'bg-blue-50 dark:bg-blue-900/10' : ''
+      className={`p-4 cursor-pointer hover:bg-foreground/5 transition-colors relative group ${
+        !notification.isRead ? 'bg-primary-500/5' : ''
       }`}
     >
       <div className="flex gap-3">
@@ -238,10 +238,10 @@ function NotificationItem({
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2">
             <div>
-              <p className={`text-sm ${!notification.isRead ? 'font-bold text-gray-900 dark:text-white' : 'font-medium text-gray-700 dark:text-gray-300'}`}>
+              <p className={`text-sm ${!notification.isRead ? 'font-bold text-foreground' : 'font-medium text-foreground/70'}`}>
                 {notification.title}
               </p>
-              <p className={`text-sm mt-1 break-words ${!notification.isRead ? 'text-gray-700 dark:text-gray-200' : 'text-gray-600 dark:text-gray-400'}`}>
+              <p className={`text-sm mt-1 break-words ${!notification.isRead ? 'text-foreground/80' : 'text-foreground/60'}`}>
                 {notification.message}
               </p>
             </div>
@@ -253,37 +253,25 @@ function NotificationItem({
                   e.stopPropagation()
                   void onDelete(notification.id)
                 }}
-                className="p-1 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30 rounded transition-colors"
+                className="p-1 text-foreground/30 hover:text-red-500 transition-colors"
                 title="Delete"
               >
-                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                  <path
-                    fillRule="evenodd"
-                    d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
-                    clipRule="evenodd"
-                  />
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                 </svg>
               </button>
             </div>
           </div>
 
-          {/* Timestamp */}
-          <div className="flex items-center gap-2 mt-2">
-            <p className="text-xs text-gray-500 dark:text-gray-500">
+          <div className="mt-2 flex items-center justify-between">
+            <span className="text-[10px] text-foreground/40 font-medium">
               {formatTime(notification.createdAt)}
-            </p>
-            {notification.relatedId && (
-              <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-500 font-medium">
-                Action Required
-              </span>
+            </span>
+            {!notification.isRead && (
+              <span className="w-2 h-2 bg-primary-500 rounded-full"></span>
             )}
           </div>
         </div>
-
-        {/* Unread indicator */}
-        {!notification.isRead && (
-          <div className="flex-shrink-0 w-2.5 h-2.5 bg-blue-600 dark:bg-blue-500 rounded-full mt-1.5 shadow-sm" />
-        )}
       </div>
     </div>
   )

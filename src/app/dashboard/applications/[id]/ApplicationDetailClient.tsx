@@ -22,6 +22,8 @@ import {
   Loader2,
 } from 'lucide-react';
 import Link from 'next/link';
+import DocumentViewer from '@/components/shared/DocumentViewer';
+import { API_BASE_URL } from '@/lib/apiClient';
 
 // Status configuration (unchanged)
 const statusConfig = {
@@ -94,12 +96,13 @@ export default function ApplicationDetailClient({
     fetchApplicationById,
     submitApplication,
     deleteApplication,
-    clearError,
   } = useApplications(initialApplication);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isViewerOpen, setIsViewerOpen] = useState(false);
+  const [viewerIndex, setViewerIndex] = useState(0);
 
   // ------------------------------------------------------------
   // Fetch the real data on the client if:
@@ -213,7 +216,7 @@ export default function ApplicationDetailClient({
             Application Not Found
           </h3>
           <p className="mb-4 text-foreground/60">
-            The application you're looking for doesn't exist or you don't have access to it.
+            The application you&apos;re looking for doesn&apos;t exist or you don&apos;t have access to it.
           </p>
           <Link
             href="/dashboard/applications"
@@ -233,7 +236,9 @@ export default function ApplicationDetailClient({
   const app = currentApplication;
   const StatusIcon = statusConfig[app.status]?.icon || FileText;
   const isSME = app.type === 'SME';
-  const appData = isSME ? app.smeData : app.payrollData;
+  const smeData = app.smeData;
+  const payrollData = app.payrollData;
+  const appData = isSME ? smeData : payrollData;
 
   return (
     <div className="mx-auto max-w-5xl space-y-6 p-6">
@@ -248,7 +253,7 @@ export default function ApplicationDetailClient({
               <ArrowLeft className="h-5 w-5 text-foreground/60" />
             </Link>
             <h1 className="text-2xl font-bold text-foreground md:text-3xl">
-              {isSME ? appData?.businessName : appData?.employerName}
+              {isSME ? smeData?.businessName : (app.user?.fullName || payrollData?.employerName)}
             </h1>
           </div>
           <div className="ml-14 flex items-center gap-4 text-sm text-foreground/60">
@@ -303,9 +308,281 @@ export default function ApplicationDetailClient({
         </div>
       )}
 
-      {/* Rest of the UI – Loan Information, SME/Payroll details, Documents, Sidebar, Delete Modal */}
-      {/* ... (keep everything exactly as in your original component from this point) */}
-      {/* I'm truncating here for brevity – you must copy the full JSX from your existing file. */}
+      {/* Application Details */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        {/* Main Details */}
+        <div className="space-y-6 lg:col-span-2">
+          {/* Loan Information */}
+          <div className="bento-card p-6">
+            <h2 className="mb-4 flex items-center gap-2 text-xl font-semibold text-foreground">
+              <DollarSign className="h-5 w-5" />
+              Loan Information
+            </h2>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <p className="text-sm text-foreground/60">Loan Amount</p>
+                <p className="mt-1 text-lg font-semibold text-foreground">
+                  {formatAmount(appData?.loanAmount || 0)}
+                </p>
+              </div>
+              <div>
+                <p className="text-sm text-foreground/60">Payback Period</p>
+                <p className="mt-1 text-lg font-semibold text-foreground">
+                  {appData?.paybackPeriodMonths || 0} months
+                </p>
+              </div>
+              {isSME && (
+                <>
+                  <div>
+                    <p className="text-sm text-foreground/60">Loan Product</p>
+                    <p className="mt-1 text-lg font-semibold text-foreground">
+                      {smeData?.loanProduct}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-foreground/60">Repayment Method</p>
+                    <p className="mt-1 text-lg font-semibold text-foreground">
+                      {smeData?.repaymentMethod}
+                    </p>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* SME-specific Details */}
+          {isSME && smeData && (
+            <div className="bento-card p-6">
+              <h2 className="mb-4 flex items-center gap-2 text-xl font-semibold text-foreground">
+                <Building className="h-5 w-5" />
+                Business Information
+              </h2>
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm text-foreground/60">Business Type</p>
+                    <p className="mt-1 font-medium text-foreground">{smeData.businessType}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-foreground/60">Years in Operation</p>
+                    <p className="mt-1 font-medium text-foreground">{smeData.yearsInOperation} years</p>
+                  </div>
+                  {smeData.registrationNo && (
+                    <div>
+                      <p className="text-sm text-foreground/60">Registration Number</p>
+                      <p className="mt-1 font-medium text-foreground">{smeData.registrationNo}</p>
+                    </div>
+                  )}
+                </div>
+                <div>
+                  <p className="text-sm text-foreground/60">Purpose of Loan</p>
+                  <p className="mt-1 font-medium text-foreground">{smeData.purposeOfLoan}</p>
+                </div>
+                {smeData.estimatedMonthlyTurnover && (
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm text-foreground/60">Monthly Turnover</p>
+                      <p className="mt-1 font-medium text-foreground">
+                        {formatAmount(smeData.estimatedMonthlyTurnover || 0)}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-foreground/60">Monthly Profit</p>
+                      <p className="mt-1 font-medium text-foreground">
+                        {formatAmount(smeData.estimatedMonthlyProfit || 0)}
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Payroll-specific Details */}
+          {!isSME && payrollData && (
+            <div className="bento-card p-6">
+              <h2 className="mb-4 flex items-center gap-2 text-xl font-semibold text-foreground">
+                <User className="h-5 w-5" />
+                Employment Information
+              </h2>
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm text-foreground/60">Employer</p>
+                    <p className="mt-1 font-medium text-foreground">{payrollData.employerName}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-foreground/60">Job Title</p>
+                    <p className="mt-1 font-medium text-foreground">{payrollData.jobTitle}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-foreground/60">Employee Number</p>
+                    <p className="mt-1 font-medium text-foreground">{payrollData.employeeNumber || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-foreground/60">Date of Employment</p>
+                    <p className="mt-1 font-medium text-foreground">
+                      {formatDate(payrollData.dateOfEmployment || null)}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-foreground/60">Gross Salary</p>
+                    <p className="mt-1 font-medium text-foreground">
+                      {formatAmount(payrollData.grossMonthlySalary || 0)}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-foreground/60">Net Salary</p>
+                    <p className="mt-1 font-medium text-foreground">
+                      {formatAmount(payrollData.netMonthlySalary || 0)}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Documents */}
+          <div className="bento-card p-6">
+            <h2 className="mb-4 flex items-center gap-2 text-xl font-semibold text-foreground">
+              <FileText className="h-5 w-5" />
+              Documents ({app.documents?.length || 0})
+            </h2>
+            {app.documents && app.documents.length > 0 ? (
+              <div className="space-y-2">
+                {app.documents.map((doc, idx) => (
+                  <div
+                    key={doc.id}
+                    className="flex items-center justify-between rounded-lg border border-border bg-card p-3"
+                  >
+                    <div className="flex items-center gap-3">
+                      <FileText className="h-5 w-5 text-primary-500" />
+                      <div>
+                        <p className="font-medium text-foreground">{doc.fileName}</p>
+                        <p className="text-sm text-foreground/60">
+                          {doc.documentType} • Uploaded {formatDate(doc.uploadedAt)}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={() => {
+                          setViewerIndex(idx);
+                          setIsViewerOpen(true);
+                        }}
+                        className="text-sm text-primary-600 hover:text-primary-700"
+                      >
+                        View
+                      </button>
+                      <a
+                        href={doc.fileUrl.startsWith('http') ? doc.fileUrl : `${API_BASE_URL}${doc.fileUrl}`}
+                        download
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="rounded-lg p-2 text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/20"
+                      >
+                        <Download className="h-5 w-5" />
+                      </a>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="py-8 text-center">
+                <FileText className="mx-auto mb-3 h-12 w-12 text-foreground/20" />
+                <p className="text-foreground/60">No documents uploaded yet</p>
+              </div>
+            )}
+          </div>
+        </div>
+        {isViewerOpen && app.documents && (
+          <DocumentViewer
+            documents={app.documents.map(d => ({ id: d.id, name: d.fileName, fileUrl: d.fileUrl, documentType: d.documentType }))}
+            initialIndex={viewerIndex}
+            onClose={() => setIsViewerOpen(false)}
+          />
+        )}
+
+        {/* Sidebar */}
+        <div className="space-y-6">
+          {/* Timeline */}
+          <div className="bento-card p-6">
+            <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-foreground">
+              <Calendar className="h-5 w-5" />
+              Timeline
+            </h2>
+            <div className="space-y-4">
+              <div className="flex gap-3">
+                <div className="flex flex-col items-center">
+                  <div className="h-2 w-2 rounded-full bg-primary-500" />
+                  <div className="h-full w-0.5 bg-border" />
+                </div>
+                <div className="pb-4">
+                  <p className="font-medium text-foreground">Created</p>
+                  <p className="text-sm text-foreground/60">{formatDate(app.createdAt)}</p>
+                </div>
+              </div>
+              {app.submittedAt && (
+                <div className="flex gap-3">
+                  <div className="flex flex-col items-center">
+                    <div className="h-2 w-2 rounded-full bg-primary-500" />
+                    {app.status !== 'SUBMITTED' && <div className="h-full w-0.5 bg-border" />}
+                  </div>
+                  <div className="pb-4">
+                    <p className="font-medium text-foreground">Submitted</p>
+                    <p className="text-sm text-foreground/60">{formatDate(app.submittedAt)}</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-md rounded-lg border border-border bg-background p-6 shadow-xl">
+            <div className="mb-4 flex items-start gap-4">
+              <div className="rounded-lg bg-red-100 p-2 dark:bg-red-900/20">
+                <AlertCircle className="h-6 w-6 text-red-600 dark:text-red-400" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-foreground">Delete Application?</h3>
+                <p className="mt-1 text-sm text-foreground/60">
+                  This action cannot be undone. The application and all associated documents will be permanently deleted.
+                </p>
+              </div>
+            </div>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                disabled={isDeleting}
+                className="rounded-lg bg-gray-200 px-4 py-2 text-gray-800 hover:bg-gray-300 disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDelete}
+                disabled={isDeleting}
+                className="flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-white hover:bg-red-700 disabled:opacity-50"
+              >
+                {isDeleting ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Deleting...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="h-4 w-4" />
+                    Delete
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

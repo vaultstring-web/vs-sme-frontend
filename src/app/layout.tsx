@@ -5,6 +5,8 @@ import './globals.css';
 import { AuthProvider } from '../context/AuthContext';
 import { ApplicationsProvider } from '../context/ApplicationsContext';
 import { ThemeProvider } from '../context/ThemeContext';
+import { AppLocalizationProvider } from '../components/providers/AppLocalizationProvider';
+import { ToastProvider } from '../components/providers/ToastProvider';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -23,11 +25,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className="antialiased" suppressHydrationWarning>
       <body className={`${inter.className} bg-background text-foreground`}>
         <ThemeProvider>
-          <AuthProvider>
-          <ApplicationsProvider>
-            {children}
-          </ApplicationsProvider>
-          </AuthProvider>
+          <AppLocalizationProvider>
+            <AuthProvider>
+            <ApplicationsProvider>
+              {children}
+              <ToastProvider />
+            </ApplicationsProvider>
+            </AuthProvider>
+          </AppLocalizationProvider>
         </ThemeProvider>
       </body>
     </html>

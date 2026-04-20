@@ -60,17 +60,17 @@ export default function BulkStatusModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-      <div className="w-full max-w-md bg-white dark:bg-zinc-900 rounded-2xl shadow-xl border border-slate-200 dark:border-zinc-800 overflow-hidden animate-in fade-in zoom-in duration-200">
-        <div className="flex items-center justify-between p-4 border-b border-slate-100 dark:border-zinc-800">
-          <h3 className="text-lg font-bold text-slate-900 dark:text-zinc-100">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/60 backdrop-blur-sm">
+      <div className="w-full max-w-md bg-card rounded-2xl shadow-xl border border-border overflow-hidden animate-in fade-in zoom-in duration-200">
+        <div className="flex items-center justify-between p-4 border-b border-border bg-card">
+          <h3 className="text-lg font-bold text-foreground">
             Change Status (Bulk)
           </h3>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-slate-100 dark:hover:bg-zinc-800 rounded-full transition-colors"
+            className="p-2 hover:bg-foreground/5 rounded-full transition-colors"
           >
-            <X className="w-5 h-5 text-slate-500" />
+            <X className="w-5 h-5 text-foreground/50" />
           </button>
         </div>
 
@@ -78,7 +78,7 @@ export default function BulkStatusModal({
           <div className="flex items-start gap-3 p-3 rounded-lg bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-900/30">
             <AlertCircle className="w-5 h-5 text-yellow-600 dark:text-yellow-400 shrink-0 mt-0.5" />
             <p className="text-sm text-yellow-700 dark:text-yellow-400">
-              Changing status for <strong>{ids.length}</strong> application(s).
+              Changing status for <strong className="text-yellow-900 dark:text-yellow-200">{ids.length}</strong> application(s).
               This action is logged.
             </p>
           </div>
@@ -137,10 +137,10 @@ export default function BulkStatusModal({
           </div>
         </div>
 
-        <div className="flex items-center justify-end gap-3 p-4 bg-slate-50 dark:bg-zinc-800/50 border-t border-slate-100 dark:border-zinc-800">
+        <div className="flex items-center justify-end gap-3 p-4 bg-card border-t border-border">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-sm font-medium text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-100 transition-colors"
+            className="px-4 py-2 text-sm font-medium text-foreground/60 hover:text-foreground transition-colors"
           >
             Cancel
           </button>
