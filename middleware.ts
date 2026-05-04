@@ -18,40 +18,44 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  
+
   // Check isLoggedIn cookie (lightweight, role-agnostic)
   const isLoggedIn = request.cookies.get('isLoggedIn')?.value === 'true';
-  
+
   // Public routes that don't require authentication
   const publicRoutes = [
-    '/auth/login',
-    '/auth/register',
-    '/auth/password-reset',
+    '/login',
+    '/register',
+    '/password-reset',
     '/',
     '/favicon.ico',
   ];
-  
+
   // Check if route is public
-  const isPublicRoute = publicRoutes.some(route => 
-    pathname === route || pathname.startsWith('/auth/')
+  // const isPublicRoute = publicRoutes.some(route => 
+  //   pathname === route || pathname.startsWith('/auth/')
+  // );
+  const isPublicRoute = publicRoutes.some(route =>
+    pathname === route || pathname.startsWith('/login') || pathname.startsWith('/register')
   );
-  
+
   // Protected routes (require authentication)
   const protectedRoutes = ['/admin', '/dashboard', '/profile', '/me'];
-  const isProtectedRoute = protectedRoutes.some(route => 
+  const isProtectedRoute = protectedRoutes.some(route =>
     pathname.startsWith(route)
   );
-  
+
+
   // Redirect to login if accessing protected route without authentication
   if (isProtectedRoute && !isLoggedIn) {
-    return NextResponse.redirect(new URL('/auth/login', request.url));
+    return NextResponse.redirect(new URL('/login', request.url));
   }
-  
+
   // Redirect to /me if already logged in and accessing auth pages
-  if (isLoggedIn && (pathname === '/auth/login' || pathname === '/auth/register')) {
+  if (isLoggedIn && (pathname === '/login' || pathname === '/register')) {
     return NextResponse.redirect(new URL('/me', request.url));
   }
-  
+
   return NextResponse.next();
 }
 

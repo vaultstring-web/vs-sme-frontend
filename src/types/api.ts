@@ -178,6 +178,7 @@ export interface Loan {
   totalInterest: number;
   totalRepayable: number;
   remainingBalance: number;
+  /** Monthly interest as decimal (e.g. 0.045 = 4.5% per month) */
   interestRate: number;
   status: LoanStatus;
   startDate: string;

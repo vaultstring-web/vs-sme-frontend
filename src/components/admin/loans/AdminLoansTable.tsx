@@ -125,7 +125,7 @@ export default function AdminLoansTable() {
                       <div className="space-y-1">
                         <p className="text-sm font-bold text-foreground">MWK {loan.totalPrincipal.toLocaleString()}</p>
                         <p className="text-[10px] font-bold text-foreground/40 uppercase tracking-widest">
-                          {loan.interestRate * 100}% APR • {loan.application?.type}
+                          {loan.interestRate * 100}% per month • {loan.application?.type}
                         </p>
                       </div>
                     </td>

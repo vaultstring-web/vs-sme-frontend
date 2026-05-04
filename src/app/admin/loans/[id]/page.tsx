@@ -138,6 +138,10 @@ export default function AdminLoanDetail() {
                   <p className="text-sm font-bold">MWK {loan.totalInterest.toLocaleString()}</p>
                 </div>
               </div>
+              <div>
+                <p className="text-[10px] font-black uppercase opacity-50 mb-1">Monthly interest rate</p>
+                <p className="text-sm font-bold">{(loan.interestRate * 100).toFixed(1)}% per month</p>
+              </div>
               <div className="pt-4 border-t border-white/10 dark:border-slate-900/10">
                 <div className="flex justify-between items-center mb-2 text-[10px] font-black uppercase opacity-50">
                   <span>Progress</span>

@@ -153,6 +153,7 @@ export default function PayrollLoanApplicationPage() {
   const [existingDocuments, setExistingDocuments] = useState<Record<string, { fileName: string; fileUrl: string }>>({});
   const [isViewerOpen, setIsViewerOpen] = useState(false);
   const [viewerDocs, setViewerDocs] = useState<{ id?: string; name: string; fileUrl: string; documentType?: string }[]>([]);
+  const [isLoadingDraft, setIsLoadingDraft] = useState(false);
 
   const {
     createDraftApplication,
@@ -1126,7 +1127,7 @@ export default function PayrollLoanApplicationPage() {
         // Calculate loan amounts
         const loanAmount = formData.loanAmount || 0;
         const processingFee = loanAmount * 0.05; // 5% one-time processing fee
-        const insuranceFee = loanAmount * 0.012; // 1.2% one-time insurance
+        const insuranceFee = loanAmount * 0.009; // 0.09% Insurance fee
         const totalDeductions = processingFee + insuranceFee;
         const amountReceived = loanAmount - totalDeductions;
 
@@ -1171,10 +1172,10 @@ export default function PayrollLoanApplicationPage() {
                 border: `1.5px solid ${isDarkMode ? 'rgba(132, 204, 22, 0.2)' : 'rgba(132, 204, 22, 0.15)'}`,
               }}>
                 <Typography variant="subtitle2" sx={{ color: limeColors[500], fontWeight: 600, mb: 1 }}>
-                  Salary-based Limit: MK {(formData.netMonthlySalary * 24).toLocaleString()}
+                  Salary-based Limit: MK {(formData.netMonthlySalary * 0.4).toLocaleString()}
                 </Typography>
                 <Typography variant="caption" sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a' }}>
-                  Maximum loan amount based on 24x your net monthly salary
+                  Maximum loan amount based on your net monthly salary
                 </Typography>
               </Box>
 
@@ -1242,10 +1243,10 @@ export default function PayrollLoanApplicationPage() {
                       </Typography>
                     </Box>
 
-                    {/* Insurance (1.2%) */}
+                    {/* Insurance (0.09%) */}
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <Typography sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a' }}>
-                        Insurance (1.2% one-time):
+                        Insurance (0.09% one-time):
                       </Typography>
                       <Typography sx={{ color: '#ef4444', fontWeight: 600 }}>
                         - MK {insuranceFee.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
@@ -1285,7 +1286,7 @@ export default function PayrollLoanApplicationPage() {
                         </Typography>
                       </Box>
                       <Typography variant="caption" sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a', display: 'block', mt: 0.5 }}>
-                        After one-time deductions (5% processing + 1.2% insurance)
+                        After one-time deductions (5% processing + 0.09% insurance)
                       </Typography>
                     </Box>
 

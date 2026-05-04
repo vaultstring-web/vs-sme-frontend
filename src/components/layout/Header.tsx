@@ -24,7 +24,8 @@ export const Header = ({ toggleSidebar }: { toggleSidebar: () => void }) => {
   const isAdmin = user && ['SUPER_ADMIN', 'LOAN_MANAGER', 'LOAN_OFFICER', 'ACCOUNTANT', 'AUDITOR'].includes(user.role);
 
   return (
-    <header
+    <>
+      <header
       className={`sticky top-0 z-30 h-16 flex items-center justify-between px-4 sm:px-6 transition-all duration-300 ${
         scrolled
           ? 'bg-background/80 backdrop-blur-xl border-b border-border shadow-sm'
@@ -91,11 +92,12 @@ export const Header = ({ toggleSidebar }: { toggleSidebar: () => void }) => {
           </div>
         </div>
       )}
+      </header>
       <NotificationCenter 
         open={isNotificationsOpen} 
         onClose={() => setNotificationsOpen(false)} 
       />
-    </header>
+    </>
   );
 };
 

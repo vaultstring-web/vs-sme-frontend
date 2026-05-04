@@ -251,7 +251,7 @@ export default function SMELoanApplicationPage() {
       case 1: // Loan Details
         if (!formData.loanProduct) newErrors.loanProduct = 'Loan product is required';
         if (!formData.loanAmount || formData.loanAmount <= 0) newErrors.loanAmount = 'Loan amount is required';
-        else if (formData.loanAmount < 100000 || formData.loanAmount > 5000000)
+        else if (formData.loanAmount < 100000 || formData.loanAmount > 500000000)
           newErrors.loanAmount = 'Loan amount must be between MK100,000 and MK5,000,000';
         if (!formData.paybackPeriodMonths || formData.paybackPeriodMonths <= 0)
           newErrors.paybackPeriodMonths = 'Payback period is required';
@@ -756,14 +756,14 @@ export default function SMELoanApplicationPage() {
         );
 
       case 1: {
-        // SME Loan Calculation — 6% p.a. reducing balance
+        // SME Loan Calculation — 6% p.m. reducing balance
         const loanAmount = formData.loanAmount || 0;
         const processingFee = loanAmount * 0.05;        // 5% one-time
-        const insuranceFee = loanAmount * 0.012;         // 1.2% one-time
+        const insuranceFee = loanAmount * 0.009;         // 0.09% one-time
         const totalDeductions = processingFee + insuranceFee;
         const amountReceived = loanAmount - totalDeductions;
 
-        const monthlyRate = 0.06 / 12; // 6% p.a. → 0.5% per month
+        const monthlyRate = 0.06 ; // 6% p.m.
         const months = formData.paybackPeriodMonths || 1;
         const monthlyPayment = months > 0 && loanAmount > 0
           ? loanAmount * monthlyRate / (1 - Math.pow(1 + monthlyRate, -months))
@@ -860,7 +860,7 @@ export default function SMELoanApplicationPage() {
                     {/* Insurance */}
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <Typography sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a' }}>
-                        Insurance (1.2% one-time):
+                        Insurance (0.09% one-time):
                       </Typography>
                       <Typography sx={{ color: '#ef4444', fontWeight: 600 }}>
                         - MK {insuranceFee.toLocaleString(undefined, { maximumFractionDigits: 0 })}
@@ -895,14 +895,14 @@ export default function SMELoanApplicationPage() {
                         </Typography>
                       </Box>
                       <Typography variant="caption" sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a', display: 'block', mt: 0.5 }}>
-                        After one-time deductions (5% processing + 1.2% insurance)
+                        After one-time deductions (5% processing + 0.09% insurance)
                       </Typography>
                     </Box>
 
                     {/* Repayment Breakdown */}
                     <Box sx={{ p: 2, borderRadius: '12px', bgcolor: alpha(limeColors[500], 0.05), mt: 1 }}>
                       <Typography variant="subtitle2" sx={{ color: limeColors[500], fontWeight: 600, mb: 2 }}>
-                        Repayment Breakdown (6% p.a. – Reducing Balance)
+                        Repayment Breakdown (6% p.m. – Reducing Balance)
                       </Typography>
                       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
                         <Typography sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a' }}>Principal:</Typography>
@@ -1271,7 +1271,7 @@ export default function SMELoanApplicationPage() {
               {/* Financial Statement */}
               <Box>
                 <Typography variant="body2" sx={{ mb: 1, fontWeight: 600, color: isDarkMode ? '#a1a1aa' : '#71717a' }}>
-                  Financial Statement (Optional)
+                  Financial Statement
                 </Typography>
                 <Button
                   component="label"
