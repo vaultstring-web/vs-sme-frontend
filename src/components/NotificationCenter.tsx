@@ -45,12 +45,12 @@ export default function NotificationCenter({ open, onClose }: NotificationCenter
 
       {/* Panel */}
       <div
-        className={`fixed top-0 right-0 z-40 w-full max-w-md h-full bg-card shadow-lg border-l border-border transform transition-transform duration-300 ${
+        className={`fixed top-0 right-0 z-40 flex h-full w-full max-w-md transform flex-col border-l border-border bg-card shadow-lg transition-transform duration-300 ${
           open ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
         {/* Header */}
-        <div className="sticky top-0 z-10 bg-card border-b border-border p-4 flex items-center justify-between">
+        <div className="sticky top-0 z-10 flex shrink-0 items-center justify-between border-b border-border bg-card p-3 sm:p-4">
           <div>
             <h2 className="text-lg font-semibold text-foreground">
               Notifications
@@ -63,7 +63,7 @@ export default function NotificationCenter({ open, onClose }: NotificationCenter
           </div>
           <button
             onClick={onClose}
-            className="text-foreground/40 hover:text-foreground/60 transition-colors"
+            className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg text-foreground/40 transition-colors hover:bg-foreground/5 hover:text-foreground/60"
           >
             <span className="sr-only">Close</span>
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -73,7 +73,7 @@ export default function NotificationCenter({ open, onClose }: NotificationCenter
         </div>
 
         {/* Content */}
-        <div className="overflow-y-auto h-[calc(100%-9rem)] flex flex-col custom-scrollbar">
+        <div className="custom-scrollbar min-h-0 flex-1 flex-col overflow-y-auto">
           {loading && notifications.length === 0 && (
             <div className="flex items-center justify-center h-32">
               <div className="text-foreground/40 italic">Loading...</div>
@@ -117,7 +117,7 @@ export default function NotificationCenter({ open, onClose }: NotificationCenter
 
         {/* Footer */}
         {notifications.length > 0 && (
-          <div className="sticky bottom-0 z-10 bg-card border-t border-border p-4 flex gap-2">
+          <div className="sticky bottom-0 z-10 flex shrink-0 gap-2 border-t border-border bg-card p-3 sm:p-4">
             <button
               onClick={() => {
                 const unreadIds = notifications.filter(n => !n.isRead).map(n => n.id)
@@ -125,13 +125,13 @@ export default function NotificationCenter({ open, onClose }: NotificationCenter
                   void markMultipleAsRead(unreadIds)
                 }
               }}
-              className="flex-1 px-3 py-2 text-sm font-medium text-foreground bg-foreground/5 rounded-lg hover:bg-foreground/10 transition-colors"
+              className="min-h-10 flex-1 rounded-lg bg-foreground/5 px-3 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-foreground/10"
             >
               Mark all read
             </button>
             <button
               onClick={clearAll}
-              className="flex-1 px-3 py-2 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+              className="min-h-10 flex-1 rounded-lg px-3 py-2.5 text-sm font-medium text-red-600 transition-colors hover:bg-red-500/10 dark:text-red-400"
             >
               Clear all
             </button>
@@ -247,13 +247,13 @@ function NotificationItem({
             </div>
 
             {/* Actions */}
-            <div className="flex-shrink-0 ml-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+            <div className="ml-2 flex shrink-0 gap-1 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
               <button
                 onClick={(e) => {
                   e.stopPropagation()
                   void onDelete(notification.id)
                 }}
-                className="p-1 text-foreground/30 hover:text-red-500 transition-colors"
+                className="inline-flex min-h-10 min-w-10 items-center justify-center rounded-lg p-2 text-foreground/30 transition-colors hover:text-red-500"
                 title="Delete"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

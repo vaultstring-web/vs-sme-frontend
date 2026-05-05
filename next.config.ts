@@ -1,5 +1,7 @@
 import type { NextConfig } from "next";
 
+import { withSentryConfig } from "@sentry/nextjs";
+
 const nextConfig: NextConfig = {
   // Enable static export – outputs to 'out' directory by default
   output: 'standalone',
@@ -17,4 +19,8 @@ const nextConfig: NextConfig = {
   // distDir: 'out', // (already the default for export)
 };
 
-export default nextConfig;
+export default withSentryConfig(nextConfig, {
+  silent: true,
+  org: "vaultstring",
+  project: "vs-sme-frontend",
+});

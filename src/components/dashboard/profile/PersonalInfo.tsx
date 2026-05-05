@@ -85,25 +85,26 @@ export default function PersonalInfo() {
       {/* Decorative subtle gradient top left */}
       <div className="absolute -top-10 -left-10 w-32 h-32 bg-primary-500/5 rounded-full blur-3xl" />
 
-      <div className="flex items-center justify-between mb-10">
+      <div className="mb-10 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-4">
-          <div className="p-3 bg-slate-100 dark:bg-white/5 border border-border rounded-xl shadow-sm">
-            <UserIcon className="w-6 h-6 text-slate-500" />
+          <div className="rounded-xl border border-border bg-slate-100 p-3 shadow-sm dark:bg-white/5">
+            <UserIcon className="h-6 w-6 text-slate-500" />
           </div>
           <div>
-            <h2 className="text-2xl font-bold tracking-tight text-foreground">Personal Information</h2>
-            <p className="text-xs text-slate-400 mt-0.5 uppercase tracking-widest font-medium">Verified Identity Details</p>
+            <h2 className="text-xl font-bold tracking-tight text-foreground sm:text-2xl">Personal Information</h2>
+            <p className="mt-0.5 text-xs font-medium uppercase tracking-widest text-slate-400">Verified Identity Details</p>
           </div>
         </div>
 
         {/* Refresh button */}
         <button
+          type="button"
           onClick={fetchUserProfile}
           disabled={isLoadingProfile}
-          className="p-2 hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="self-start rounded-lg p-2 transition-colors hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50 dark:hover:bg-white/5 sm:self-auto"
           title="Refresh profile data"
         >
-          <RefreshCw className={`w-4 h-4 text-slate-500 ${isLoadingProfile ? 'animate-spin' : ''}`} />
+          <RefreshCw className={`h-4 w-4 text-slate-500 ${isLoadingProfile ? 'animate-spin' : ''}`} />
         </button>
       </div>
 
@@ -216,7 +217,7 @@ const InfoField = ({ label, value, icon, isLoading = false }: InfoFieldProps) =>
       {isLoading ? (
         <div className="h-6 bg-slate-200 dark:bg-slate-700 rounded animate-pulse" />
       ) : (
-        <p className="text-base font-semibold text-foreground tracking-tight">
+        <p className="break-words text-base font-semibold tracking-tight text-foreground">
           {value}
         </p>
       )}

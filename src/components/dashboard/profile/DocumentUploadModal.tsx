@@ -1,9 +1,10 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
-import { X, Upload, File, CheckCircle, AlertCircle, Loader2, Trash2 } from 'lucide-react';
+import { Upload, File, AlertCircle, Loader2, Trash2 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import LocalFilePreviewModal from '@/components/shared/LocalFilePreviewModal';
+import Modal from '@/components/ui/Modal';
 
 // Document type definitions (must match backend)
 export type DocumentType = 
@@ -116,8 +117,6 @@ export const DocumentUploadModal: React.FC<DocumentUploadModalProps> = ({
       }
     };
   }, [selectedFiles]);
-
-  if (!isOpen) return null;
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type: DocumentType) => {
     const files = e.target.files;
@@ -246,22 +245,49 @@ export const DocumentUploadModal: React.FC<DocumentUploadModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in">
-      <div className="bg-background rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col border border-border">
-        {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-border">
-          <h2 className="text-xl font-semibold">Upload KYC Documents</h2>
+    <>
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Upload KYC Documents"
+      maxWidthClassName="max-w-3xl"
+      className="border border-border bg-background"
+      contentClassName="!p-4 sm:!p-6"
+      footer={
+        <>
+          <div className="w-full text-sm text-slate-500 sm:mr-auto sm:w-auto">
+            {selectedFiles.length} file(s) selected
+          </div>
           <button
+            type="button"
             onClick={onClose}
             disabled={isUploading}
-            className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+            className="min-h-11 w-full rounded-lg border border-border px-4 py-2 text-sm font-medium transition-colors hover:bg-slate-100 disabled:opacity-50 dark:hover:bg-slate-800 sm:w-auto"
           >
-            <X className="w-5 h-5" />
+            Cancel
           </button>
-        </div>
-
-        {/* Body */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar">
+          <button
+            type="button"
+            onClick={() => void handleUpload()}
+            disabled={isUploading || selectedFiles.length === 0}
+            className="relative min-h-11 w-full min-w-[7.5rem] rounded-lg bg-primary-600 px-6 py-2 text-sm font-medium text-white transition-colors hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
+          >
+            {isUploading ? (
+              <>
+                <span className="opacity-0">Upload</span>
+                <span className="absolute inset-0 flex items-center justify-center gap-2">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  {uploadProgress}%
+                </span>
+              </>
+            ) : (
+              'Upload'
+            )}
+          </button>
+        </>
+      }
+    >
+      <div className="custom-scrollbar space-y-6">
           {error && (
             <div className="p-4 rounded-lg bg-error-main/10 border border-error-main/20 text-error-main text-sm flex items-start gap-3">
               <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
@@ -276,8 +302,8 @@ export const DocumentUploadModal: React.FC<DocumentUploadModalProps> = ({
 
             return (
               <div key={req.type} className="border border-border rounded-xl p-4 bg-card/30">
-                <div className="flex items-start justify-between mb-3">
-                  <div>
+                <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                  <div className="min-w-0 flex-1">
                     <h3 className="font-medium flex items-center gap-2">
                       {req.label}
                       {req.required && (
@@ -308,7 +334,7 @@ export const DocumentUploadModal: React.FC<DocumentUploadModalProps> = ({
                   />
                   <label
                     htmlFor={`file-${req.type}`}
-                    className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 transition-colors cursor-pointer"
+                    className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-primary-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-primary-700 sm:w-auto sm:shrink-0"
                   >
                     <Upload className="w-4 h-4" />
                     {filesForType.length > 0 ? 'Add more' : 'Select file'}
@@ -319,23 +345,23 @@ export const DocumentUploadModal: React.FC<DocumentUploadModalProps> = ({
                 {filesForType.length > 0 && (
                   <div className="mt-3 space-y-2">
                     {filesForType.map(file => (
-                      <div key={file.id} className="flex items-center justify-between bg-slate-50 dark:bg-white/5 p-2 rounded-lg">
-                        <div className="flex items-center gap-3">
+                      <div key={file.id} className="flex flex-col gap-2 rounded-lg bg-slate-50 p-2 dark:bg-white/5 sm:flex-row sm:items-center sm:justify-between">
+                        <div className="flex min-w-0 flex-1 items-center gap-3">
                           {file.previewUrl && file.file.type.startsWith('image/') ? (
                             <img src={file.previewUrl} alt="preview" className="w-8 h-8 object-cover rounded" />
                           ) : (
                             <File className="w-5 h-5 text-slate-400" />
                           )}
-                          <span className="text-sm truncate max-w-50">{file.file.name}</span>
+                          <span className="max-w-[10rem] truncate text-sm sm:max-w-xs">{file.file.name}</span>
                           <span className="text-xs text-slate-500">
                             {(file.file.size / 1024).toFixed(1)} KB
                           </span>
                         </div>
-                        <div className="flex items-center gap-1">
+                        <div className="flex flex-wrap items-center gap-1 sm:shrink-0">
                           <button
                             type="button"
                             onClick={() => setPreviewing(file)}
-                            className="px-2 py-1 text-xs font-semibold text-primary-700 dark:text-primary-300 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-md transition-colors"
+                            className="rounded-md px-2 py-2 text-xs font-semibold text-primary-700 transition-colors hover:bg-primary-50 dark:text-primary-300 dark:hover:bg-primary-900/20"
                             aria-label={`Preview ${file.file.name}`}
                           >
                             Preview
@@ -343,10 +369,10 @@ export const DocumentUploadModal: React.FC<DocumentUploadModalProps> = ({
                           <button
                             type="button"
                             onClick={() => removeFile(file.id)}
-                            className="p-1 text-slate-500 hover:text-error-main transition-colors"
+                            className="inline-flex min-h-10 min-w-10 items-center justify-center rounded-md p-2 text-slate-500 transition-colors hover:text-error-main"
                             aria-label={`Remove ${file.file.name}`}
                           >
-                            <Trash2 className="w-4 h-4" />
+                            <Trash2 className="h-4 w-4" />
                           </button>
                         </div>
                       </div>
@@ -366,41 +392,8 @@ export const DocumentUploadModal: React.FC<DocumentUploadModalProps> = ({
             <p className="font-medium mb-1">📋 Note</p>
             <p>Uploading new documents will add them to your profile. If you need to replace an existing document, please remove the old one first (not yet supported).</p>
           </div>
-        </div>
-
-        {/* Footer */}
-        <div className="border-t border-border px-6 py-4 flex items-center justify-between bg-card/50">
-          <div className="text-sm text-slate-500">
-            {selectedFiles.length} file(s) selected
-          </div>
-          <div className="flex gap-3">
-            <button
-              onClick={onClose}
-              disabled={isUploading}
-              className="px-4 py-2 border border-border rounded-lg text-sm font-medium hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={handleUpload}
-              disabled={isUploading || selectedFiles.length === 0}
-              className="relative px-6 py-2 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed min-w-30"
-            >
-              {isUploading ? (
-                <>
-                  <span className="opacity-0">Upload</span>
-                  <span className="absolute inset-0 flex items-center justify-center gap-2">
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    {uploadProgress}%
-                  </span>
-                </>
-              ) : (
-                'Upload'
-              )}
-            </button>
-          </div>
-        </div>
       </div>
+    </Modal>
 
       {previewing && (
         <LocalFilePreviewModal
@@ -409,6 +402,6 @@ export const DocumentUploadModal: React.FC<DocumentUploadModalProps> = ({
           onClose={() => setPreviewing(null)}
         />
       )}
-    </div>
+    </>
   );
 };

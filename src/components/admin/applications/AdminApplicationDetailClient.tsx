@@ -106,11 +106,12 @@ export default function AdminApplicationDetailClient({
           Back to Applications
         </button>
 
-        <div className="flex items-center gap-3">
+        <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:justify-end sm:gap-3">
           {!isAuditor && (
             <button
+              type="button"
               onClick={() => setIsEditMode(!isEditMode)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all border
+              className={`flex w-full items-center justify-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium transition-all sm:w-auto
                 ${
                   isEditMode
                     ? "bg-primary-50 text-primary-700 border-primary-200 dark:bg-primary-900/20 dark:text-primary-400 dark:border-primary-800"
@@ -124,6 +125,7 @@ export default function AdminApplicationDetailClient({
 
           {canDisburse && app.status === 'APPROVED' && (
             <button
+              type="button"
               onClick={async () => {
                 if (confirm('Are you sure you want to disburse this loan? This will create a repayment schedule.')) {
                   await disburseLoan(app.id);
@@ -131,7 +133,7 @@ export default function AdminApplicationDetailClient({
                 }
               }}
               disabled={isDisbursing}
-              className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors text-sm font-medium shadow-sm disabled:opacity-50"
+              className="flex w-full items-center justify-center gap-2 rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-green-700 disabled:opacity-50 sm:w-auto"
             >
               {isDisbursing ? <Loader2 className="animate-spin w-4 h-4" /> : <Wallet size={16} />}
               Disburse Loan
@@ -140,8 +142,9 @@ export default function AdminApplicationDetailClient({
 
           {!isAuditor && (
             <button
+              type="button"
               onClick={() => setIsStatusModalOpen(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-slate-900 dark:bg-zinc-100 text-white dark:text-slate-900 rounded-lg hover:bg-slate-800 dark:hover:bg-zinc-200 transition-colors text-sm font-medium shadow-sm"
+              className="flex w-full items-center justify-center gap-2 rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-slate-800 dark:bg-zinc-100 dark:text-slate-900 dark:hover:bg-zinc-200 sm:w-auto"
             >
               <ShieldCheck size={16} />
               Update Status
@@ -155,7 +158,7 @@ export default function AdminApplicationDetailClient({
         <div className="lg:col-span-2 space-y-6">
           {/* Status Banner */}
           <div
-            className={`p-4 rounded-xl border flex items-center justify-between
+            className={`flex flex-col gap-3 rounded-xl border p-4 sm:flex-row sm:items-center sm:justify-between
             ${
               app.status === "APPROVED"
                 ? "bg-green-50 border-green-200 text-green-800 dark:bg-green-900/20 dark:border-green-900/30 dark:text-green-400"
@@ -188,13 +191,13 @@ export default function AdminApplicationDetailClient({
                 <p className="text-xs text-foreground/50 uppercase">
                   Full Name
                 </p>
-                <p className="font-medium text-foreground">
+                <p className="break-words font-medium text-foreground">
                   {app.user.fullName}
                 </p>
               </div>
               <div className="p-3 rounded-lg border border-border">
                 <p className="text-xs text-foreground/50 uppercase">Email</p>
-                <p className="font-medium text-foreground">{app.user.email}</p>
+                <p className="break-all font-medium text-foreground">{app.user.email}</p>
               </div>
               <div className="p-3 rounded-lg border border-border">
                 <p className="text-xs text-foreground/50 uppercase">Phone</p>
@@ -256,7 +259,7 @@ export default function AdminApplicationDetailClient({
                 {app.documents.map((doc, idx: number) => (
                   <div
                     key={doc.id}
-                    className="flex items-center justify-between p-3 border border-border rounded-lg hover:bg-slate-50 dark:hover:bg-zinc-800/50 transition-colors"
+                    className="flex flex-col gap-3 rounded-lg border border-border p-3 transition-colors hover:bg-slate-50 sm:flex-row sm:items-center sm:justify-between dark:hover:bg-zinc-800/50"
                   >
                     <div className="flex items-center gap-3 overflow-hidden">
                       <div className="p-2 bg-blue-50 dark:bg-blue-900/20 text-blue-600 rounded-lg">
@@ -271,7 +274,7 @@ export default function AdminApplicationDetailClient({
                         </p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2 sm:shrink-0">
                       <button
                         onClick={() => {
                           setViewerIndex(idx);
@@ -302,7 +305,7 @@ export default function AdminApplicationDetailClient({
 
         {/* Sidebar */}
         <div className="space-y-6">
-          <div className="bento-card p-6 sticky top-24">
+          <div className="bento-card p-6 lg:sticky lg:top-24">
             <h3 className="text-lg font-bold mb-6 text-foreground">
               Audit Trail
             </h3>

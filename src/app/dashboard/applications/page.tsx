@@ -280,7 +280,7 @@ export default function ApplicationsPage() {
                   className="fixed inset-0 z-10"
                   onClick={() => setIsFilterOpen(false)}
                 />
-                <div className="absolute right-0 mt-2 w-72 bg-background border border-border rounded-lg shadow-xl z-20">
+                <div className="absolute left-0 right-0 z-20 mt-2 w-[min(18rem,calc(100vw-2rem))] rounded-lg border border-border bg-background shadow-xl sm:left-auto sm:right-0 sm:w-72">
                   <div className="p-4 space-y-4">
                     <div>
                       <label className="block text-sm font-medium text-foreground mb-2">
@@ -470,17 +470,17 @@ export default function ApplicationsPage() {
                             </div>
                           </td>
                           <td className="py-4 px-4">
-                            <div className="flex gap-2">
+                            <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
                               <Link 
                                 href={`/dashboard/applications/${app.id}`}
-                                className="px-3 py-1 text-sm text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded"
+                                className="rounded px-3 py-1 text-center text-sm text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/20"
                               >
                                 View
                               </Link>
                               {app.status === "DRAFT" && (
                                 <Link
                                   href={`/dashboard/applications/${app.id}/edit`}
-                                  className="px-3 py-1 text-sm bg-primary-600 text-white hover:bg-primary-700 rounded"
+                                  className="rounded bg-primary-600 px-3 py-1 text-center text-sm text-white hover:bg-primary-700"
                                 >
                                   Continue
                                 </Link>

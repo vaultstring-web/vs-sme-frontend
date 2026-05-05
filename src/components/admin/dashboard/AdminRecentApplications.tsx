@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Eye } from 'lucide-react';
 import apiClient from '@/lib/apiClient';
+import ResponsiveTable from '@/components/ui/ResponsiveTable';
 
 interface Application {
   id: string;
@@ -54,52 +55,93 @@ export default function AdminRecentApplications() {
 
   return (
     <div className="bento-card overflow-hidden">
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm text-left">
-          <thead className="text-xs text-foreground/50 uppercase bg-slate-50 dark:bg-zinc-800/50">
+      <ResponsiveTable
+        mobileCards={
+          <div className="space-y-3">
+            {applications.map((app) => (
+              <div key={app.id} className="space-y-2 rounded-xl border border-border p-4">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="font-medium text-foreground">{app.user.fullName}</p>
+                    <p className="max-w-[220px] truncate text-xs text-foreground/50" title={app.user.email}>
+                      {app.user.email}
+                    </p>
+                  </div>
+                  <Link
+                    href={`/admin/applications/detail?id=${app.id}`}
+                    className="shrink-0 rounded-lg p-2 text-foreground/40 transition-colors hover:bg-primary-50 hover:text-primary-600 dark:hover:bg-primary-900/20"
+                  >
+                    <Eye className="h-4 w-4" />
+                  </Link>
+                </div>
+                <div className="text-xs text-foreground/60">{new Date(app.createdAt).toLocaleDateString()}</div>
+                <div className="text-xs text-foreground/60">{app.type === 'SME' ? 'SME Loan' : 'Payroll Loan'}</div>
+                <span
+                  className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium capitalize ${
+                    app.status === 'APPROVED'
+                      ? 'border-green-200 bg-green-100 text-green-800 dark:border-green-800/50 dark:bg-green-900/30 dark:text-green-400'
+                      : app.status === 'REJECTED'
+                        ? 'border-red-200 bg-red-100 text-red-800 dark:border-red-800/50 dark:bg-red-900/30 dark:text-red-400'
+                        : app.status === 'SUBMITTED' || app.status === 'UNDER_REVIEW'
+                          ? 'border-yellow-200 bg-yellow-100 text-yellow-800 dark:border-yellow-800/50 dark:bg-yellow-900/30 dark:text-yellow-400'
+                          : 'border-slate-200 bg-slate-100 text-slate-800 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400'
+                  }`}
+                >
+                  {app.status.replace('_', ' ').toLowerCase()}
+                </span>
+              </div>
+            ))}
+          </div>
+        }
+        table={
+        <table className="hidden w-full min-w-[700px] text-left text-sm md:table">
+          <thead className="bg-slate-50 text-xs uppercase text-foreground/50 dark:bg-zinc-800/50">
             <tr>
               <th className="px-6 py-3 font-medium">Date</th>
               <th className="px-6 py-3 font-medium">Applicant</th>
               <th className="px-6 py-3 font-medium">Type</th>
               <th className="px-6 py-3 font-medium">Status</th>
-              <th className="px-6 py-3 font-medium text-right">Action</th>
+              <th className="px-6 py-3 text-right font-medium">Action</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
             {applications.map((app) => (
-              <tr key={app.id} className="hover:bg-slate-50 dark:hover:bg-zinc-800/50 transition-colors">
-                <td className="px-6 py-4 whitespace-nowrap text-foreground/60">
+              <tr key={app.id} className="transition-colors hover:bg-slate-50 dark:hover:bg-zinc-800/50">
+                <td className="px-6 py-4 text-foreground/60 sm:whitespace-nowrap">
                   {new Date(app.createdAt).toLocaleDateString()}
                 </td>
                 <td className="px-6 py-4">
                   <div className="font-medium text-foreground">{app.user.fullName}</div>
-                  <div className="text-xs text-foreground/50">{app.user.email}</div>
+                  <div className="max-w-[220px] truncate text-xs text-foreground/50" title={app.user.email}>
+                    {app.user.email}
+                  </div>
                 </td>
                 <td className="px-6 py-4 text-foreground/60">
                   {app.type === 'SME' ? 'SME Loan' : 'Payroll Loan'}
                 </td>
                 <td className="px-6 py-4">
-                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize
-                    ${app.status === 'APPROVED' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 border border-green-200 dark:border-green-800/50' : 
-                      app.status === 'REJECTED' ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 border border-red-200 dark:border-red-800/50' : 
-                      app.status === 'SUBMITTED' || app.status === 'UNDER_REVIEW' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400 border border-yellow-200 dark:border-yellow-800/50' :
-                      'bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-400 border border-slate-200 dark:border-slate-700'}`}>
+                  <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium capitalize ${
+                    app.status === 'APPROVED' ? 'border-green-200 bg-green-100 text-green-800 dark:border-green-800/50 dark:bg-green-900/30 dark:text-green-400' : 
+                      app.status === 'REJECTED' ? 'border-red-200 bg-red-100 text-red-800 dark:border-red-800/50 dark:bg-red-900/30 dark:text-red-400' : 
+                      app.status === 'SUBMITTED' || app.status === 'UNDER_REVIEW' ? 'border-yellow-200 bg-yellow-100 text-yellow-800 dark:border-yellow-800/50 dark:bg-yellow-900/30 dark:text-yellow-400' :
+                      'border-slate-200 bg-slate-100 text-slate-800 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400'}`}>
                     {app.status.replace('_', ' ').toLowerCase()}
                   </span>
                 </td>
-                <td className="px-6 py-4 text-right">
+                <td className="px-6 py-4 text-left md:text-right">
                   <Link 
                     href={`/admin/applications/detail?id=${app.id}`}
-                    className="inline-flex items-center justify-center p-2 text-foreground/40 hover:text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-lg transition-colors"
+                    className="inline-flex items-center justify-center rounded-lg p-2 text-foreground/40 transition-colors hover:bg-primary-50 hover:text-primary-600 dark:hover:bg-primary-900/20"
                   >
-                    <Eye className="w-4 h-4" />
+                    <Eye className="h-4 w-4" />
                   </Link>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
-      </div>
+        }
+      />
       
       <div className="px-6 py-4 border-t border-border bg-slate-50 dark:bg-zinc-800/30">
         <Link 

@@ -107,7 +107,7 @@ export default function NotificationCenter() {
     <div className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="relative p-2 text-slate-500 hover:text-slate-700 dark:text-zinc-400 dark:hover:text-zinc-200 transition-colors rounded-full hover:bg-slate-100 dark:hover:bg-zinc-800"
+        className="relative inline-flex h-10 w-10 items-center justify-center rounded-full text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
         aria-label="Open notifications"
       >
         <Bell size={20} />
@@ -122,14 +122,14 @@ export default function NotificationCenter() {
             className="fixed inset-0 z-40"
             onClick={() => setIsOpen(false)}
           />
-          <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-card rounded-xl shadow-xl border border-border z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 max-h-125 flex flex-col">
-            <div className="flex items-center justify-between p-4 border-b border-border bg-card">
+          <div className="absolute right-0 z-50 mt-2 flex max-h-[75vh] w-[calc(100vw-1rem)] max-w-sm animate-in flex-col overflow-hidden rounded-xl border border-border bg-card shadow-xl fade-in slide-in-from-top-2 duration-200 sm:max-h-[32rem] sm:w-96 sm:max-w-none">
+            <div className="flex shrink-0 items-center justify-between border-b border-border bg-card p-3 sm:p-4">
               <h3 className="font-bold text-foreground">Notifications</h3>
               <div className="flex items-center gap-2">
                 {activities.length > 0 && (
                   <button
                     onClick={handleClearAll}
-                    className="text-xs text-foreground/50 hover:text-foreground/70 font-medium transition-colors"
+                    className="inline-flex min-h-10 items-center justify-center rounded-lg px-2 text-xs font-medium text-foreground/50 transition-colors hover:bg-foreground/5 hover:text-foreground/70"
                     aria-label="Clear all notifications"
                   >
                     Clear All
@@ -137,7 +137,7 @@ export default function NotificationCenter() {
                 )}
                 <button
                   onClick={() => setIsOpen(false)}
-                  className="text-foreground/40 hover:text-foreground/60"
+                  className="inline-flex min-h-10 min-w-10 items-center justify-center rounded-lg text-foreground/40 transition-colors hover:bg-foreground/5 hover:text-foreground/60"
                   aria-label="Close notifications"
                 >
                   <X size={16} />
@@ -145,7 +145,7 @@ export default function NotificationCenter() {
               </div>
             </div>
 
-            <div className="overflow-y-auto flex-1 custom-scrollbar">
+            <div className="custom-scrollbar min-h-0 flex-1 overflow-y-auto">
               {/* Pending Reviews Section */}
               {pendingCount > 0 && (
                 <div className="p-4 bg-yellow-50 dark:bg-yellow-900/10 border-b border-yellow-200 dark:border-yellow-900/20">
@@ -233,14 +233,14 @@ export default function NotificationCenter() {
                             </div>
                           </div>
 
-                          <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <div className="flex items-center gap-2 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
                             {!log.isRead && (
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   handleMarkAsRead(log.id);
                                 }}
-                                className="p-1 text-primary-600 hover:bg-primary-100 dark:hover:bg-primary-900/20 rounded transition-colors"
+                                className="inline-flex min-h-10 min-w-10 items-center justify-center rounded-lg p-2 text-primary-600 transition-colors hover:bg-primary-100 dark:hover:bg-primary-900/20"
                                 aria-label="Mark as read"
                               >
                                 <CheckCircle2 size={16} />
@@ -251,7 +251,7 @@ export default function NotificationCenter() {
                                 e.stopPropagation();
                                 handleDelete(log.id);
                               }}
-                              className="p-1 text-foreground/40 hover:text-red-600 hover:bg-red-100 dark:hover:bg-red-900/20 rounded transition-colors"
+                              className="inline-flex min-h-10 min-w-10 items-center justify-center rounded-lg p-2 text-foreground/40 transition-colors hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/20"
                               aria-label="Delete notification"
                             >
                               <Trash2 size={16} />

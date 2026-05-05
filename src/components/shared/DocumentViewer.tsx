@@ -56,14 +56,20 @@ export default function DocumentViewer({
   if (!current) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center">
-      <div className="relative w-full h-full p-4 flex flex-col">
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-3">
-            <span className="text-white text-sm">{current.name}</span>
-            <span className="text-white/60 text-xs">{current.documentType}</span>
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      <button
+        type="button"
+        aria-label="Close document viewer"
+        className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+        onClick={onClose}
+      />
+      <div className="relative z-10 flex h-full w-full flex-col p-4" onClick={(e) => e.stopPropagation()} role="presentation">
+        <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex min-w-0 flex-col gap-1 sm:flex-row sm:items-center sm:gap-3">
+            <span className="truncate text-sm text-white max-w-[min(100%,55vw)] sm:max-w-none">{current.name}</span>
+            <span className="truncate text-xs text-white/60">{current.documentType}</span>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center justify-start gap-2 sm:justify-end">
             {documents.length > 1 && (
               <>
                 <button
@@ -113,12 +119,12 @@ export default function DocumentViewer({
           </div>
         </div>
 
-        <div className="flex-1 bg-white rounded-lg overflow-hidden flex items-center justify-center">
+        <div className="flex min-h-0 flex-1 items-center justify-center overflow-hidden rounded-lg bg-white">
           {type === 'image' && (
             <img
               src={absUrl}
               alt={current.name}
-              className="max-w-none"
+              className="max-h-full max-w-full object-contain"
               style={{ transform: `scale(${zoom / 100})` }}
             />
           )}

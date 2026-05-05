@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useState } from "react";
 import type { RecentApplication } from "@/app/dashboard/types";
 import NewApplicationModal from "@/components/modals/NewApplicationModal";
+import ResponsiveTable from "@/components/ui/ResponsiveTable";
 
 interface RecentApplicationsTableProps {
   applications: RecentApplication[];
@@ -60,10 +61,43 @@ export default function RecentApplicationsTable({
           </Link>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full applications-table">
+        <ResponsiveTable
+          mobileCards={
+            <div className="space-y-3">
+              {applications.map((app) => (
+                <div key={app.id} className="space-y-2 rounded-xl border border-border p-4">
+                  <div className="flex items-start justify-between gap-2">
+                    <span className="font-medium">#{app.reference}</span>
+                    <Link
+                      href={`/dashboard/applications/${app.id}`}
+                      className="text-sm font-medium text-primary-600 dark:text-primary-400"
+                    >
+                      View
+                    </Link>
+                  </div>
+                  <p className="text-sm text-foreground/80">
+                    {app.type === "SME" ? "SME Working Capital" : "Payroll Loan"}
+                  </p>
+                  <p className="font-medium">MWK {app.amount.toLocaleString()}</p>
+                  <span
+                    className="status-chip"
+                    data-status={app.status.toLowerCase().replace("_", "-")}
+                  >
+                    {app.status}
+                  </span>
+                  <p className="text-xs text-foreground/60">
+                    {app.submittedAt
+                      ? new Date(app.submittedAt).toLocaleDateString()
+                      : new Date(app.createdAt).toLocaleDateString()}
+                  </p>
+                </div>
+              ))}
+            </div>
+          }
+          table={
+          <table className="applications-table hidden w-full min-w-[640px] md:table">
             <thead>
-              <tr className="text-left text-sm text-foreground/60 border-b border-border">
+              <tr className="border-b border-border text-left text-sm text-foreground/60">
                 <th className="pb-3 font-medium">Reference</th>
                 <th className="pb-3 font-medium">Type</th>
                 <th className="pb-3 font-medium">Amount</th>
@@ -76,13 +110,13 @@ export default function RecentApplicationsTable({
               {applications.map((app) => (
                 <tr
                   key={app.id}
-                  className="group hover:bg-card/80 transition-colors"
+                  className="group transition-colors hover:bg-card/80"
                 >
                   <td className="py-3 font-medium">#{app.reference}</td>
                   <td className="py-3">
                     {app.type === "SME" ? "SME Working Capital" : "Payroll Loan"}
                   </td>
-                  <td className="py-3 font-medium">
+                  <td className="py-3 font-medium whitespace-nowrap">
                     MWK {app.amount.toLocaleString()}
                   </td>
                   <td className="py-3">
@@ -93,15 +127,15 @@ export default function RecentApplicationsTable({
                       {app.status}
                     </span>
                   </td>
-                  <td className="py-3 text-foreground/60">
+                  <td className="py-3 text-foreground/60 sm:whitespace-nowrap">
                     {app.submittedAt
                       ? new Date(app.submittedAt).toLocaleDateString()
                       : new Date(app.createdAt).toLocaleDateString()}
                   </td>
-                  <td className="py-3 text-right">
+                  <td className="py-3 text-left md:text-right">
                     <Link
                       href={`/dashboard/applications/${app.id}`}
-                      className="text-primary-600 dark:text-primary-400 hover:underline text-sm"
+                      className="text-sm text-primary-600 hover:underline dark:text-primary-400"
                     >
                       View
                     </Link>
@@ -110,7 +144,8 @@ export default function RecentApplicationsTable({
               ))}
             </tbody>
           </table>
-        </div>
+          }
+        />
       </div>
 
       {/* 4. Include the modal for the non-empty state as well */}

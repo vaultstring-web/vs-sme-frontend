@@ -10,8 +10,8 @@ export const Footer = () => {
   const { theme } = useTheme();
 
   return (
-    <footer className="border-t border-border/50 bg-card/40 backdrop-blur-sm pt-16 pb-10 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-10">
+    <footer className="border-t border-border/50 bg-card/40 px-4 pb-8 pt-10 backdrop-blur-sm sm:px-6 sm:pb-10 sm:pt-14 lg:px-8 lg:pt-16">
+      <div className="mx-auto grid max-w-7xl grid-cols-1 gap-8 md:grid-cols-4 sm:gap-10">
         {/* Brand & Mission */}
         <div className="space-y-5">
           <Link href="/" className="inline-block transition-opacity hover:opacity-90">
@@ -59,7 +59,7 @@ export const Footer = () => {
               {/* Wrapped in a mailto link */}
               <a 
                 href="mailto:thrive@vaultstring.com" 
-                className="group-hover:text-primary transition-colors hover:underline underline-offset-4"
+                className="break-all transition-colors group-hover:text-primary hover:underline underline-offset-4 sm:break-normal"
               >
                 thrive@vaultstring.com
               </a>
@@ -70,7 +70,7 @@ export const Footer = () => {
         {/* Trust / Regulatory */}
         <div className="relative">
           <div className="absolute inset-0 bg-linear-to-br from-primary-500/5 to-emerald-400/5 rounded-xl blur-md -z-10"></div>
-          <div className="relative p-5 rounded-xl border border-border/60 bg-card/60">
+          <div className="relative rounded-xl border border-border/60 bg-card/60 p-4 sm:p-5">
             <div className="flex items-center gap-2 mb-2.5">
               <ShieldCheck className="w-4 h-4 text-green-600 dark:text-green-400" />
               <h4 className="font-mono text-[10px] font-bold uppercase tracking-widest text-primary-600 dark:text-primary-400">
@@ -85,7 +85,7 @@ export const Footer = () => {
       </div>
 
       {/* Bottom Bar */}
-      <div className="mt-14 pt-6 border-t border-border/40 flex flex-col md:flex-row justify-between items-center gap-4 text-xs">
+      <div className="mt-10 flex flex-col items-center justify-between gap-4 border-t border-border/40 pt-6 text-xs sm:mt-14 md:flex-row">
         <p className="text-muted-foreground">
           © {new Date().getFullYear()} VaultString. Built for Malawi’s financial future.
         </p>

@@ -61,38 +61,43 @@ export default function EditableField({
       </span>
       
       {isEditing && isLocalEditing ? (
-        <div className="flex items-center gap-2">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
           <Input 
             type={type}
             value={currentValue}
             onChange={(e) => setCurrentValue(type === 'number' ? Number(e.target.value) : e.target.value)}
-            className="h-8 text-sm"
+            className="h-8 w-full text-sm sm:min-w-0 sm:flex-1"
             autoFocus
           />
+          <div className="flex shrink-0 items-center gap-2">
           <button 
+            type="button"
             onClick={handleSave} 
             disabled={isSaving}
-            className="p-1 text-green-600 hover:bg-green-100 rounded"
+            className="rounded p-1 text-green-600 hover:bg-green-100"
           >
             <Check size={16} />
           </button>
           <button 
+            type="button"
             onClick={handleCancel}
             disabled={isSaving} 
-            className="p-1 text-red-600 hover:bg-red-100 rounded"
+            className="rounded p-1 text-red-600 hover:bg-red-100"
           >
             <X size={16} />
           </button>
+          </div>
         </div>
       ) : (
-        <div className="flex items-center justify-between">
-          <span className="font-medium text-foreground truncate">
+        <div className="flex items-start justify-between gap-2">
+          <span className="min-w-0 break-words font-medium text-foreground">
             {value?.toString() || '-'}
           </span>
           {isEditing && (
             <button 
+              type="button"
               onClick={() => setIsLocalEditing(true)}
-              className="opacity-0 group-hover:opacity-100 p-1 text-foreground/40 hover:text-primary-600 transition-all"
+              className="shrink-0 rounded p-1 text-foreground/40 opacity-100 transition-all hover:text-primary-600 sm:opacity-0 sm:group-hover:opacity-100"
             >
               <Pencil size={14} />
             </button>

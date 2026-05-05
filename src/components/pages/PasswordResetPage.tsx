@@ -9,8 +9,8 @@ interface PasswordResetPageProps {
 
 const PasswordResetPage = ({ token }: PasswordResetPageProps) => {
   return (
-    <div className="flex min-h-screen flex-col justify-center py-12 sm:px-6 lg:px-8 bg-gray-50">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
+    <div className="mx-auto flex min-h-screen flex-col justify-center bg-gray-50 px-4 py-12 sm:px-6 lg:px-8">
+      <div className="mx-auto w-full max-w-md">
         <div className="flex justify-center">
           <Image
             src={logo}
@@ -24,7 +24,7 @@ const PasswordResetPage = ({ token }: PasswordResetPageProps) => {
         </h2>
       </div>
 
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+      <div className="mx-auto mt-8 w-full max-w-md">
         {token ? <PasswordResetForm token={token} /> : <PasswordResetRequest />}
       </div>
     </div>

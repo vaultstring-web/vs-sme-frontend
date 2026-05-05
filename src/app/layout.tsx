@@ -7,6 +7,7 @@ import { ApplicationsProvider } from '../context/ApplicationsContext';
 import { ThemeProvider } from '../context/ThemeContext';
 import { AppLocalizationProvider } from '../components/providers/AppLocalizationProvider';
 import { ToastProvider } from '../components/providers/ToastProvider';
+import QueryProvider from '../components/providers/QueryProvider';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -27,10 +28,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <ThemeProvider>
           <AppLocalizationProvider>
             <AuthProvider>
+            <QueryProvider>
             <ApplicationsProvider>
               {children}
               <ToastProvider />
             </ApplicationsProvider>
+            </QueryProvider>
             </AuthProvider>
           </AppLocalizationProvider>
         </ThemeProvider>

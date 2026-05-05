@@ -693,6 +693,14 @@ export default function SMELoanApplicationPage() {
     }
   };
 
+  const breakdownRowSx = {
+    display: 'flex',
+    flexDirection: { xs: 'column', sm: 'row' },
+    alignItems: { xs: 'flex-start', sm: 'center' },
+    justifyContent: 'space-between',
+    gap: 0.5,
+  };
+
   const getStepContent = (step: number) => {
     switch (step) {
       case 0:
@@ -840,7 +848,7 @@ export default function SMELoanApplicationPage() {
                   <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
 
                     {/* Loan Amount */}
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Box sx={breakdownRowSx}>
                       <Typography sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a' }}>Loan Amount:</Typography>
                       <Typography sx={{ color: isDarkMode ? 'white' : '#18181b', fontWeight: 600 }}>
                         MK {loanAmount.toLocaleString()}
@@ -848,7 +856,7 @@ export default function SMELoanApplicationPage() {
                     </Box>
 
                     {/* Processing Fee */}
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Box sx={breakdownRowSx}>
                       <Typography sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a' }}>
                         Processing Fee (5% one-time):
                       </Typography>
@@ -858,7 +866,7 @@ export default function SMELoanApplicationPage() {
                     </Box>
 
                     {/* Insurance */}
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Box sx={breakdownRowSx}>
                       <Typography sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a' }}>
                         Insurance (0.09% one-time):
                       </Typography>
@@ -869,7 +877,7 @@ export default function SMELoanApplicationPage() {
 
                     {/* Total Deductions */}
                     <Box sx={{
-                      display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                      ...breakdownRowSx,
                       pt: 1, borderTop: `1px dashed ${isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`
                     }}>
                       <Typography sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a', fontWeight: 600 }}>
@@ -886,7 +894,7 @@ export default function SMELoanApplicationPage() {
                       bgcolor: alpha(limeColors[500], 0.1),
                       border: `1px solid ${limeColors[500]}`,
                     }}>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <Box sx={breakdownRowSx}>
                         <Typography sx={{ color: limeColors[500], fontWeight: 700 }}>
                           Amount You&apos;ll Receive:
                         </Typography>
@@ -904,13 +912,13 @@ export default function SMELoanApplicationPage() {
                       <Typography variant="subtitle2" sx={{ color: limeColors[500], fontWeight: 600, mb: 2 }}>
                         Repayment Breakdown (6% p.m. – Reducing Balance)
                       </Typography>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                      <Box sx={{ ...breakdownRowSx, mb: 1 }}>
                         <Typography sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a' }}>Principal:</Typography>
                         <Typography sx={{ color: isDarkMode ? 'white' : '#18181b' }}>
                           MK {loanAmount.toLocaleString()}
                         </Typography>
                       </Box>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                      <Box sx={{ ...breakdownRowSx, mb: 1 }}>
                         <Typography sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a' }}>
                           Total Interest (reducing balance):
                         </Typography>
@@ -919,7 +927,7 @@ export default function SMELoanApplicationPage() {
                         </Typography>
                       </Box>
                       <Box sx={{
-                        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                        ...breakdownRowSx,
                         pt: 1, borderTop: `1px solid ${isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`
                       }}>
                         <Typography sx={{ color: isDarkMode ? 'white' : '#18181b', fontWeight: 600 }}>
@@ -941,7 +949,7 @@ export default function SMELoanApplicationPage() {
                       <Typography variant="body2" sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a', mb: 1 }}>
                         Monthly Repayment Amount
                       </Typography>
-                      <Typography variant="h3" sx={{ color: limeColors[500], fontWeight: 800, mb: 1 }}>
+                      <Typography sx={{ color: limeColors[500], fontWeight: 800, mb: 1, fontSize: { xs: '1.5rem', sm: '3rem' } }}>
                         MK {monthlyPayment.toLocaleString(undefined, { maximumFractionDigits: 0 })}
                       </Typography>
                       <Typography variant="caption" sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a' }}>
@@ -1177,7 +1185,12 @@ export default function SMELoanApplicationPage() {
                     py: 1.5,
                     px: 3,
                     width: '100%',
+                    minWidth: 0,
                     justifyContent: 'flex-start',
+                    overflow: 'hidden',
+                    '& .MuiButton-startIcon': { flexShrink: 0 },
+                    whiteSpace: 'nowrap',
+                    textOverflow: 'ellipsis',
                   }}
                 >
                   {formData.idDocument ? formData.idDocument.name :
@@ -1231,7 +1244,12 @@ export default function SMELoanApplicationPage() {
                     py: 1.5,
                     px: 3,
                     width: '100%',
+                    minWidth: 0,
                     justifyContent: 'flex-start',
+                    overflow: 'hidden',
+                    '& .MuiButton-startIcon': { flexShrink: 0 },
+                    whiteSpace: 'nowrap',
+                    textOverflow: 'ellipsis',
                   }}
                 >
                   {formData.businessRegistrationDoc ? formData.businessRegistrationDoc.name :
@@ -1285,7 +1303,12 @@ export default function SMELoanApplicationPage() {
                     py: 1.5,
                     px: 3,
                     width: '100%',
+                    minWidth: 0,
                     justifyContent: 'flex-start',
+                    overflow: 'hidden',
+                    '& .MuiButton-startIcon': { flexShrink: 0 },
+                    whiteSpace: 'nowrap',
+                    textOverflow: 'ellipsis',
                   }}
                 >
                   {formData.financialStatementDoc ? formData.financialStatementDoc.name :
@@ -1518,10 +1541,10 @@ export default function SMELoanApplicationPage() {
     <>
       <Container maxWidth="lg" sx={{ py: 5 }}>
         <Typography
-          variant="h3"
           sx={{
             mb: 2,
             fontWeight: 800,
+            fontSize: { xs: '1.8rem', sm: '3rem' },
             background: `linear-gradient(135deg, ${limeColors[500]} 0%, ${limeColors[600]} 100%)`,
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
@@ -1566,9 +1589,11 @@ export default function SMELoanApplicationPage() {
         </Box>
 
         {/* Custom Stepper */}
+        <Box sx={{ overflowX: 'auto', pb: 1, width: '100%' }}>
         <Box sx={{
           mb: 5,
           display: 'flex',
+          minWidth: { xs: 520, sm: 'auto' },
           justifyContent: 'space-between',
           position: 'relative',
           '&::before': {
@@ -1594,7 +1619,8 @@ export default function SMELoanApplicationPage() {
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
-                  flex: 1,
+                  flex: { xs: '1 0 72px', sm: 1 },
+                  minWidth: 72,
                   position: 'relative',
                   zIndex: 1
                 }}
@@ -1633,6 +1659,7 @@ export default function SMELoanApplicationPage() {
             );
           })}
         </Box>
+        </Box>
 
         <Paper
           elevation={0}
@@ -1648,8 +1675,17 @@ export default function SMELoanApplicationPage() {
           {getStepContent(activeStep)}
         </Paper>
 
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2 }}>
-          <Box sx={{ display: 'flex', gap: 2 }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: { xs: 'column-reverse', md: 'row' },
+              justifyContent: 'space-between',
+              alignItems: { xs: 'stretch', md: 'center' },
+              gap: 2,
+            }}
+          >
+            <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2, width: { xs: '100%', md: 'auto' } }}>
             {activeStep > 0 && (
               <Button
                 onClick={handleBack}
@@ -1662,6 +1698,7 @@ export default function SMELoanApplicationPage() {
                   fontWeight: 600,
                   px: 3,
                   py: 1.5,
+                  width: { xs: '100%', sm: 'auto' },
                   '&:hover': {
                     borderColor: limeColors[500],
                     bgcolor: alpha(limeColors[500], 0.05)
@@ -1685,6 +1722,7 @@ export default function SMELoanApplicationPage() {
                 fontWeight: 600,
                 px: 3,
                 py: 1.5,
+                width: { xs: '100%', sm: 'auto' },
                 '&:hover': {
                   borderColor: limeColors[600],
                   bgcolor: alpha(limeColors[500], 0.1)
@@ -1697,13 +1735,14 @@ export default function SMELoanApplicationPage() {
             >
               {isLoading ? <CircularProgress size={20} /> : 'Save Draft'}
             </Button>
-          </Box>
-          <Box>
+            </Box>
+            <Box sx={{ width: { xs: '100%', md: 'auto' } }}>
             {activeStep === steps.length - 1 ? (
               <Button
                 variant="contained"
                 onClick={handleSubmit}
                 disabled={isSubmitting}
+                fullWidth
                 endIcon={isSubmitting ? <CircularProgress size={20} sx={{ color: 'white' }} /> : <CheckCircle size={18} />}
                 sx={{
                   bgcolor: limeColors[500],
@@ -1713,6 +1752,7 @@ export default function SMELoanApplicationPage() {
                   fontWeight: 700,
                   px: 4,
                   py: 1.5,
+                  width: { xs: '100%', md: 'auto' },
                   boxShadow: `0 4px 20px ${alpha(limeColors[500], 0.4)}`,
                   '&:hover': {
                     bgcolor: limeColors[600],
@@ -1730,6 +1770,7 @@ export default function SMELoanApplicationPage() {
               <Button
                 variant="contained"
                 onClick={handleNext}
+                fullWidth
                 endIcon={<ArrowRight size={18} />}
                 sx={{
                   bgcolor: limeColors[500],
@@ -1739,6 +1780,7 @@ export default function SMELoanApplicationPage() {
                   fontWeight: 700,
                   px: 4,
                   py: 1.5,
+                  width: { xs: '100%', md: 'auto' },
                   boxShadow: `0 4px 20px ${alpha(limeColors[500], 0.4)}`,
                   '&:hover': {
                     bgcolor: limeColors[600],
@@ -1749,10 +1791,10 @@ export default function SMELoanApplicationPage() {
                 Continue
               </Button>
             )}
+            </Box>
           </Box>
           {/* RBM Regulatory Info */}
           <Box sx={{ 
-            mt: 4, 
             p: 2, 
             borderRadius: '16px', 
             bgcolor: isDarkMode ? 'rgba(132, 204, 22, 0.05)' : 'rgba(132, 204, 22, 0.03)',

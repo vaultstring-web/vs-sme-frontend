@@ -741,6 +741,14 @@ export default function PayrollLoanApplicationPage() {
     900: '#365314',
   };
 
+  const breakdownRowSx = {
+    display: 'flex',
+    flexDirection: { xs: 'column', sm: 'row' },
+    alignItems: { xs: 'flex-start', sm: 'center' },
+    justifyContent: 'space-between',
+    gap: 0.5,
+  };
+
   const getStepContent = (step: number) => {
     const baseTextFieldProps = {
       sx: {
@@ -1172,7 +1180,7 @@ export default function PayrollLoanApplicationPage() {
                 border: `1.5px solid ${isDarkMode ? 'rgba(132, 204, 22, 0.2)' : 'rgba(132, 204, 22, 0.15)'}`,
               }}>
                 <Typography variant="subtitle2" sx={{ color: limeColors[500], fontWeight: 600, mb: 1 }}>
-                  Salary-based Limit: MK {(formData.netMonthlySalary * 0.4).toLocaleString()}
+                  Salary-based Limit: MK {(formData.netMonthlySalary * 0.6).toLocaleString()}
                 </Typography>
                 <Typography variant="caption" sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a' }}>
                   Maximum loan amount based on your net monthly salary
@@ -1224,7 +1232,7 @@ export default function PayrollLoanApplicationPage() {
 
                   <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                     {/* Loan Amount */}
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Box sx={breakdownRowSx}>
                       <Typography sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a' }}>
                         Loan Amount:
                       </Typography>
@@ -1234,7 +1242,7 @@ export default function PayrollLoanApplicationPage() {
                     </Box>
 
                     {/* Processing Fee (5%) */}
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Box sx={breakdownRowSx}>
                       <Typography sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a' }}>
                         Processing Fee (5% one-time):
                       </Typography>
@@ -1244,7 +1252,7 @@ export default function PayrollLoanApplicationPage() {
                     </Box>
 
                     {/* Insurance (0.09%) */}
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Box sx={breakdownRowSx}>
                       <Typography sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a' }}>
                         Insurance (0.09% one-time):
                       </Typography>
@@ -1255,9 +1263,7 @@ export default function PayrollLoanApplicationPage() {
 
                     {/* Total Deductions */}
                     <Box sx={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
+                      ...breakdownRowSx,
                       pt: 1,
                       borderTop: `1px dashed ${isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`
                     }}>
@@ -1277,7 +1283,7 @@ export default function PayrollLoanApplicationPage() {
                       bgcolor: alpha(limeColors[500], 0.1),
                       border: `1px solid ${limeColors[500]}`,
                     }}>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <Box sx={breakdownRowSx}>
                         <Typography sx={{ color: limeColors[500], fontWeight: 700 }}>
                           Amount You&apos;ll Receive:
                         </Typography>
@@ -1301,7 +1307,7 @@ export default function PayrollLoanApplicationPage() {
                         Repayment Breakdown (4.5% p.m. – Reducing Balance)
                       </Typography>
 
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                      <Box sx={{ ...breakdownRowSx, mb: 1 }}>
                         <Typography sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a' }}>
                           Principal:
                         </Typography>
@@ -1310,7 +1316,7 @@ export default function PayrollLoanApplicationPage() {
                         </Typography>
                       </Box>
 
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                      <Box sx={{ ...breakdownRowSx, mb: 1 }}>
                         <Typography sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a' }}>
                           Total Interest (reducing balance):
                         </Typography>
@@ -1320,9 +1326,7 @@ export default function PayrollLoanApplicationPage() {
                       </Box>
 
                       <Box sx={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
+                        ...breakdownRowSx,
                         pt: 1,
                         borderTop: `1px solid ${isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`
                       }}>
@@ -1347,7 +1351,7 @@ export default function PayrollLoanApplicationPage() {
                       <Typography variant="body2" sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a', mb: 1 }}>
                         Monthly Repayment Amount
                       </Typography>
-                      <Typography variant="h3" sx={{ color: limeColors[500], fontWeight: 800, mb: 1 }}>
+                      <Typography sx={{ color: limeColors[500], fontWeight: 800, mb: 1, fontSize: { xs: '1.5rem', sm: '3rem' } }}>
                         MK {monthlyPayment.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                       </Typography>
                       <Typography variant="caption" sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a' }}>
@@ -1463,7 +1467,7 @@ export default function PayrollLoanApplicationPage() {
                     <VisuallyHiddenInput type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={handleFileUpload('employerLetter')} />
                   </Button>
                   {(formData.employerLetter || existingDocuments[DOCUMENT_TYPES.EMPLOYER_LETTER]) && (
-                    <Typography variant="caption" sx={{ display: 'block', mt: 2, color: limeColors[500] }}>
+                    <Typography variant="caption" sx={{ display: 'block', mt: 2, color: limeColors[500], maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       ✓ {formData.employerLetter ? formData.employerLetter.name : existingDocuments[DOCUMENT_TYPES.EMPLOYER_LETTER]?.fileName}
                       {formData.employerLetter && ` (${(formData.employerLetter.size / (1024 * 1024)).toFixed(2)}MB)`}
                     </Typography>
@@ -1661,7 +1665,7 @@ export default function PayrollLoanApplicationPage() {
               bgcolor: isDarkMode ? 'rgba(255, 255, 255, 0.02)' : 'rgba(255, 255, 255, 0.5)',
               border: `1.5px solid ${isTotalSizeExceeded ? '#ef4444' : (isDarkMode ? 'rgba(132, 204, 22, 0.2)' : 'rgba(132, 204, 22, 0.15)')}`,
             }}>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+              <Box sx={{ ...breakdownRowSx, mb: 1 }}>
                 <Typography sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a' }}>
                   Total Upload Size:
                 </Typography>
@@ -1737,7 +1741,7 @@ export default function PayrollLoanApplicationPage() {
                     <VisuallyHiddenInput type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={handleFileUpload('idDocument')} />
                   </Button>
                   {(formData.idDocument || existingDocuments[DOCUMENT_TYPES.ID_DOCUMENT]) && (
-                    <Typography variant="caption" sx={{ display: 'block', mt: 2, color: limeColors[500] }}>
+                    <Typography variant="caption" sx={{ display: 'block', mt: 2, color: limeColors[500], maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       ✓ {formData.idDocument ? formData.idDocument.name : existingDocuments[DOCUMENT_TYPES.ID_DOCUMENT]?.fileName}
                       {formData.idDocument && ` (${(formData.idDocument.size / (1024 * 1024)).toFixed(2)}MB)`}
                     </Typography>
@@ -1808,7 +1812,7 @@ export default function PayrollLoanApplicationPage() {
                     <VisuallyHiddenInput type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={handleFileUpload('payslip1')} />
                   </Button>
                   {(formData.payslip1 || existingDocuments[DOCUMENT_TYPES.PAYSLIP_1]) && (
-                    <Typography variant="caption" sx={{ display: 'block', mt: 2, color: limeColors[500] }}>
+                    <Typography variant="caption" sx={{ display: 'block', mt: 2, color: limeColors[500], maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       ✓ {formData.payslip1 ? formData.payslip1.name : existingDocuments[DOCUMENT_TYPES.PAYSLIP_1]?.fileName}
                       {formData.payslip1 && ` (${(formData.payslip1.size / (1024 * 1024)).toFixed(2)}MB)`}
                     </Typography>
@@ -1880,7 +1884,7 @@ export default function PayrollLoanApplicationPage() {
                     <VisuallyHiddenInput type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={handleFileUpload('payslip2')} />
                   </Button>
                   {(formData.payslip2 || existingDocuments[DOCUMENT_TYPES.PAYSLIP_2]) && (
-                    <Typography variant="caption" sx={{ display: 'block', mt: 2, color: limeColors[500] }}>
+                    <Typography variant="caption" sx={{ display: 'block', mt: 2, color: limeColors[500], maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       ✓ {formData.payslip2 ? formData.payslip2.name : existingDocuments[DOCUMENT_TYPES.PAYSLIP_2]?.fileName}
                       {formData.payslip2 && ` (${(formData.payslip2.size / (1024 * 1024)).toFixed(2)}MB)`}
                     </Typography>
@@ -1949,7 +1953,7 @@ export default function PayrollLoanApplicationPage() {
                     <VisuallyHiddenInput type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={handleFileUpload('payslip3')} />
                   </Button>
                   {(formData.payslip3 || existingDocuments[DOCUMENT_TYPES.PAYSLIP_3]) && (
-                    <Typography variant="caption" sx={{ display: 'block', mt: 2, color: limeColors[500] }}>
+                    <Typography variant="caption" sx={{ display: 'block', mt: 2, color: limeColors[500], maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       ✓ {formData.payslip3 ? formData.payslip3.name : existingDocuments[DOCUMENT_TYPES.PAYSLIP_3]?.fileName}
                       {formData.payslip3 && ` (${(formData.payslip3.size / (1024 * 1024)).toFixed(2)}MB)`}
                     </Typography>
@@ -2129,10 +2133,10 @@ export default function PayrollLoanApplicationPage() {
               </Box>
 
               {/* RBM Regulatory Info */}
-              <Box sx={{ 
-                mt: 4, 
-                p: 2, 
-                borderRadius: '16px', 
+              <Box sx={{
+                mt: 4,
+                p: 2,
+                borderRadius: '16px',
                 bgcolor: isDarkMode ? 'rgba(132, 204, 22, 0.05)' : 'rgba(132, 204, 22, 0.03)',
                 border: `1px dashed ${isDarkMode ? 'rgba(132, 204, 22, 0.3)' : 'rgba(132, 204, 22, 0.2)'}`,
                 display: 'flex',
@@ -2264,7 +2268,7 @@ export default function PayrollLoanApplicationPage() {
     <>
       <Container maxWidth="lg" sx={{ py: 4 }}>
         <Box sx={{ mb: 5, textAlign: 'center' }}>
-          <Typography variant="h3" component="h1" sx={{ color: isDarkMode ? 'white' : '#18181b', fontWeight: 700, mb: 1 }}>
+          <Typography component="h1" sx={{ color: isDarkMode ? 'white' : '#18181b', fontWeight: 700, mb: 1, fontSize: { xs: '1.8rem', sm: '3rem' } }}>
             Payroll Deduction Loan Application
           </Typography>
           <Typography variant="body1" sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a' }}>
@@ -2274,7 +2278,7 @@ export default function PayrollLoanApplicationPage() {
 
         {/* Progress Bar */}
         <Box sx={{ mb: 5 }}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+          <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, alignItems: { xs: 'flex-start', sm: 'center' }, justifyContent: 'space-between', mb: 2, gap: 1 }}>
             <Typography variant="body2" sx={{ color: isDarkMode ? '#a1a1aa' : '#71717a', fontWeight: 600 }}>
               Step {activeStep + 1} of {steps.length}
             </Typography>
@@ -2303,72 +2307,76 @@ export default function PayrollLoanApplicationPage() {
         </Box>
 
         {/* Custom Stepper */}
-        <Box sx={{
-          mb: 5,
-          display: 'flex',
-          justifyContent: 'space-between',
-          position: 'relative',
-          '&::before': {
-            content: '""',
-            position: 'absolute',
-            top: '24px',
-            left: '5%',
-            right: '5%',
-            height: '2px',
-            bgcolor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
-            zIndex: 0
-          }
-        }}>
-          {steps.map((step, index) => {
-            const Icon = step.icon;
-            const isActive = index === activeStep;
-            const isCompleted = index < activeStep;
+        <Box sx={{ overflowX: 'auto', pb: 1, width: '100%' }}>
+          <Box sx={{
+            mb: 5,
+            display: 'flex',
+            minWidth: { xs: 560, sm: 'auto' },
+            justifyContent: 'space-between',
+            position: 'relative',
+            '&::before': {
+              content: '""',
+              position: 'absolute',
+              top: '24px',
+              left: '5%',
+              right: '5%',
+              height: '2px',
+              bgcolor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+              zIndex: 0
+            }
+          }}>
+            {steps.map((step, index) => {
+              const Icon = step.icon;
+              const isActive = index === activeStep;
+              const isCompleted = index < activeStep;
 
-            return (
-              <Box
-                key={step.label}
-                sx={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  flex: 1,
-                  position: 'relative',
-                  zIndex: 1
-                }}
-              >
-                <Box sx={{
-                  width: '48px',
-                  height: '48px',
-                  borderRadius: '50%',
-                  bgcolor: isCompleted ? limeColors[500] : isActive ? alpha(limeColors[500], 0.15) : (isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)'),
-                  border: `2px solid ${isActive || isCompleted ? limeColors[500] : 'transparent'}`,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  mb: 1,
-                  transition: 'all 0.3s ease',
-                  boxShadow: isActive ? `0 0 20px ${alpha(limeColors[500], 0.4)}` : 'none'
-                }}>
-                  {isCompleted ? (
-                    <CheckCircle size={24} color="white" />
-                  ) : (
-                    <Icon size={24} color={isActive ? limeColors[500] : (isDarkMode ? '#52525b' : '#a1a1aa')} />
-                  )}
-                </Box>
-                <Typography
-                  variant="caption"
+              return (
+                <Box
+                  key={step.label}
                   sx={{
-                    color: isActive || isCompleted ? (isDarkMode ? 'white' : '#18181b') : (isDarkMode ? '#71717a' : '#a1a1aa'),
-                    fontWeight: isActive ? 600 : 400,
-                    textAlign: 'center',
-                    display: { xs: 'none', sm: 'block' }
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    flex: '0 0 auto',
+                    minWidth: 72,
+                    position: 'relative',
+                    zIndex: 1
                   }}
                 >
-                  {step.label}
-                </Typography>
-              </Box>
-            );
-          })}
+                  <Box sx={{
+                    width: '48px',
+                    height: '48px',
+                    borderRadius: '50%',
+                    bgcolor: isCompleted ? limeColors[500] : isActive ? alpha(limeColors[500], 0.15) : (isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)'),
+                    border: `2px solid ${isActive || isCompleted ? limeColors[500] : 'transparent'}`,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    mb: 1,
+                    transition: 'all 0.3s ease',
+                    boxShadow: isActive ? `0 0 20px ${alpha(limeColors[500], 0.4)}` : 'none'
+                  }}>
+                    {isCompleted ? (
+                      <CheckCircle size={24} color="white" />
+                    ) : (
+                      <Icon size={24} color={isActive ? limeColors[500] : (isDarkMode ? '#52525b' : '#a1a1aa')} />
+                    )}
+                  </Box>
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      color: isActive || isCompleted ? (isDarkMode ? 'white' : '#18181b') : (isDarkMode ? '#71717a' : '#a1a1aa'),
+                      fontWeight: isActive ? 600 : 400,
+                      textAlign: 'center',
+                      display: { xs: 'none', sm: 'block' }
+                    }}
+                  >
+                    {step.label}
+                  </Typography>
+                </Box>
+              );
+            })}
+          </Box>
         </Box>
 
         <Paper
@@ -2385,113 +2393,129 @@ export default function PayrollLoanApplicationPage() {
           {getStepContent(activeStep)}
         </Paper>
 
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2 }}>
-          <Box sx={{ display: 'flex', gap: 2 }}>
-            {activeStep > 0 && (
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: { xs: 'column-reverse', md: 'row' },
+              justifyContent: 'space-between',
+              alignItems: { xs: 'stretch', md: 'center' },
+              gap: 2,
+            }}
+          >
+            <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2, width: { xs: '100%', md: 'auto' } }}>
+              {activeStep > 0 && (
+                <Button
+                  onClick={handleBack}
+                  startIcon={<ArrowLeft size={18} />}
+                  sx={{
+                    color: isDarkMode ? 'white' : '#18181b',
+                    borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+                    borderRadius: '12px',
+                    textTransform: 'none',
+                    fontWeight: 600,
+                    px: 3,
+                    py: 1.5,
+                    width: { xs: '100%', sm: 'auto' },
+                    '&:hover': {
+                      borderColor: limeColors[500],
+                      bgcolor: alpha(limeColors[500], 0.05)
+                    }
+                  }}
+                  variant="outlined"
+                >
+                  Back
+                </Button>
+              )}
               <Button
-                onClick={handleBack}
-                startIcon={<ArrowLeft size={18} />}
+                onClick={handleSaveDraft}
+                startIcon={<Save size={18} />}
+                variant="outlined"
+                disabled={isLoading}
                 sx={{
-                  color: isDarkMode ? 'white' : '#18181b',
-                  borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+                  color: limeColors[500],
+                  borderColor: limeColors[500],
                   borderRadius: '12px',
                   textTransform: 'none',
                   fontWeight: 600,
                   px: 3,
                   py: 1.5,
+                  width: { xs: '100%', sm: 'auto' },
                   '&:hover': {
-                    borderColor: limeColors[500],
-                    bgcolor: alpha(limeColors[500], 0.05)
-                  }
-                }}
-                variant="outlined"
-              >
-                Back
-              </Button>
-            )}
-            <Button
-              onClick={handleSaveDraft}
-              startIcon={<Save size={18} />}
-              variant="outlined"
-              disabled={isLoading}
-              sx={{
-                color: limeColors[500],
-                borderColor: limeColors[500],
-                borderRadius: '12px',
-                textTransform: 'none',
-                fontWeight: 600,
-                px: 3,
-                py: 1.5,
-                '&:hover': {
-                  borderColor: limeColors[600],
-                  bgcolor: alpha(limeColors[500], 0.1)
-                },
-                '&.Mui-disabled': {
-                  borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
-                  color: isDarkMode ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.3)'
-                }
-              }}
-            >
-              {isLoading ? <CircularProgress size={20} /> : 'Save Draft'}
-            </Button>
-          </Box>
-          <Box>
-            {activeStep === steps.length - 1 ? (
-              <Button
-                variant="contained"
-                onClick={handleSubmit}
-                disabled={isSubmitting || isLoading}
-                endIcon={isSubmitting ? <CircularProgress size={20} sx={{ color: 'white' }} /> : <CheckCircle size={18} />}
-                sx={{
-                  bgcolor: limeColors[500],
-                  color: 'white',
-                  borderRadius: '12px',
-                  textTransform: 'none',
-                  fontWeight: 700,
-                  px: 4,
-                  py: 1.5,
-                  boxShadow: `0 4px 20px ${alpha(limeColors[500], 0.4)}`,
-                  '&:hover': {
-                    bgcolor: limeColors[600],
-                    boxShadow: `0 6px 25px ${alpha(limeColors[500], 0.5)}`
+                    borderColor: limeColors[600],
+                    bgcolor: alpha(limeColors[500], 0.1)
                   },
                   '&.Mui-disabled': {
-                    bgcolor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+                    borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
                     color: isDarkMode ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.3)'
                   }
                 }}
               >
-                {isSubmitting ? 'Submitting...' : 'Submit Application'}
+                {isLoading ? <CircularProgress size={20} /> : 'Save Draft'}
               </Button>
-            ) : (
-              <Button
-                variant="contained"
-                onClick={handleNext}
-                endIcon={<ArrowRight size={18} />}
-                sx={{
-                  bgcolor: limeColors[500],
-                  color: 'white',
-                  borderRadius: '12px',
-                  textTransform: 'none',
-                  fontWeight: 700,
-                  px: 4,
-                  py: 1.5,
-                  boxShadow: `0 4px 20px ${alpha(limeColors[500], 0.4)}`,
-                  '&:hover': {
-                    bgcolor: limeColors[600],
-                    boxShadow: `0 6px 25px ${alpha(limeColors[500], 0.5)}`
-                  }
-                }}
-              >
-                Continue
-              </Button>
-            )}
+            </Box>
+            <Box sx={{ width: { xs: '100%', md: 'auto' } }}>
+              {activeStep === steps.length - 1 ? (
+                <Button
+                  variant="contained"
+                  onClick={handleSubmit}
+                  disabled={isSubmitting || isLoading}
+                  fullWidth
+                  endIcon={isSubmitting ? <CircularProgress size={20} sx={{ color: 'white' }} /> : <CheckCircle size={18} />}
+                  sx={{
+                    bgcolor: limeColors[500],
+                    color: 'white',
+                    borderRadius: '12px',
+                    textTransform: 'none',
+                    fontWeight: 700,
+                    px: 4,
+                    py: 1.5,
+                    width: { xs: '100%', md: 'auto' },
+                    boxShadow: `0 4px 20px ${alpha(limeColors[500], 0.4)}`,
+                    '&:hover': {
+                      bgcolor: limeColors[600],
+                      boxShadow: `0 6px 25px ${alpha(limeColors[500], 0.5)}`
+                    },
+                    '&.Mui-disabled': {
+                      bgcolor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+                      color: isDarkMode ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.3)'
+                    }
+                  }}
+                >
+                  {isSubmitting ? 'Submitting...' : 'Submit Application'}
+                </Button>
+              ) : (
+                <Button
+                  variant="contained"
+                  onClick={handleNext}
+                  fullWidth
+                  endIcon={<ArrowRight size={18} />}
+                  sx={{
+                    bgcolor: limeColors[500],
+                    color: 'white',
+                    borderRadius: '12px',
+                    textTransform: 'none',
+                    fontWeight: 700,
+                    px: 4,
+                    py: 1.5,
+                    width: { xs: '100%', md: 'auto' },
+                    boxShadow: `0 4px 20px ${alpha(limeColors[500], 0.4)}`,
+                    '&:hover': {
+                      bgcolor: limeColors[600],
+                      boxShadow: `0 6px 25px ${alpha(limeColors[500], 0.5)}`
+                    }
+                  }}
+                >
+                  Continue
+                </Button>
+              )}
+            </Box>
           </Box>
           {/* RBM Regulatory Info */}
-          <Box sx={{ 
-            mt: 4, 
-            p: 2, 
-            borderRadius: '16px', 
+          <Box sx={{
+            mt: 4,
+            p: 2,
+            borderRadius: '16px',
             bgcolor: isDarkMode ? 'rgba(132, 204, 22, 0.05)' : 'rgba(132, 204, 22, 0.03)',
             border: `1px dashed ${isDarkMode ? 'rgba(132, 204, 22, 0.3)' : 'rgba(132, 204, 22, 0.2)'}`,
             display: 'flex',

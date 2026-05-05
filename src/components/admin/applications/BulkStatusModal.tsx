@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { X, AlertCircle } from "lucide-react";
+import { AlertCircle } from "lucide-react";
 import { Select, Textarea } from "@/components/ui/FormELements";
 import apiClient from "@/lib/apiClient";
+import Modal from "@/components/ui/Modal";
 
 interface BulkStatusModalProps {
   isOpen: boolean;
@@ -22,8 +23,6 @@ export default function BulkStatusModal({
   const [reason, setReason] = useState("");
   const [comment, setComment] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  if (!isOpen) return null;
 
   const handleSubmit = async () => {
     if (!newStatus || !comment) {
@@ -60,21 +59,34 @@ export default function BulkStatusModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/60 backdrop-blur-sm">
-      <div className="w-full max-w-md bg-card rounded-2xl shadow-xl border border-border overflow-hidden animate-in fade-in zoom-in duration-200">
-        <div className="flex items-center justify-between p-4 border-b border-border bg-card">
-          <h3 className="text-lg font-bold text-foreground">
-            Change Status (Bulk)
-          </h3>
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Change Status (Bulk)"
+      maxWidthClassName="max-w-md"
+      footer={
+        <>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-foreground/5 rounded-full transition-colors"
+            className="min-h-11 px-4 py-2 text-sm font-medium text-foreground/60 transition-colors hover:text-foreground sm:w-auto w-full"
           >
-            <X className="w-5 h-5 text-foreground/50" />
+            Cancel
           </button>
-        </div>
-
-        <div className="p-6 space-y-4">
+          <button
+            onClick={handleSubmit}
+            disabled={!newStatus || !comment || isSubmitting}
+            className={`min-h-11 w-full rounded-lg px-4 py-2 text-sm font-bold text-white transition-all sm:w-auto ${
+              newStatus === "REJECTED"
+                ? "bg-red-600 hover:bg-red-700 disabled:bg-red-400"
+                : "bg-primary-600 hover:bg-primary-700 disabled:bg-primary-400"
+            }`}
+          >
+            {isSubmitting ? "Updating..." : "Confirm & Update"}
+          </button>
+        </>
+      }
+    >
+      <div className="space-y-4">
           <div className="flex items-start gap-3 p-3 rounded-lg bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-900/30">
             <AlertCircle className="w-5 h-5 text-yellow-600 dark:text-yellow-400 shrink-0 mt-0.5" />
             <p className="text-sm text-yellow-700 dark:text-yellow-400">
@@ -135,29 +147,7 @@ export default function BulkStatusModal({
               rows={4}
             />
           </div>
-        </div>
-
-        <div className="flex items-center justify-end gap-3 p-4 bg-card border-t border-border">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 text-sm font-medium text-foreground/60 hover:text-foreground transition-colors"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={handleSubmit}
-            disabled={!newStatus || !comment || isSubmitting}
-            className={`px-4 py-2 rounded-lg text-sm font-bold text-white transition-all
-              ${
-                newStatus === "REJECTED"
-                  ? "bg-red-600 hover:bg-red-700 disabled:bg-red-400"
-                  : "bg-primary-600 hover:bg-primary-700 disabled:bg-primary-400"
-              }`}
-          >
-            {isSubmitting ? "Updating..." : "Confirm & Update"}
-          </button>
-        </div>
       </div>
-    </div>
+    </Modal>
   );
 }

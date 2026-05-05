@@ -243,7 +243,7 @@ const RegisterForm = () => {
                             }`}>
                                 {currentStep > step.id ? '✓' : step.id}
                             </div>
-                            <span className={`mt-2 text-[10px] uppercase tracking-wider font-bold ${currentStep >= step.id ? 'text-primary-700' : 'text-gray-400'}`}>
+                            <span className={`mt-2 hidden text-[10px] font-bold uppercase tracking-wider sm:block ${currentStep >= step.id ? 'text-primary-700' : 'text-gray-400'}`}>
                                 {step.title}
                             </span>
                         </div>
@@ -253,7 +253,7 @@ const RegisterForm = () => {
 
             {/* Form Card */}
             <div className="bg-white rounded-3xl shadow-2xl shadow-gray-200/50 border border-gray-100 overflow-hidden">
-                <form onSubmit={handleSubmit} className="p-8 md:p-10">
+                <form onSubmit={handleSubmit} className="p-5 sm:p-6 md:p-10">
                     {authError && (
                         <div className="mb-6 p-4 bg-error-main/10 border border-error-main/20 rounded-xl text-error-main text-sm font-medium">
                             {authError}
@@ -438,13 +438,13 @@ const RegisterForm = () => {
                     </AnimatePresence>
 
                     {/* Navigation Buttons */}
-                    <div className="mt-10 flex gap-4">
+                    <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:gap-4">
                         {currentStep > 1 && (
                             <button 
                                 type="button" 
                                 onClick={prevStep}
                                 disabled={isSubmittingRef.current}
-                                className="flex-1 px-6 py-3 border border-gray-200 rounded-xl font-bold text-gray-600 hover:bg-gray-50 hover:border-gray-300 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="min-w-0 flex-1 rounded-xl border border-gray-200 px-6 py-3 font-bold text-gray-600 transition-all hover:border-gray-300 hover:bg-gray-50 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
                             >
                                 Back
                             </button>
@@ -454,7 +454,7 @@ const RegisterForm = () => {
                                 type="button" 
                                 onClick={nextStep}
                                 disabled={isSubmittingRef.current}
-                                className="flex-2 bg-primary-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-primary-500 shadow-lg shadow-primary-200 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="min-w-0 flex-1 rounded-xl bg-primary-600 px-6 py-3 font-bold text-white shadow-lg shadow-primary-200 transition-all hover:bg-primary-500 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 sm:flex-[2]"
                             >
                                 Continue
                             </button>
@@ -462,7 +462,7 @@ const RegisterForm = () => {
                             <button 
                                 type="submit" 
                                 disabled={isLoading || isSubmittingRef.current}
-                                className="flex-2 bg-primary-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-primary-500 shadow-lg shadow-primary-200 disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center active:scale-95 transition-all"
+                                className="flex min-w-0 flex-1 items-center justify-center rounded-xl bg-primary-600 px-6 py-3 font-bold text-white shadow-lg shadow-primary-200 transition-all hover:bg-primary-500 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 sm:flex-[2]"
                             >
                                 Complete Registration
                             </button>

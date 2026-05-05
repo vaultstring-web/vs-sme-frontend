@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { useLoans } from '@/hooks/useLoans';
-import { Loan, PaymentSchedule, LoanPayment } from '@/types/api';
 import { 
   ArrowLeft, 
   Calendar, 
@@ -12,9 +11,8 @@ import {
   TrendingUp,
   Banknote,
   Receipt,
-  FileText
 } from 'lucide-react';
-import { motion } from 'framer-motion';
+import ResponsiveTable from '@/components/ui/ResponsiveTable';
 
 interface LoanDetailsProps {
   loanId: string;
@@ -22,7 +20,7 @@ interface LoanDetailsProps {
 }
 
 export default function LoanDetails({ loanId, onBack }: LoanDetailsProps) {
-  const { currentLoan: loan, isLoading, error, fetchLoanById } = useLoans();
+  const { currentLoan: loan, isLoading, fetchLoanById } = useLoans();
 
   // Load details on mount
   useState(() => {
@@ -61,16 +59,16 @@ export default function LoanDetails({ loanId, onBack }: LoanDetailsProps) {
   return (
     <div className="space-y-8 pb-20">
       {/* Header */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-start gap-4 sm:items-center">
         <button 
           onClick={onBack}
-          className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors text-foreground/60"
+          className="shrink-0 rounded-lg p-2 text-foreground/60 transition-colors hover:bg-slate-100 dark:hover:bg-zinc-800"
         >
           <ArrowLeft size={20} />
         </button>
-        <div>
-          <h1 className="text-2xl font-black text-foreground tracking-tight">Loan Details</h1>
-          <p className="text-xs font-bold text-foreground/40 uppercase tracking-widest">Reference: {loan.id.slice(0, 8).toUpperCase()}</p>
+        <div className="min-w-0">
+          <h1 className="text-2xl font-black tracking-tight text-foreground">Loan Details</h1>
+          <p className="break-all text-xs font-bold uppercase tracking-widest text-foreground/40">Reference: {loan.id.slice(0, 8).toUpperCase()}</p>
         </div>
       </div>
 
@@ -122,8 +120,28 @@ export default function LoanDetails({ loanId, onBack }: LoanDetailsProps) {
             </h3>
           </div>
           <div className="bento-card overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left">
+            <ResponsiveTable
+              mobileCards={
+                <div className="space-y-3 p-4">
+                  {loan.schedule?.map((item) => (
+                    <div key={item.id} className="space-y-2 rounded-xl border border-border p-4">
+                      <p className="text-sm font-medium text-foreground">
+                        {new Date(item.dueDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                      </p>
+                      <p className="text-sm font-bold text-foreground">MWK {item.amountDue.toLocaleString()}</p>
+                      {item.paidAmount > 0 && (
+                        <p className="text-[10px] font-bold text-green-600">Paid: MWK {item.paidAmount.toLocaleString()}</p>
+                      )}
+                      <div className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider ${getScheduleStatusClass(item.status)}`}>
+                        {getScheduleStatusIcon(item.status)}
+                        {item.status}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              }
+              table={
+              <table className="hidden w-full min-w-[700px] text-left md:table">
                 <thead>
                   <tr className="border-b border-border bg-slate-50/50 dark:bg-zinc-900/50">
                     <th className="px-4 py-3 text-[10px] font-bold uppercase text-foreground/40">Due Date</th>
@@ -133,18 +151,18 @@ export default function LoanDetails({ loanId, onBack }: LoanDetailsProps) {
                 </thead>
                 <tbody className="divide-y divide-border">
                   {loan.schedule?.map((item) => (
-                    <tr key={item.id} className="hover:bg-slate-50 dark:hover:bg-zinc-800/50 transition-colors">
+                    <tr key={item.id} className="transition-colors hover:bg-slate-50 dark:hover:bg-zinc-800/50">
                       <td className="px-4 py-4 text-sm font-medium text-foreground">
                         {new Date(item.dueDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
                       </td>
                       <td className="px-4 py-4">
                         <div className="text-sm font-bold text-foreground">MWK {item.amountDue.toLocaleString()}</div>
                         {item.paidAmount > 0 && (
-                          <div className="text-[10px] text-green-600 font-bold">Paid: MWK {item.paidAmount.toLocaleString()}</div>
+                          <div className="text-[10px] font-bold text-green-600">Paid: MWK {item.paidAmount.toLocaleString()}</div>
                         )}
                       </td>
                       <td className="px-4 py-4">
-                        <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${getScheduleStatusClass(item.status)}`}>
+                        <div className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider ${getScheduleStatusClass(item.status)}`}>
                           {getScheduleStatusIcon(item.status)}
                           {item.status}
                         </div>
@@ -153,7 +171,8 @@ export default function LoanDetails({ loanId, onBack }: LoanDetailsProps) {
                   ))}
                 </tbody>
               </table>
-            </div>
+              }
+            />
           </div>
         </div>
 
@@ -166,7 +185,7 @@ export default function LoanDetails({ loanId, onBack }: LoanDetailsProps) {
           <div className="space-y-3">
             {loan.payments && loan.payments.length > 0 ? (
               loan.payments.map((payment) => (
-                <div key={payment.id} className="bento-card p-4 flex items-center justify-between">
+                <div key={payment.id} className="bento-card flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
                   <div className="flex items-center gap-4">
                     <div className="p-3 rounded-xl bg-green-50 dark:bg-green-900/20 text-green-600">
                       <Banknote size={20} />

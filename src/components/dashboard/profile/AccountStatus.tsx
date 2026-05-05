@@ -147,25 +147,26 @@ export const AccountStatus = () => {
       <div className="absolute -top-10 -right-10 w-32 h-32 bg-primary-500/5 rounded-full blur-3xl" />
       
       {/* Header Section */}
-      <div className="flex items-center justify-between mb-8">
+      <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-4">
-          <div className="p-3 bg-slate-100 dark:bg-white/5 border border-border rounded-xl">
-            <ShieldCheck className="w-6 h-6 text-slate-600 dark:text-slate-400" />
+          <div className="rounded-xl border border-border bg-slate-100 p-3 dark:bg-white/5">
+            <ShieldCheck className="h-6 w-6 text-slate-600 dark:text-slate-400" />
           </div>
           <div>
-            <h2 className="text-2xl font-bold tracking-tight text-foreground">Account Status</h2>
-            <p className="text-xs text-slate-400 mt-0.5 uppercase tracking-widest font-medium">Live Account Information</p>
+            <h2 className="text-xl font-bold tracking-tight text-foreground sm:text-2xl">Account Status</h2>
+            <p className="mt-0.5 text-xs font-medium uppercase tracking-widest text-slate-400">Live Account Information</p>
           </div>
         </div>
 
         {/* Refresh button */}
         <button
+          type="button"
           onClick={fetchUserProfile}
           disabled={isLoadingProfile}
-          className="p-2 hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="self-start rounded-lg p-2 transition-colors hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50 dark:hover:bg-white/5 sm:self-auto"
           title="Refresh account status"
         >
-          <RefreshCw className={`w-4 h-4 text-slate-500 ${isLoadingProfile ? 'animate-spin' : ''}`} />
+          <RefreshCw className={`h-4 w-4 text-slate-500 ${isLoadingProfile ? 'animate-spin' : ''}`} />
         </button>
       </div>
 
@@ -207,7 +208,7 @@ export const AccountStatus = () => {
               </div>
               <div className="space-y-1 flex-1">
                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Current Role</p>
-                <p className="text-xl font-black text-foreground leading-none py-1">
+                <p className="break-words py-1 text-xl font-black leading-none text-foreground sm:text-2xl">
                   {userRole}
                 </p>
                 <p className="text-xs text-slate-500 leading-relaxed">
@@ -229,7 +230,7 @@ export const AccountStatus = () => {
               </div>
               <div className="space-y-1 flex-1">
                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Account Status</p>
-                <p className="text-xl font-black text-foreground leading-none py-1">
+                <p className="break-words py-1 text-xl font-black leading-none text-foreground sm:text-2xl">
                   {accountStatus}
                 </p>
                 <p className="text-xs text-slate-500 leading-relaxed">

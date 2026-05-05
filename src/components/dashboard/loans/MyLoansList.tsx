@@ -101,7 +101,7 @@ export default function MyLoansList({ onSelect }: { onSelect: (loan: Loan) => vo
           {/* Amount Info */}
           <div className="space-y-1 mb-6">
             <p className="text-xs font-bold text-foreground/40 uppercase tracking-widest">Remaining Balance</p>
-            <h3 className="text-3xl font-black text-foreground tracking-tight">
+            <h3 className="break-words text-2xl font-black tracking-tight text-foreground sm:text-3xl">
               MWK {loan.remainingBalance.toLocaleString()}
             </h3>
           </div>
@@ -126,22 +126,22 @@ export default function MyLoansList({ onSelect }: { onSelect: (loan: Loan) => vo
 
           {/* Quick Stats */}
           <div className="grid grid-cols-2 gap-4">
-            <div className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 dark:bg-zinc-900/50">
-              <div className="p-2 rounded-lg bg-white dark:bg-zinc-800 text-primary-600 shadow-sm">
+            <div className="flex min-w-0 items-center gap-3 rounded-xl bg-slate-50 p-3 dark:bg-zinc-900/50">
+              <div className="shrink-0 rounded-lg bg-white p-2 text-primary-600 shadow-sm dark:bg-zinc-800">
                 <Banknote size={16} />
               </div>
-              <div>
-                <p className="text-[10px] font-bold text-foreground/40 uppercase">Total Repayable</p>
-                <p className="text-sm font-bold text-foreground">MWK {loan.totalRepayable.toLocaleString()}</p>
+              <div className="min-w-0">
+                <p className="text-[10px] font-bold uppercase text-foreground/40">Total Repayable</p>
+                <p className="truncate text-sm font-bold text-foreground">MWK {loan.totalRepayable.toLocaleString()}</p>
               </div>
             </div>
-            <div className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 dark:bg-zinc-900/50">
-              <div className="p-2 rounded-lg bg-white dark:bg-zinc-800 text-primary-600 shadow-sm">
+            <div className="flex min-w-0 items-center gap-3 rounded-xl bg-slate-50 p-3 dark:bg-zinc-900/50">
+              <div className="shrink-0 rounded-lg bg-white p-2 text-primary-600 shadow-sm dark:bg-zinc-800">
                 <Calendar size={16} />
               </div>
-              <div>
-                <p className="text-[10px] font-bold text-foreground/40 uppercase">Started</p>
-                <p className="text-sm font-bold text-foreground">{new Date(loan.startDate).toLocaleDateString()}</p>
+              <div className="min-w-0">
+                <p className="text-[10px] font-bold uppercase text-foreground/40">Started</p>
+                <p className="truncate text-sm font-bold text-foreground">{new Date(loan.startDate).toLocaleDateString()}</p>
               </div>
             </div>
           </div>

@@ -173,11 +173,11 @@ export default function SecuritySettings() {
   return (
     <>
       <section className="bento-card p-6">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="p-2 bg-primary-100 dark:bg-primary-900/30 rounded-lg">
-            <ShieldCheck className="w-5 h-5 text-primary-600" />
+        <div className="mb-6 flex items-center gap-3">
+          <div className="rounded-lg bg-primary-100 p-2 dark:bg-primary-900/30">
+            <ShieldCheck className="h-5 w-5 text-primary-600" />
           </div>
-          <h2 className="text-xl font-semibold">Security Settings</h2>
+          <h2 className="text-xl font-semibold sm:text-2xl">Security Settings</h2>
         </div>
 
         <div className="space-y-4">
@@ -433,11 +433,11 @@ export default function SecuritySettings() {
               </div>
 
               {/* Action Buttons */}
-              <div className="flex gap-3 pt-2">
+              <div className="flex flex-col-reverse gap-3 pt-2 sm:flex-row">
                 <button
                   type="button"
                   onClick={handleClosePasswordModal}
-                  className="flex-1 px-4 py-2.5 border border-border rounded-lg font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                  className="min-h-11 w-full flex-1 rounded-lg border border-border px-4 py-2.5 font-medium transition-colors hover:bg-slate-50 dark:hover:bg-slate-800 sm:min-h-0"
                   disabled={isSubmitting}
                 >
                   Cancel
@@ -445,7 +445,7 @@ export default function SecuritySettings() {
                 <button
                   type="submit"
                   disabled={isSubmitting || success}
-                  className="flex-1 px-4 py-2.5 bg-primary-500 text-white rounded-lg font-medium hover:bg-primary-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="flex min-h-11 w-full flex-1 items-center justify-center gap-2 rounded-lg bg-primary-500 px-4 py-2.5 font-medium text-white transition-colors hover:bg-primary-600 disabled:cursor-not-allowed disabled:opacity-50 sm:min-h-0"
                 >
                   {isSubmitting ? (
                     <>

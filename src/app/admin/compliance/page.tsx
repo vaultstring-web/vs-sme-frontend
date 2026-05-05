@@ -60,7 +60,8 @@ export default function ComplianceReportPage() {
           </p>
         </div>
         <button 
-          className="flex items-center justify-center gap-2 px-6 py-2.5 bg-slate-900 dark:bg-zinc-100 text-white dark:text-slate-900 rounded-xl transition-all font-bold text-sm shadow-lg"
+          type="button"
+          className="flex w-full items-center justify-center gap-2 rounded-xl bg-slate-900 px-6 py-2.5 text-sm font-bold text-white shadow-lg transition-all dark:bg-zinc-100 dark:text-slate-900 sm:w-auto"
           onClick={() => window.print()}
         >
           <Download size={18} />
@@ -72,13 +73,13 @@ export default function ComplianceReportPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <div className="bento-card p-6 border-l-4 border-l-blue-500">
           <p className="text-xs font-black text-foreground/40 uppercase tracking-widest mb-2">Total Disbursed</p>
-          <h3 className="text-2xl font-black text-foreground">MWK {report.summary.totalDisbursed.toLocaleString()}</h3>
+          <h3 className="break-words text-2xl font-black text-foreground sm:text-3xl">MWK {report.summary.totalDisbursed.toLocaleString()}</h3>
           <p className="text-xs text-foreground/50 font-medium mt-1">Across {report.summary.totalLoans} loans</p>
         </div>
         
         <div className="bento-card p-6 border-l-4 border-l-green-500">
           <p className="text-xs font-black text-foreground/40 uppercase tracking-widest mb-2">Total Collected</p>
-          <h3 className="text-2xl font-black text-foreground">MWK {report.summary.totalCollected.toLocaleString()}</h3>
+          <h3 className="break-words text-2xl font-black text-foreground sm:text-3xl">MWK {report.summary.totalCollected.toLocaleString()}</h3>
           <p className="text-xs text-green-600 font-bold mt-1">
             {Math.round((report.summary.totalCollected / report.summary.totalDisbursed) * 100) || 0}% Recovery Rate
           </p>
@@ -141,9 +142,9 @@ export default function ComplianceReportPage() {
             <PieChart className="w-5 h-5 text-primary-600" />
             Portfolio Performance
           </h3>
-          <div className="bento-card p-8 flex flex-col md:flex-row items-center gap-12">
-            <div className="relative w-48 h-48 flex items-center justify-center">
-              <svg className="w-full h-full transform -rotate-90">
+          <div className="bento-card flex flex-col items-center gap-8 p-6 md:flex-row md:gap-12 md:p-8">
+            <div className="relative flex h-36 w-36 shrink-0 items-center justify-center sm:h-44 sm:w-44 md:h-48 md:w-48">
+              <svg viewBox="0 0 192 192" className="h-full w-full -rotate-90 transform">
                 <circle
                   cx="96" cy="96" r="80"
                   fill="transparent"
@@ -172,18 +173,18 @@ export default function ComplianceReportPage() {
             
             <div className="flex-1 space-y-6 w-full">
               <div className="space-y-2">
-                <div className="flex justify-between text-xs font-black uppercase tracking-widest text-foreground/40">
+                <div className="flex flex-col gap-1 text-xs font-black uppercase tracking-widest text-foreground/40 sm:flex-row sm:items-center sm:justify-between">
                   <span>Repayment Velocity</span>
-                  <span className="text-foreground">MWK {Math.round(report.summary.totalCollected / 12).toLocaleString()}/mo avg</span>
+                  <span className="break-words text-foreground">MWK {Math.round(report.summary.totalCollected / 12).toLocaleString()}/mo avg</span>
                 </div>
                 <div className="h-2 w-full bg-slate-100 dark:bg-zinc-800 rounded-full overflow-hidden">
                   <div className="h-full bg-green-500 w-[65%]" />
                 </div>
               </div>
               <div className="space-y-2">
-                <div className="flex justify-between text-xs font-black uppercase tracking-widest text-foreground/40">
+                <div className="flex flex-col gap-1 text-xs font-black uppercase tracking-widest text-foreground/40 sm:flex-row sm:items-center sm:justify-between">
                   <span>Risk Exposure</span>
-                  <span className="text-foreground">
+                  <span className="break-words text-foreground">
                     {Math.round((report.summary.overdueSchedules / report.summary.totalLoans) * 100) || 0}% Portfolio at Risk
                   </span>
                 </div>

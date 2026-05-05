@@ -25,7 +25,11 @@ export default function QuickStatsCards({ stats }: QuickStatsCardsProps) {
       count: stats.draftCount,
       badge: 'In Progress',
       icon: FileText,
-      color: 'blue',
+      blobClass: 'text-blue-500',
+      badgeClass:
+        'rounded-full bg-blue-50 px-2 py-0.5 text-xs text-blue-600 dark:bg-blue-900/30 dark:text-blue-400',
+      iconWrapClass: 'rounded-lg bg-blue-50 p-3 dark:bg-blue-900/20',
+      iconClass: 'h-5 w-5 text-blue-500',
       href: hasDrafts ? `/dashboard/applications/${latestDraftId}` : undefined,
     },
     {
@@ -33,7 +37,11 @@ export default function QuickStatsCards({ stats }: QuickStatsCardsProps) {
       count: stats.submittedCount + stats.underReviewCount,
       badge: 'Under Review',
       icon: Clock,
-      color: 'yellow',
+      blobClass: 'text-yellow-500',
+      badgeClass:
+        'rounded-full bg-yellow-50 px-2 py-0.5 text-xs text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
+      iconWrapClass: 'rounded-lg bg-yellow-50 p-3 dark:bg-yellow-900/20',
+      iconClass: 'h-5 w-5 text-yellow-500',
       href: '/dashboard/applications?status=SUBMITTED,UNDER_REVIEW',
     },
     {
@@ -41,7 +49,11 @@ export default function QuickStatsCards({ stats }: QuickStatsCardsProps) {
       count: stats.approvedCount,
       badge: `MWK ${stats.totalDisbursed.toLocaleString()}`,
       icon: CheckCircle2,
-      color: 'green',
+      blobClass: 'text-green-500',
+      badgeClass:
+        'rounded-full bg-green-50 px-2 py-0.5 text-xs text-green-600 dark:bg-green-900/30 dark:text-green-400',
+      iconWrapClass: 'rounded-lg bg-green-50 p-3 dark:bg-green-900/20',
+      iconClass: 'h-5 w-5 text-green-500',
       href: '/dashboard/applications?status=APPROVED,DISBURSED,REPAYED',
     },
     {
@@ -49,7 +61,11 @@ export default function QuickStatsCards({ stats }: QuickStatsCardsProps) {
       count: stats.rejectedCount,
       badge: 'Declined',
       icon: XCircle,
-      color: 'red',
+      blobClass: 'text-red-500',
+      badgeClass:
+        'rounded-full bg-red-50 px-2 py-0.5 text-xs text-red-600 dark:bg-red-900/30 dark:text-red-400',
+      iconWrapClass: 'rounded-lg bg-red-50 p-3 dark:bg-red-900/20',
+      iconClass: 'h-5 w-5 text-red-500',
       href: '/dashboard/applications?status=REJECTED',
     },
   ];
@@ -63,23 +79,21 @@ export default function QuickStatsCards({ stats }: QuickStatsCardsProps) {
             key={card.title}
             className="bento-card p-5 relative overflow-hidden group"
           >
-            <div className="absolute top-0 right-0 w-20 h-20 bg-current opacity-5 rounded-full -translate-y-1/2 translate-x-1/2 group-hover:scale-110 transition-transform" />
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-sm text-foreground/60 mb-2">{card.title}</p>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-2xl md:text-3xl font-bold">
+            <div className={`absolute right-0 top-0 h-20 w-20 -translate-y-1/2 translate-x-1/2 rounded-full bg-current opacity-5 transition-transform group-hover:scale-110 ${card.blobClass}`} />
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <p className="mb-2 text-sm text-foreground/60">{card.title}</p>
+                <div className="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:gap-2">
+                  <span className="text-2xl font-bold md:text-3xl">
                     {card.count}
                   </span>
-                  <span
-                    className={`text-xs px-2 py-0.5 rounded-full bg-${card.color}-50 dark:bg-${card.color}-900/30 text-${card.color}-600 dark:text-${card.color}-400`}
-                  >
+                  <span className={`text-xs ${card.badgeClass}`}>
                     {card.badge}
                   </span>
                 </div>
               </div>
-              <div className={`p-3 rounded-lg bg-${card.color}-50 dark:bg-${card.color}-900/20`}>
-                <Icon className={`w-5 h-5 text-${card.color}-500`} />
+              <div className={`shrink-0 ${card.iconWrapClass}`}>
+                <Icon className={card.iconClass} />
               </div>
             </div>
             <div className="mt-4 pt-4 border-t border-border/50">

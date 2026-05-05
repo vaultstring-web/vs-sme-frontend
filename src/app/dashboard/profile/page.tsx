@@ -5,17 +5,17 @@ import PersonalInfo from '@/components/dashboard/profile/PersonalInfo';
 import { AccountStatus } from '@/components/dashboard/profile/AccountStatus';
 import { DocumentVerification } from '@/components/dashboard/profile/DocumentVerification';
 import SecuritySettings  from '@/components/dashboard/profile/SecuritySettings';
+import PageHeader from '@/components/ui/PageHeader';
+import { User } from 'lucide-react';
 
 export default function ProfilePage() {
   return (
-    <div className="min-h-screen p-4 md:p-10 max-w-(--breakpoint-xl) mx-auto space-y-12 animate-in fade-in duration-700">
-      {/* Cleaner Header - Removed the badge from here since it's now in AccountStatus */}
-      <header>
-        <h1 className="text-4xl font-extrabold tracking-tight text-foreground">Profile Settings</h1>
-        <p className="text-slate-500 mt-2 text-lg">
-          View and manage your account information and security.
-        </p>
-      </header>
+    <div className="mx-auto max-w-(--breakpoint-xl) space-y-8 p-4 animate-in fade-in duration-700 md:p-10">
+      <PageHeader
+        icon={<User className="h-5 w-5" />}
+        title="Profile Settings"
+        subtitle="View and manage your account information and security."
+      />
 
       {/* Changed to a vertical stack for better readability, or a 2:1 ratio grid */}
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-10">

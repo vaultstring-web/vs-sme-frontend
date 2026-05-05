@@ -57,29 +57,45 @@ export default function AdminKPIWidgets() {
       title: 'Total Applications',
       count: stats.total,
       icon: FileText,
-      color: 'blue',
       formatter: (val: number) => val.toString(),
+      decoClass: 'text-blue-500/10',
+      iconWrapClass:
+        'rounded-xl bg-blue-50 p-2 text-blue-700 ring-1 ring-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:ring-blue-900/40 sm:p-3',
+      barTrack: 'bg-blue-500/20',
+      barFill: 'bg-blue-500',
     },
     {
       title: 'Pending Review',
       count: pendingCount,
       icon: Clock,
-      color: 'yellow',
       formatter: (val: number) => val.toString(),
+      decoClass: 'text-yellow-500/10',
+      iconWrapClass:
+        'rounded-xl bg-yellow-50 p-2 text-yellow-700 ring-1 ring-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-400 dark:ring-yellow-900/40 sm:p-3',
+      barTrack: 'bg-yellow-500/20',
+      barFill: 'bg-yellow-500',
     },
     {
       title: 'Approved',
       count: stats.approved,
       icon: CheckCircle2,
-      color: 'green',
       formatter: (val: number) => val.toString(),
+      decoClass: 'text-green-500/10',
+      iconWrapClass:
+        'rounded-xl bg-green-50 p-2 text-green-700 ring-1 ring-green-200 dark:bg-green-900/20 dark:text-green-400 dark:ring-green-900/40 sm:p-3',
+      barTrack: 'bg-green-500/20',
+      barFill: 'bg-green-500',
     },
     {
       title: 'Approval Rate',
       count: stats.approvalRate,
       icon: BarChart3,
-      color: 'purple',
       formatter: (val: number) => `${(val * 100).toFixed(1)}%`,
+      decoClass: 'text-purple-500/10',
+      iconWrapClass:
+        'rounded-xl bg-purple-50 p-2 text-purple-700 ring-1 ring-purple-200 dark:bg-purple-900/20 dark:text-purple-400 dark:ring-purple-900/40 sm:p-3',
+      barTrack: 'bg-purple-500/20',
+      barFill: 'bg-purple-500',
     },
   ];
 
@@ -90,28 +106,27 @@ export default function AdminKPIWidgets() {
         return (
           <div
             key={card.title}
-            className={`bento-card p-5 relative overflow-hidden group hover:border-${card.color}-200 dark:hover:border-${card.color}-800 transition-colors`}
+            className="group relative overflow-hidden rounded-xl border border-border bg-card p-5 transition-colors hover:border-primary-200 dark:hover:border-primary-800"
           >
             {/* Background Decoration */}
-            <div className={`absolute top-0 right-0 w-24 h-24 bg-${card.color}-500/5 rounded-full -translate-y-1/2 translate-x-1/2 group-hover:scale-110 transition-transform duration-500`} />
+            <div className={`absolute right-0 top-0 h-24 w-24 -translate-y-1/2 translate-x-1/2 rounded-full bg-current transition-transform duration-500 group-hover:scale-110 ${card.decoClass}`} />
             
-            <div className="flex items-start justify-between relative z-10">
-              <div>
-                <p className="text-sm font-medium text-foreground/60 mb-2">{card.title}</p>
-                <h3 className="text-3xl font-bold tracking-tight">
+            <div className="relative z-10 flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <p className="mb-2 text-sm font-medium text-foreground/60">{card.title}</p>
+                <h3 className="break-words text-2xl font-bold tracking-tight sm:text-3xl">
                   {card.formatter(card.count)}
                 </h3>
               </div>
               
-              <div className={`p-3 rounded-xl bg-${card.color}-50 dark:bg-${card.color}-900/20 text-${card.color}-700 dark:text-${card.color}-400 ring-1 ring-${card.color}-200 dark:ring-${card.color}-900/40`}>
-                <Icon className="w-6 h-6" />
+              <div className={card.iconWrapClass}>
+                <Icon className="h-5 w-5 sm:h-6 sm:w-6" />
               </div>
             </div>
 
-            {/* Optional: Add trend indicator or extra info here if needed */}
-            <div className="mt-4 flex items-center gap-2">
-               <div className={`h-1 w-12 rounded-full bg-${card.color}-500/20`}>
-                 <div className={`h-full w-2/3 rounded-full bg-${card.color}-500`} />
+            <div className="relative z-10 mt-4 flex items-center gap-2">
+               <div className={`h-1 w-12 rounded-full ${card.barTrack}`}>
+                 <div className={`h-full w-2/3 rounded-full ${card.barFill}`} />
                </div>
             </div>
           </div>

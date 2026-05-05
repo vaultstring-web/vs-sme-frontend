@@ -55,7 +55,7 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
           {/* Main Content */}
           <main className="flex-1 px-4 sm:px-6 lg:px-8 py-6 w-full">
             <div className="max-w-7xl mx-auto w-full">
-              <div className="rounded-2xl bg-card border border-border p-4 sm:p-6 lg:p-8 shadow-sm">
+              <div className="rounded-xl border border-border bg-card p-3 shadow-sm sm:rounded-2xl sm:p-6 lg:p-8">
                 {children}
               </div>
             </div>

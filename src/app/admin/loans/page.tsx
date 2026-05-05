@@ -2,19 +2,16 @@
 
 import AdminLoansTable from '@/components/admin/loans/AdminLoansTable';
 import { Wallet } from 'lucide-react';
+import PageHeader from '@/components/ui/PageHeader';
 
 export default function AdminLoansPage() {
   return (
     <div className="space-y-8">
-      <div className="flex flex-col gap-2">
-        <h1 className="text-3xl font-black tracking-tight text-foreground flex items-center gap-3">
-          <Wallet className="w-10 h-10 text-primary-600" />
-          Loan Management
-        </h1>
-        <p className="text-foreground/60 font-medium">
-          Monitor active loans, track repayment progress, and manage disbursements across the platform.
-        </p>
-      </div>
+      <PageHeader
+        icon={<Wallet className="h-5 w-5" />}
+        title="Loan Management"
+        subtitle="Monitor active loans, track repayment progress, and manage disbursements across the platform."
+      />
 
       <AdminLoansTable />
     </div>

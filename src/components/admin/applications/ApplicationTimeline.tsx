@@ -146,7 +146,7 @@ export default function ApplicationTimeline({
       </div>
 
       {/* Timeline */}
-      <div className="relative pl-6 ml-2 border-l-2 border-border space-y-8 py-2">
+      <div className="relative space-y-8 border-l-2 border-border py-2 pl-8 sm:pl-10">
         {displayedLogs.length === 0 ? (
           <div className="text-center py-6 text-slate-500 text-sm">
             No logs match your filters.
@@ -156,17 +156,17 @@ export default function ApplicationTimeline({
             <div key={log.id} className="relative">
               {/* Dot */}
               <div
-                className={`absolute -left-9.25 top-1 w-8 h-8 rounded-full flex items-center justify-center shadow-sm border-4 border-card ${getColor(log.action)}`}
+                className={`absolute -left-4 top-1 flex h-8 w-8 items-center justify-center rounded-full border-4 border-card shadow-sm sm:-left-5 ${getColor(log.action)}`}
               >
                 {getIcon(log.action)}
               </div>
 
               <div className="flex flex-col gap-1">
-                <div className="flex items-center justify-between gap-4">
-                  <span className="font-bold text-foreground text-sm">
+                <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+                  <span className="text-sm font-bold text-foreground">
                     {log.action.replace("_", " ")}
                   </span>
-                  <span className="text-xs text-foreground/50 whitespace-nowrap">
+                  <span className="text-xs text-foreground/50 sm:shrink-0 sm:text-right">
                     {new Date(log.createdAt).toLocaleString()}
                   </span>
                 </div>

@@ -16,6 +16,7 @@ import apiClient from '@/lib/apiClient';
 import { Input, Select } from '@/components/ui/FormELements';
 import { useAuth } from '@/hooks/useAuth';
 import CustomDatePicker from '@/components/ui/DatePicker';
+import ResponsiveTable from '@/components/ui/ResponsiveTable';
 
 interface Application {
   id: string;
@@ -167,8 +168,8 @@ export default function AdminApplicationTable() {
   return (
     <div className="space-y-4">
       {/* Filters & Actions */}
-      <div className="flex flex-col lg:flex-row gap-4 justify-between items-start lg:items-center bento-card p-4">
-        <div className="flex flex-1 flex-col sm:flex-row gap-2 w-full lg:w-auto">
+      <div className="flex flex-col items-start justify-between gap-4 bento-card p-4 lg:flex-row lg:items-center">
+        <div className="flex w-full flex-1 flex-col gap-2 lg:w-auto lg:flex-row">
           <div className="relative w-full sm:w-64">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/40" />
             <Input 
@@ -192,7 +193,7 @@ export default function AdminApplicationTable() {
             <option value="REJECTED">Rejected</option>
           </Select>
           
-          <div className="flex gap-2 w-full sm:w-auto">
+          <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
             <CustomDatePicker 
               label="From"
               value={dateFrom}
@@ -219,10 +220,10 @@ export default function AdminApplicationTable() {
 
       {/* Bulk Action Bar */}
       {selectedIds.size > 0 && !isAuditor && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 bg-foreground text-background px-6 py-3 rounded-full shadow-xl flex items-center gap-4 animate-in slide-in-from-bottom-4 duration-200" role="region" aria-label="Bulk actions">
-          <span className="font-medium text-sm">{selectedIds.size} selected</span>
-          <div className="h-4 w-px bg-background/20" />
-          <div className="flex gap-2">
+        <div className="fixed bottom-4 left-4 right-4 z-40 flex flex-wrap items-center justify-center gap-3 rounded-2xl bg-foreground px-4 py-3 text-background shadow-xl animate-in slide-in-from-bottom-4 duration-200 sm:bottom-6 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 sm:flex-nowrap sm:rounded-full sm:px-6" role="region" aria-label="Bulk actions">
+          <span className="text-sm font-medium">{selectedIds.size} selected</span>
+          <div className="hidden h-4 w-px bg-background/20 sm:block" />
+          <div className="flex flex-wrap justify-center gap-2">
             <button 
               onClick={() => handleBulkAction('APPROVED')}
               disabled={isBulkProcessing}
@@ -249,8 +250,59 @@ export default function AdminApplicationTable() {
 
       {/* Table */}
       <div className="bento-card overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm text-left">
+        <ResponsiveTable
+          mobileCards={
+            <div className="space-y-3">
+              {isLoading ? (
+                <div className="rounded-xl border border-border p-6 text-center text-foreground/50">Loading applications...</div>
+              ) : applications.length === 0 ? (
+                <div className="rounded-xl border border-border p-6 text-center text-foreground/50">No applications found.</div>
+              ) : (
+                applications.map((app) => (
+                  <div
+                    key={app.id}
+                    className={`space-y-2 rounded-xl border border-border p-4 ${selectedIds.has(app.id) && !isAuditor ? 'bg-primary-50/50 dark:bg-primary-900/10' : 'bg-card'}`}
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <p className="font-bold text-foreground">{app.user.fullName}</p>
+                        <p className="truncate text-xs text-foreground/50" title={app.user.email}>
+                          {app.user.email}
+                        </p>
+                      </div>
+                      <Link
+                        href={`/admin/applications/detail?id=${app.id}`}
+                        className="inline-flex shrink-0 items-center justify-center rounded-lg p-2 text-foreground/40 hover:bg-primary-50 hover:text-primary-600 dark:hover:bg-primary-900/20"
+                        aria-label="View application"
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Link>
+                    </div>
+                    <div className="flex flex-wrap gap-2 text-xs text-foreground/60">
+                      <span>{new Date(app.createdAt).toLocaleDateString()}</span>
+                      <span>•</span>
+                      <span>{app.type === 'SME' ? 'SME Loan' : 'Payroll Loan'}</span>
+                    </div>
+                    <span
+                      className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium capitalize ${
+                        app.status === 'APPROVED'
+                          ? 'border-green-200 bg-green-100 text-green-800 dark:border-green-800/50 dark:bg-green-900/30 dark:text-green-400'
+                          : app.status === 'REJECTED'
+                            ? 'border-red-200 bg-red-100 text-red-800 dark:border-red-800/50 dark:bg-red-900/30 dark:text-red-400'
+                            : app.status === 'SUBMITTED' || app.status === 'UNDER_REVIEW'
+                              ? 'border-yellow-200 bg-yellow-100 text-yellow-800 dark:border-yellow-800/50 dark:bg-yellow-900/30 dark:text-yellow-400'
+                              : 'border-slate-200 bg-slate-100 text-slate-800 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400'
+                      }`}
+                    >
+                      {app.status.replace('_', ' ').toLowerCase()}
+                    </span>
+                  </div>
+                ))
+              )}
+            </div>
+          }
+          table={
+          <table className="hidden w-full min-w-[820px] text-left text-sm md:table">
             <thead className="sticky top-0 z-10 text-xs text-foreground/50 uppercase bg-card/50">
               <tr>
                 {!isAuditor && (
@@ -284,13 +336,13 @@ export default function AdminApplicationTable() {
             <tbody className="divide-y divide-border">
               {isLoading ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-8 text-center text-foreground/50">
+                  <td colSpan={isAuditor ? 5 : 6} className="px-6 py-8 text-center text-foreground/50">
                     Loading applications...
                   </td>
                 </tr>
               ) : applications.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-8 text-center text-foreground/50">
+                  <td colSpan={isAuditor ? 5 : 6} className="px-6 py-8 text-center text-foreground/50">
                     No applications found matching your criteria.
                   </td>
                 </tr>
@@ -308,12 +360,14 @@ export default function AdminApplicationTable() {
                         </button>
                       </td>
                     )}
-                    <td className="px-6 py-4 whitespace-nowrap text-foreground/60">
+                    <td className="px-6 py-4 text-foreground/60 sm:whitespace-nowrap">
                       {new Date(app.createdAt).toLocaleDateString()}
                     </td>
                     <td className="px-6 py-4">
                       <div className="font-medium text-foreground">{app.user.fullName}</div>
-                      <div className="text-xs text-foreground/50">{app.user.email}</div>
+                      <div className="max-w-[220px] truncate text-xs text-foreground/50" title={app.user.email}>
+                        {app.user.email}
+                      </div>
                     </td>
                     <td className="px-6 py-4 text-foreground/60">
                       {app.type === 'SME' ? 'SME Loan' : 'Payroll Loan'}
@@ -327,10 +381,10 @@ export default function AdminApplicationTable() {
                         {app.status.replace('_', ' ').toLowerCase()}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-right">
+                    <td className="px-6 py-4 text-left md:text-right">
                     <Link 
                         href={`/admin/applications/detail?id=${app.id}`}
-                        className="inline-flex items-center justify-center p-2 text-foreground/40 hover:text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400"
+                        className="inline-flex items-center justify-center rounded-lg p-2 text-foreground/40 transition-colors hover:bg-primary-50 hover:text-primary-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 dark:hover:bg-primary-900/20"
                         aria-label={`View application ${app.id}`}
                       >
                         <Eye className="w-4 h-4" />
@@ -341,10 +395,11 @@ export default function AdminApplicationTable() {
               )}
             </tbody>
           </table>
-        </div>
+          }
+        />
 
         {/* Pagination */}
-        <div className="flex items-center justify-between px-6 py-4 border-t border-border">
+        <div className="flex flex-col gap-3 border-t border-border px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="text-sm text-foreground/60">
             Showing <span className="font-medium">{(meta.page - 1) * meta.pageSize + 1}</span> to <span className="font-medium">{Math.min(meta.page * meta.pageSize, meta.total)}</span> of <span className="font-medium">{meta.total}</span> results
           </div>

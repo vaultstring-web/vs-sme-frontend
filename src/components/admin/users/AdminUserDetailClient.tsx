@@ -158,7 +158,7 @@ export default function AdminUserDetailClient({ id }: AdminUserDetailClientProps
               </div>
               <div>
                 <h2 className="text-xl font-bold text-slate-900 dark:text-zinc-100">{user.fullName}</h2>
-                <p className="text-sm text-slate-500 dark:text-zinc-400">User ID: {user.id}</p>
+                <p className="break-all text-sm text-slate-500 dark:text-zinc-400">User ID: {user.id}</p>
               </div>
             </div>
 
@@ -167,7 +167,7 @@ export default function AdminUserDetailClient({ id }: AdminUserDetailClientProps
                 <Mail className="w-5 h-5 text-slate-400 mt-0.5" />
                 <div>
                   <p className="text-xs font-medium text-slate-500 dark:text-zinc-500 uppercase">Email Address</p>
-                  <p className="text-sm text-slate-900 dark:text-zinc-100">{user.email}</p>
+                  <p className="break-all text-sm text-slate-900 dark:text-zinc-100">{user.email}</p>
                 </div>
               </div>
 
@@ -186,7 +186,7 @@ export default function AdminUserDetailClient({ id }: AdminUserDetailClientProps
                 <Shield className="w-5 h-5 text-slate-400 mt-0.5" />
                 <div>
                   <p className="text-xs font-medium text-slate-500 dark:text-zinc-500 uppercase">National ID</p>
-                  <p className="text-sm text-slate-900 dark:text-zinc-100">{user.nationalId}</p>
+                  <p className="break-all text-sm text-slate-900 dark:text-zinc-100">{user.nationalId}</p>
                 </div>
               </div>
 
@@ -235,7 +235,7 @@ export default function AdminUserDetailClient({ id }: AdminUserDetailClientProps
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {user.documents.map((doc) => (
                   <div key={doc.id} className="p-4 border border-slate-100 dark:border-zinc-800 rounded-xl bg-slate-50/50 dark:bg-zinc-900/50">
-                    <div className="flex items-start justify-between mb-3">
+                    <div className="mb-3 flex flex-wrap items-start justify-between gap-2">
                       <div className="p-2 bg-white dark:bg-zinc-800 rounded-lg shadow-sm">
                         <FileText className="w-6 h-6 text-primary-500" />
                       </div>
@@ -255,7 +255,7 @@ export default function AdminUserDetailClient({ id }: AdminUserDetailClientProps
                     <p className="text-xs text-slate-500 dark:text-zinc-500 mb-4">
                       Uploaded {new Date(doc.uploadedAt).toLocaleDateString()}
                     </p>
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:flex-wrap">
                       <button
                         onClick={() => {
                           const idx = user.documents.findIndex(d => d.id === doc.id);

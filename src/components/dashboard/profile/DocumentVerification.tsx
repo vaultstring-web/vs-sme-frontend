@@ -205,15 +205,15 @@ export const DocumentVerification = () => {
   if (error) {
     return (
       <section className="bento-card p-6">
-        <div className="flex items-center justify-between mb-6">
+        <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-primary-100 dark:bg-primary-900/30 rounded-lg">
-              <FileText className="w-5 h-5 text-primary-600" />
+            <div className="rounded-lg bg-primary-100 p-2 dark:bg-primary-900/30">
+              <FileText className="h-5 w-5 text-primary-600" />
             </div>
-            <h2 className="text-xl font-semibold">KYC Documents</h2>
+            <h2 className="text-xl font-semibold sm:text-2xl">KYC Documents</h2>
           </div>
         </div>
-        <div className="p-4 rounded-lg bg-error-main/10 border border-error-main/20 text-center">
+        <div className="rounded-lg border border-error-main/20 bg-error-main/10 p-4 text-center">
           <AlertCircle className="w-8 h-8 text-error-main mx-auto mb-2" />
           <p className="text-error-main font-medium">{error}</p>
           <div className="flex gap-3 justify-center mt-3">
@@ -239,22 +239,23 @@ export const DocumentVerification = () => {
   if (documents.length === 0) {
     return (
       <section className="bento-card p-6">
-        <div className="flex items-center justify-between mb-6">
+        <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-primary-100 dark:bg-primary-900/30 rounded-lg">
-              <FileText className="w-5 h-5 text-primary-600" />
+            <div className="rounded-lg bg-primary-100 p-2 dark:bg-primary-900/30">
+              <FileText className="h-5 w-5 text-primary-600" />
             </div>
-            <h2 className="text-xl font-semibold">KYC Documents</h2>
+            <h2 className="text-xl font-semibold sm:text-2xl">KYC Documents</h2>
           </div>
           <button
+            type="button"
             onClick={handleRefresh}
-            className="flex items-center gap-2 text-sm text-primary-600 hover:text-primary-700 font-medium"
+            className="flex items-center gap-2 self-start text-sm font-medium text-primary-600 hover:text-primary-700 sm:self-auto"
           >
-            <RefreshCcw className="w-4 h-4" />
+            <RefreshCcw className="h-4 w-4" />
             Refresh
           </button>
         </div>
-        <div className="text-center p-8 border-2 border-dashed border-border rounded-xl">
+        <div className="rounded-xl border-2 border-dashed border-border p-8 text-center">
           <UploadCloud className="w-12 h-12 text-slate-300 mx-auto mb-3" />
           <h3 className="font-medium text-slate-600 dark:text-slate-400 mb-1">No documents uploaded yet</h3>
           <p className="text-sm text-slate-500 mb-4">
@@ -288,29 +289,31 @@ export const DocumentVerification = () => {
   return (
     <>
       <section className="bento-card p-6">
-        <div className="flex items-center justify-between mb-6">
+        <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-primary-100 dark:bg-primary-900/30 rounded-lg">
-              <FileText className="w-5 h-5 text-primary-600" />
+            <div className="rounded-lg bg-primary-100 p-2 dark:bg-primary-900/30">
+              <FileText className="h-5 w-5 text-primary-600" />
             </div>
-            <h2 className="text-xl font-semibold">KYC Documents</h2>
+            <h2 className="text-xl font-semibold sm:text-2xl">KYC Documents</h2>
           </div>
-          <div className="flex items-center gap-3">
-            <span className="text-xs font-medium px-2 py-1 bg-slate-100 dark:bg-white/5 rounded-md text-slate-500">
+          <div className="flex flex-wrap items-center gap-2 sm:justify-end sm:gap-3">
+            <span className="rounded-md bg-slate-100 px-2 py-1 text-xs font-medium text-slate-500 dark:bg-white/5">
               {documents.length} Document{documents.length !== 1 ? 's' : ''}
             </span>
             <button
+              type="button"
               onClick={handleRefresh}
-              className="flex items-center gap-2 text-sm text-primary-600 hover:text-primary-700 font-medium"
+              className="flex items-center gap-2 text-sm font-medium text-primary-600 hover:text-primary-700"
             >
-              <RefreshCcw className="w-4 h-4" />
+              <RefreshCcw className="h-4 w-4" />
               Refresh
             </button>
             <button
+              type="button"
               onClick={() => setIsUploadModalOpen(true)}
-              className="flex items-center gap-2 px-3 py-1.5 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition-colors"
+              className="flex items-center gap-2 rounded-lg bg-primary-600 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-primary-700"
             >
-              <UploadCloud className="w-4 h-4" />
+              <UploadCloud className="h-4 w-4" />
               Upload More
             </button>
           </div>
@@ -325,8 +328,8 @@ export const DocumentVerification = () => {
                   <div className={`p-3 rounded-full ${style.bg} transition-transform group-hover:scale-110`}>
                     {style.icon}
                   </div>
-                  <div>
-                    <h4 className="font-medium text-foreground">{doc.name}</h4>
+                  <div className="min-w-0">
+                    <h4 className="break-words font-medium text-foreground">{doc.name}</h4>
                     <p className="text-xs text-slate-500">
                       Uploaded: {doc.updatedAt || 'Date not available'}
                     </p>

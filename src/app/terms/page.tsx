@@ -12,7 +12,7 @@ export default function TermsPage() {
       <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center">
-          <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 dark:text-white sm:text-5xl">
+          <h1 className="text-3xl font-extrabold tracking-tight text-gray-900 dark:text-white sm:text-4xl lg:text-5xl">
             Terms & Conditions
           </h1>
           <p className="mt-4 text-lg text-gray-600 dark:text-gray-400">
@@ -128,31 +128,31 @@ export default function TermsPage() {
             <table className="w-full text-left text-sm text-gray-600 dark:text-gray-300">
               <thead className="border-b border-gray-200 bg-gray-100 text-xs uppercase text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200">
                 <tr>
-                  <th scope="col" className="px-6 py-3">Fee Type</th>
-                  <th scope="col" className="px-6 py-3">Amount</th>
-                  <th scope="col" className="px-6 py-3">Notes</th>
+                  <th scope="col" className="px-3 py-3 sm:px-6">Fee Type</th>
+                  <th scope="col" className="px-3 py-3 sm:px-6">Amount</th>
+                  <th scope="col" className="px-3 py-3 sm:px-6">Notes</th>
                 </tr>
               </thead>
               <tbody>
                 <tr className="border-b border-gray-200 dark:border-gray-700">
-                  <td className="px-6 py-4 font-medium">Credit Reference Bureau (CRB)</td>
-                  <td className="px-6 py-4">MWK 2,900 per inquiry</td>
-                  <td className="px-6 py-4">Paid by client, non‑refundable</td>
+                  <td className="px-3 py-4 font-medium sm:px-6">Credit Reference Bureau (CRB)</td>
+                  <td className="px-3 py-4 sm:px-6">MWK 2,900 per inquiry</td>
+                  <td className="px-3 py-4 sm:px-6">Paid by client, non‑refundable</td>
                 </tr>
                 <tr className="border-b border-gray-200 dark:border-gray-700">
-                  <td className="px-6 py-4 font-medium">Late Payment Penalty</td>
-                  <td className="px-6 py-4">5% of overdue amount + interest continues to accrue</td>
-                  <td className="px-6 py-4">After 7 days past due date</td>
+                  <td className="px-3 py-4 font-medium sm:px-6">Late Payment Penalty</td>
+                  <td className="px-3 py-4 sm:px-6">5% of overdue amount + interest continues to accrue</td>
+                  <td className="px-3 py-4 sm:px-6">After 7 days past due date</td>
                 </tr>
                 <tr className="border-b border-gray-200 dark:border-gray-700">
-                  <td className="px-6 py-4 font-medium">Early Settlement</td>
-                  <td className="px-6 py-4">No penalty; interest rebated on a pro‑rata basis</td>
-                  <td className="px-6 py-4">Request in writing</td>
+                  <td className="px-3 py-4 font-medium sm:px-6">Early Settlement</td>
+                  <td className="px-3 py-4 sm:px-6">No penalty; interest rebated on a pro‑rata basis</td>
+                  <td className="px-3 py-4 sm:px-6">Request in writing</td>
                 </tr>
                 <tr>
-                  <td className="px-6 py-4 font-medium">Loan Restructuring</td>
-                  <td className="px-6 py-4">2% of outstanding balance</td>
-                  <td className="px-6 py-4">Subject to approval</td>
+                  <td className="px-3 py-4 font-medium sm:px-6">Loan Restructuring</td>
+                  <td className="px-3 py-4 sm:px-6">2% of outstanding balance</td>
+                  <td className="px-3 py-4 sm:px-6">Subject to approval</td>
                 </tr>
               </tbody>
             </table>
@@ -244,7 +244,13 @@ export default function TermsPage() {
               Area 4, Lilongwe, Malawi<br />
               Email: <a href="mailto:thrive@vaultstring.com" className="text-primary-600 hover:underline dark:text-primary-400">thrive@vaultstring.com</a><br />
               Phone: +265 (0) 1 234 567<br />
-              Website: <a href="https://thrive.vaultstring.com" className="text-primary-600 hover:underline dark:text-primary-400">https://thrive.vaultstring.com</a>
+              Website:{' '}
+              <a
+                href="https://thrive.vaultstring.com"
+                className="break-all text-primary-600 hover:underline dark:text-primary-400"
+              >
+                https://thrive.vaultstring.com
+              </a>
             </p>
           </div>
         </section>

@@ -44,21 +44,21 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
 
   return (
     <aside 
-      className={`fixed lg:sticky top-0 inset-y-0 left-0 z-50 w-72 h-screen bg-card border-r border-border transition-transform duration-300 ease-in-out ${
+      className={`fixed lg:sticky top-0 inset-y-0 left-0 z-50 h-screen w-[85vw] max-w-72 border-r border-border bg-card transition-transform duration-300 ease-in-out sm:w-72 ${
         isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
       }`}
     >
-      <div className="flex flex-col h-full p-6">
+      <div className="flex h-full flex-col p-4 sm:p-6">
         {/* Brand Area with Dynamic Logo */}
-        <Link href="/" className="flex items-center gap-3 transition-opacity hover:opacity-80">
+        <Link href="/" onClick={onClose} className="flex items-center gap-3 transition-opacity hover:opacity-80">
           <img 
             src={theme === "dark" ? "/icons/vs1.svg" : "/icons/vs2.svg"} 
             alt="Logo" 
-            className="h-20 w-auto md:h-25 lg:h-25"/>
+            className="h-14 w-auto sm:h-16 lg:h-20"/>
         </Link>
 
         {/* Navigation Groups */}
-        <nav className="flex-1 space-y-8 overflow-y-auto custom-scrollbar">
+        <nav className="custom-scrollbar flex-1 space-y-8 overflow-y-auto overflow-x-hidden">
           {menuGroups.map((group) => (
             <div key={group.label}>
               <h3 className="px-4 text-[10px] font-bold uppercase tracking-[0.25em] text-slate-400 dark:text-zinc-500 mb-4">
@@ -71,7 +71,8 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                     <Link
                       key={item.name}
                       href={item.href}
-                      className={`flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-200 group relative overflow-hidden ${
+                      onClick={onClose}
+                      className={`flex min-h-11 items-center justify-between rounded-xl px-4 py-3 transition-all duration-200 group relative overflow-hidden ${
                         isActive 
                           ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-400 shadow-sm' 
                           : 'text-slate-600 dark:text-zinc-400 hover:bg-slate-50 dark:hover:bg-zinc-800/50 hover:text-slate-900 dark:hover:text-zinc-100'
@@ -102,7 +103,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         </nav>
 
         {/* Loan Card - Brighter Gradient */}
-        <div className="mt-auto p-5 bg-linear-to-br from-primary-500 via-primary-600 to-primary-700 dark:from-primary-600 dark:via-primary-700 dark:to-primary-800 rounded-2xl text-white relative overflow-hidden group shadow-xl shadow-primary-500/30 dark:shadow-primary-900/40 hover:shadow-2xl hover:shadow-primary-500/40 dark:hover:shadow-primary-900/50 transition-all duration-300">
+        <div className="mt-auto rounded-2xl bg-linear-to-br from-primary-500 via-primary-600 to-primary-700 p-4 text-white shadow-xl shadow-primary-500/30 transition-all duration-300 group relative overflow-hidden hover:shadow-2xl hover:shadow-primary-500/40 dark:from-primary-600 dark:via-primary-700 dark:to-primary-800 dark:shadow-primary-900/40 dark:hover:shadow-primary-900/50 sm:p-5">
           {/* Animated background blur */}
           <div className="absolute -top-4 -right-4 w-32 h-32 bg-white/20 rounded-full blur-3xl group-hover:bg-white/30 group-hover:scale-125 transition-all duration-500" />
           <div className="absolute -bottom-4 -left-4 w-32 h-32 bg-primary-400/30 dark:bg-primary-800/30 rounded-full blur-3xl group-hover:scale-125 transition-all duration-500" />
@@ -111,8 +112,9 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             <p className="text-[10px] uppercase tracking-widest text-white/70 font-bold mb-1">Max Limit</p>
             <p className="text-2xl font-bold mb-4 tracking-tight drop-shadow-sm">MWK 5,000,000</p>
             <Link 
-              href="/dashboard/applications" 
-              className="flex items-center justify-center gap-2 w-full py-3 bg-white dark:bg-white/95 text-primary-700 dark:text-primary-800 hover:bg-white/90 dark:hover:bg-white rounded-xl text-xs font-bold transition-all active:scale-95 shadow-lg hover:shadow-xl hover:-translate-y-0.5 duration-200"
+              href="/dashboard/applications"
+              onClick={onClose}
+              className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-white py-3 text-xs font-bold text-primary-700 shadow-lg transition-all duration-200 hover:bg-white/90 hover:shadow-xl hover:-translate-y-0.5 active:scale-95 dark:bg-white/95 dark:text-primary-800 dark:hover:bg-white"
             >
               Boost Capital <ArrowUpRight size={14} className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
             </Link>

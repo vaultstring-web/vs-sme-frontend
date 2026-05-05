@@ -17,6 +17,8 @@ import {
 } from 'lucide-react';
 import RecordPaymentModal from '@/components/admin/loans/RecordPaymentModal';
 import RestructureLoanModal from '@/components/admin/loans/RestructureLoanModal';
+import ResponsiveTable from '@/components/ui/ResponsiveTable';
+import PageHeader from '@/components/ui/PageHeader';
 
 export default function AdminLoanDetail() {
   const { id } = useParams();
@@ -58,40 +60,40 @@ export default function AdminLoanDetail() {
 
   return (
     <div className="space-y-8 pb-20">
-      {/* Top Navigation */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <button 
+      <PageHeader
+        icon={
+          <button
+            type="button"
             onClick={() => router.back()}
-            className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors text-foreground/60"
+            className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-foreground/60 transition-colors hover:bg-slate-100 dark:hover:bg-zinc-800 sm:h-10 sm:w-10"
+            aria-label="Go back"
           >
-            <ArrowLeft size={20} />
+            <ArrowLeft size={18} />
           </button>
-          <div>
-            <h1 className="text-2xl font-black text-foreground tracking-tight">Loan Management</h1>
-            <p className="text-xs font-bold text-foreground/40 uppercase tracking-widest">ID: {loan.id}</p>
-          </div>
-        </div>
-
-        {!isAuditor && loan.status !== 'REPAYED' && (
-          <div className="flex gap-3">
+        }
+        title="Loan Management"
+        subtitle={`ID: ${loan.id}`}
+        actions={!isAuditor && loan.status !== 'REPAYED' ? (
+          <>
             <button 
+              type="button"
               onClick={() => setIsRestructureModalOpen(true)}
-              className="flex items-center justify-center gap-2 px-6 py-2.5 border border-amber-200 dark:border-amber-900/30 bg-amber-50 dark:bg-amber-900/10 text-amber-700 dark:text-amber-400 rounded-xl transition-all font-bold text-sm shadow-sm"
+              className="flex w-full items-center justify-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-6 py-2.5 text-sm font-bold text-amber-700 shadow-sm transition-all dark:border-amber-900/30 dark:bg-amber-900/10 dark:text-amber-400 sm:w-auto"
             >
               <RefreshCcw size={18} />
               Restructure
             </button>
             <button 
+              type="button"
               onClick={() => setIsPaymentModalOpen(true)}
-              className="flex items-center justify-center gap-2 px-6 py-2.5 bg-primary-600 hover:bg-primary-700 text-white rounded-xl transition-all font-bold text-sm shadow-lg shadow-primary-500/20"
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary-600 px-6 py-2.5 text-sm font-bold text-white shadow-lg shadow-primary-500/20 transition-colors hover:bg-primary-700 sm:w-auto"
             >
               <Plus size={18} />
               Record Payment
             </button>
-          </div>
-        )}
-      </div>
+          </>
+        ) : undefined}
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Left Column: Summary & Borrower */}
@@ -114,8 +116,8 @@ export default function AdminLoanDetail() {
                 <span>{loan.user?.primaryPhone}</span>
               </div>
               <div className="flex items-center gap-3 text-sm text-foreground/70">
-                <Mail size={16} className="text-primary-500" />
-                <span>{loan.user?.email}</span>
+                <Mail size={16} className="shrink-0 text-primary-500" />
+                <span className="min-w-0 break-all">{loan.user?.email}</span>
               </div>
             </div>
           </div>
@@ -167,19 +169,36 @@ export default function AdminLoanDetail() {
               Repayment Schedule
             </h3>
             <div className="bento-card overflow-hidden">
-              <table className="w-full text-left">
+              <ResponsiveTable
+                mobileCards={
+                  <div className="space-y-3 p-4">
+                    {loan.schedule?.map((item) => (
+                      <div key={item.id} className="space-y-2 rounded-xl border border-border p-4">
+                        <p className="text-sm font-medium text-foreground">{new Date(item.dueDate).toLocaleDateString()}</p>
+                        <p className="text-xs text-foreground/70">Principal MWK {item.principalDue.toLocaleString()}</p>
+                        <p className="text-xs text-foreground/70">Interest MWK {item.interestDue.toLocaleString()}</p>
+                        <p className="text-sm font-bold text-foreground">Total MWK {item.amountDue.toLocaleString()}</p>
+                        <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider ${getScheduleStatusClass(item.status)}`}>
+                          {item.status}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                }
+                table={
+              <table className="hidden w-full min-w-[700px] text-left md:table">
                 <thead>
                   <tr className="border-b border-border bg-slate-50/50 dark:bg-zinc-900/50">
                     <th className="px-6 py-4 text-xs font-bold uppercase text-foreground/40">Due Date</th>
                     <th className="px-6 py-4 text-xs font-bold uppercase text-foreground/40">Principal</th>
                     <th className="px-6 py-4 text-xs font-bold uppercase text-foreground/40">Interest</th>
                     <th className="px-6 py-4 text-xs font-bold uppercase text-foreground/40">Total Due</th>
-                    <th className="px-6 py-4 text-xs font-bold uppercase text-foreground/40 text-right">Status</th>
+                    <th className="px-6 py-4 text-right text-xs font-bold uppercase text-foreground/40">Status</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
                   {loan.schedule?.map((item) => (
-                    <tr key={item.id} className="hover:bg-slate-50 dark:hover:bg-zinc-800/50 transition-colors">
+                    <tr key={item.id} className="transition-colors hover:bg-slate-50 dark:hover:bg-zinc-800/50">
                       <td className="px-6 py-4 text-sm font-medium text-foreground">
                         {new Date(item.dueDate).toLocaleDateString()}
                       </td>
@@ -187,7 +206,7 @@ export default function AdminLoanDetail() {
                       <td className="px-6 py-4 text-sm text-foreground/70">MWK {item.interestDue.toLocaleString()}</td>
                       <td className="px-6 py-4 text-sm font-bold text-foreground">MWK {item.amountDue.toLocaleString()}</td>
                       <td className="px-6 py-4 text-right">
-                        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${getScheduleStatusClass(item.status)}`}>
+                        <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider ${getScheduleStatusClass(item.status)}`}>
                           {item.status}
                         </span>
                       </td>
@@ -195,6 +214,8 @@ export default function AdminLoanDetail() {
                   ))}
                 </tbody>
               </table>
+                }
+              />
             </div>
           </div>
 
@@ -207,7 +228,7 @@ export default function AdminLoanDetail() {
             <div className="space-y-3">
               {loan.payments && loan.payments.length > 0 ? (
                 loan.payments.map((payment) => (
-                  <div key={payment.id} className="bento-card p-4 flex items-center justify-between">
+                  <div key={payment.id} className="bento-card flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
                     <div className="flex items-center gap-4">
                       <div className="p-3 rounded-xl bg-green-50 dark:bg-green-900/20 text-green-600">
                         <Banknote size={20} />

@@ -15,14 +15,14 @@ export default function ApplicationInsights({ stats }: ApplicationInsightsProps)
 
   return (
     <div className="bento-card p-6">
-      <div className="flex items-center justify-between mb-6">
+      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-xl font-bold">Application Insights</h2>
           <p className="text-sm text-foreground/60">Track your loan applications progress</p>
         </div>
         <Link
           href="/dashboard/applications"
-          className="text-sm text-primary-600 dark:text-primary-400 hover:underline"
+          className="text-sm text-primary-600 hover:underline dark:text-primary-400"
         >
           View Analytics
         </Link>
@@ -40,19 +40,19 @@ export default function ApplicationInsights({ stats }: ApplicationInsightsProps)
           ) : (
             <>
               <div className="space-y-4">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="w-3 h-3 rounded-full bg-primary-500" />
+                    <div className="h-3 w-3 shrink-0 rounded-full bg-primary-500" />
                     <span className="text-sm">SME Working Capital</span>
                   </div>
-                  <span className="font-semibold">{smePercentage}%</span>
+                  <span className="font-semibold whitespace-nowrap">{smePercentage}%</span>
                 </div>
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="w-3 h-3 rounded-full bg-blue-500" />
+                    <div className="h-3 w-3 shrink-0 rounded-full bg-blue-500" />
                     <span className="text-sm">Payroll Loans</span>
                   </div>
-                  <span className="font-semibold">{payrollPercentage}%</span>
+                  <span className="font-semibold whitespace-nowrap">{payrollPercentage}%</span>
                 </div>
               </div>
               <div className="mt-4 h-2 bg-border rounded-full overflow-hidden">
@@ -71,17 +71,17 @@ export default function ApplicationInsights({ stats }: ApplicationInsightsProps)
             <TrendingUp className="w-4 h-4" />
             Approval Rate
           </h3>
-          <div className="flex items-end gap-2">
-            <div className="text-3xl font-bold">{stats.approvalRate}%</div>
-            <div className="text-sm text-green-500 flex items-center">
-              <TrendingUp className="w-3 h-3 mr-1" />
+          <div className="flex flex-wrap items-end gap-2">
+            <div className="text-3xl font-bold whitespace-nowrap">{stats.approvalRate}%</div>
+            <div className="flex items-center text-sm text-green-500">
+              <TrendingUp className="mr-1 h-3 w-3" />
               of submitted
             </div>
           </div>
           <div className="mt-4 space-y-2">
-            <div className="flex justify-between text-sm">
+            <div className="flex flex-col gap-1 text-sm sm:flex-row sm:justify-between sm:gap-2">
               <span>Approved / Submitted</span>
-              <span className="font-medium">
+              <span className="font-medium whitespace-nowrap">
                 {stats.approvedCount} / {stats.submittedCount + stats.underReviewCount + stats.approvedCount + stats.rejectedCount}
               </span>
             </div>

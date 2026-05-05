@@ -42,8 +42,18 @@ export default function LocalFilePreviewModal({
   }, [onClose]);
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="relative w-full max-w-5xl h-[85vh] bg-background rounded-2xl border border-border shadow-2xl overflow-hidden flex flex-col">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 relative">
+      <button
+        type="button"
+        aria-label="Close preview"
+        className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+        onClick={onClose}
+      />
+      <div
+        className="relative z-10 flex h-[85dvh] max-h-[90dvh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl border border-border bg-background shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+        role="presentation"
+      >
         <div className="flex items-center justify-between px-5 py-4 border-b border-border">
           <div className="min-w-0">
             <div className="text-sm font-medium text-foreground truncate">
@@ -63,7 +73,7 @@ export default function LocalFilePreviewModal({
           </button>
         </div>
 
-        <div className="flex-1 bg-white dark:bg-zinc-950">
+        <div className="min-h-0 flex-1 bg-white dark:bg-zinc-950">
           {kind === 'image' && objectUrl && (
             <div className="w-full h-full flex items-center justify-center">
               <img

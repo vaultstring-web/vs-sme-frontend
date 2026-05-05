@@ -24,8 +24,8 @@ export default function ActiveLoansCard({ activeLoans, totalAmount }: ActiveLoan
 
   return (
     <div className="bento-card p-6">
-      <h2 className="text-xl font-bold mb-4 flex items-center justify-between">
-        Active Loans
+      <h2 className="mb-4 flex flex-col gap-1 text-xl font-bold sm:flex-row sm:items-center sm:justify-between">
+        <span>Active Loans</span>
         <span className="text-sm font-normal text-foreground/60">
           Total: MWK {totalAmount.toLocaleString()}
         </span>
@@ -37,9 +37,9 @@ export default function ActiveLoansCard({ activeLoans, totalAmount }: ActiveLoan
             href={`/dashboard/applications/${loan.id}`}
             className="block p-4 rounded-xl hover:bg-card/80 transition-colors group"
           >
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="flex items-center gap-2">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-center gap-2">
                   <span className="font-medium">#{loan.reference}</span>
                   <span
                     className="status-chip"
@@ -48,15 +48,15 @@ export default function ActiveLoansCard({ activeLoans, totalAmount }: ActiveLoan
                     {loan.status}
                   </span>
                 </div>
-                <p className="text-sm text-foreground/60 mt-1">
+                <p className="mt-1 break-words text-sm text-foreground/60">
                   {loan.type === 'SME' ? loan.businessName : (loan.applicantName || loan.employerName)}
                 </p>
               </div>
-              <div className="text-right">
-                <p className="font-bold text-primary-600 dark:text-primary-400">
+              <div className="shrink-0 text-left sm:text-right">
+                <p className="font-bold whitespace-nowrap text-primary-600 dark:text-primary-400">
                   MWK {loan.amount.toLocaleString()}
                 </p>
-                <p className="text-xs text-foreground/40 mt-1">
+                <p className="mt-1 text-xs text-foreground/40">
                   {loan.submittedAt
                     ? new Date(loan.submittedAt).toLocaleDateString()
                     : 'N/A'}

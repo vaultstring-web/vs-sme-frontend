@@ -30,15 +30,15 @@ const PasswordResetRequest = () => {
 
     if (success) {
         return (
-            <div className="w-full max-w-md space-y-8 bg-white p-8 shadow-xl rounded-2xl border border-gray-100 text-center">
+            <div className="w-full max-w-md space-y-8 rounded-2xl border border-gray-100 bg-white p-5 text-center shadow-xl sm:p-8">
                 <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-success-light">
                     <svg className="h-6 w-6 text-success-main" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
                 </div>
                 <h2 className="text-2xl font-bold text-gray-900">Check your email</h2>
-                <p className="text-gray-600">
-                    We've sent password reset instructions to {email}
+                <p className="break-all text-gray-600">
+                    We&apos;ve sent password reset instructions to <span className="font-medium">{email}</span>
                 </p>
                 <div className="mt-6">
                     <Link href="/login" className="font-medium text-primary-600 hover:text-primary-500">
@@ -50,7 +50,7 @@ const PasswordResetRequest = () => {
     }
 
     return (
-        <div className="w-full max-w-md space-y-8 bg-white p-8 shadow-xl rounded-2xl border border-gray-100">
+        <div className="w-full max-w-md space-y-8 rounded-2xl border border-gray-100 bg-white p-5 shadow-xl sm:p-8">
             <div className="text-center">
                 <h2 className="text-2xl font-bold text-gray-900">Reset Password</h2>
                 <p className="mt-2 text-sm text-gray-600">

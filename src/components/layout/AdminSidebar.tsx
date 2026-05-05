@@ -152,20 +152,20 @@ export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
 
   return (
     <aside 
-      className={`fixed lg:sticky top-0 inset-y-0 left-0 z-50 w-72 h-screen bg-card border-r border-border transition-transform duration-300 ease-in-out ${
+      className={`fixed lg:sticky top-0 inset-y-0 left-0 z-50 h-screen w-[85vw] max-w-72 border-r border-border bg-card transition-transform duration-300 ease-in-out sm:w-72 ${
         isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
       }`}
     >
-      <div className="flex flex-col h-full p-6">
+      <div className="flex h-full flex-col p-4 sm:p-6">
         {/* Brand Area with Dynamic Logo */}
-        <div className="flex items-center justify-between mb-2">
-          <Link href="/admin/dashboard" className="flex items-center gap-3 transition-opacity hover:opacity-80">
+        <div className="mb-2 flex items-center justify-between">
+          <Link href="/admin/dashboard" onClick={onClose} className="flex items-center gap-3 transition-opacity hover:opacity-80">
             <Image 
               src={theme === "dark" ? "/icons/vs1.svg" : "/icons/vs2.svg"} 
               alt="Logo" 
-              width={100}
-              height={100}
-              className="h-20 w-auto md:h-25 lg:h-25"
+              width={120}
+              height={80}
+              className="h-14 w-auto sm:h-16 lg:h-20"
               priority
             />
           </Link>
@@ -173,7 +173,7 @@ export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
           {/* Mobile Close Button */}
           <button 
             onClick={onClose}
-            className="lg:hidden p-2 text-foreground/50 hover:text-foreground transition-colors"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-lg text-foreground/50 transition-colors hover:bg-foreground/5 hover:text-foreground lg:hidden"
             aria-label="Close sidebar"
           >
             <X size={20} />
@@ -181,7 +181,7 @@ export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
         </div>
 
         {/* Navigation Groups */}
-        <nav className="flex-1 space-y-8 overflow-y-auto custom-scrollbar">
+        <nav className="custom-scrollbar flex-1 space-y-8 overflow-y-auto overflow-x-hidden">
           {filteredMenuGroups.map((group) => (
             <div key={group.label}>
               <h3 className="px-4 text-[10px] font-bold uppercase tracking-[0.25em] text-foreground/50 mb-4">
@@ -194,7 +194,8 @@ export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
                     <Link
                       key={item.name}
                       href={item.href}
-                      className={`flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-200 group relative overflow-hidden ${
+                      onClick={onClose}
+                      className={`flex min-h-11 items-center justify-between rounded-xl px-4 py-3 transition-all duration-200 group relative overflow-hidden ${
                         isActive 
                           ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-400 shadow-sm' 
                           : 'text-foreground/70 hover:bg-slate-50 dark:hover:bg-zinc-800/50 hover:text-foreground'
@@ -225,7 +226,7 @@ export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
         </nav>
 
         {/* Role Badge */}
-        <div className="mt-auto p-5 bg-slate-100 dark:bg-zinc-800/50 rounded-2xl border border-border">
+        <div className="mt-auto rounded-2xl border border-border bg-slate-100 p-4 dark:bg-zinc-800/50 sm:p-5">
             <div className="flex items-center gap-3">
                 <div className="p-2 bg-primary-100 dark:bg-primary-900/30 rounded-lg">
                     <Lock className="w-5 h-5 text-primary-600 dark:text-primary-400" />

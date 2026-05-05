@@ -4,8 +4,8 @@ import logo from "../../vaultlogo.png";
 
 const RegisterPage = () => {
   return (
-    <div className="flex min-h-screen flex-col justify-center py-12 sm:px-6 lg:px-8 bg-gray-50">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
+    <div className="mx-auto flex min-h-screen flex-col justify-center bg-gray-50 px-4 py-12 sm:px-6 lg:px-8">
+      <div className="mx-auto w-full max-w-md">
         <div className="flex justify-center">
           <Image
             src={logo}
@@ -22,7 +22,7 @@ const RegisterPage = () => {
         </p>
       </div>
 
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+      <div className="mx-auto mt-8 w-full max-w-xl">
         <RegisterForm />
       </div>
     </div>

@@ -6,37 +6,40 @@ const activityData = [
     action: 'Loan Approved', 
     amount: 'MWK 500,000', 
     date: 'Today, 10:30 AM', 
-    status: 'success',
+    status: 'success' as const,
     icon: CheckCircle2,
-    color: 'green'
+    iconWrapClass: 'rounded-lg bg-green-50 p-3 dark:bg-green-900/20',
+    iconClass: 'h-5 w-5 text-green-500',
   },
   { 
     action: 'Payment Received', 
     amount: 'MWK 25,000', 
     date: 'Yesterday, 2:45 PM', 
-    status: 'success',
+    status: 'success' as const,
     icon: CreditCard,
-    color: 'blue'
+    iconWrapClass: 'rounded-lg bg-blue-50 p-3 dark:bg-blue-900/20',
+    iconClass: 'h-5 w-5 text-blue-500',
   },
   { 
     action: 'Application Submitted', 
     amount: 'MWK 1,200,000', 
     date: '2 days ago', 
-    status: 'pending',
+    status: 'pending' as const,
     icon: FileText,
-    color: 'yellow'
+    iconWrapClass: 'rounded-lg bg-yellow-50 p-3 dark:bg-yellow-900/20',
+    iconClass: 'h-5 w-5 text-yellow-500',
   },
 ];
 
 export default function RecentActivity() {
   return (
     <div className="bento-card p-6">
-      <div className="flex items-center justify-between mb-6">
+      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-xl font-bold">Recent Activity</h2>
           <p className="text-sm text-foreground/60">Latest updates on your account</p>
         </div>
-        <button className="text-sm text-primary-600 dark:text-primary-400 hover:underline">
+        <button type="button" className="text-left text-sm text-primary-600 hover:underline dark:text-primary-400 sm:text-right">
           View All Activity
         </button>
       </div>
@@ -45,19 +48,19 @@ export default function RecentActivity() {
         {activityData.map((activity, index) => {
           const Icon = activity.icon;
           return (
-            <div key={index} className="flex items-center gap-4 p-4 rounded-xl hover:bg-card/50 transition-colors group">
-              <div className={`p-3 rounded-lg bg-${activity.color}-50 dark:bg-${activity.color}-900/20`}>
-                <Icon className={`w-5 h-5 text-${activity.color}-500`} />
+            <div key={index} className="group flex flex-col gap-3 rounded-xl p-4 transition-colors hover:bg-card/50 sm:flex-row sm:items-center sm:gap-4">
+              <div className={activity.iconWrapClass}>
+                <Icon className={activity.iconClass} />
               </div>
-              <div className="flex-1">
-                <div className="flex items-center justify-between">
-                  <div>
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="min-w-0">
                     <p className="font-medium">{activity.action}</p>
                     <p className="text-sm text-foreground/60">{activity.date}</p>
                   </div>
-                  <div className="text-right">
-                    <p className="font-bold">{activity.amount}</p>
-                    <span className={`text-xs px-2 py-1 rounded-full ${
+                  <div className="text-left sm:text-right">
+                    <p className="font-bold whitespace-nowrap">{activity.amount}</p>
+                    <span className={`mt-1 inline-block rounded-full px-2 py-1 text-xs ${
                       activity.status === 'success' 
                         ? 'bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400' 
                         : 'bg-yellow-50 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'

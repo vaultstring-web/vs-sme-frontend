@@ -73,7 +73,7 @@ const LoginForm = () => {
     // Show loading while checking auth
     if (isLoading && !isAuthenticated) {
         return (
-            <div className="flex min-h-screen items-center justify-center">
+            <div className="flex items-center justify-center py-16">
                 <div className="h-12 w-12 animate-spin rounded-full border-4 border-primary-500 border-t-transparent"></div>
             </div>
         );
@@ -82,7 +82,7 @@ const LoginForm = () => {
     // If already authenticated, show redirecting message
     if (isAuthenticated) {
         return (
-            <div className="flex min-h-screen items-center justify-center">
+            <div className="flex items-center justify-center py-16">
                 <div className="text-center">
                     <div className="h-12 w-12 animate-spin rounded-full border-4 border-primary-500 border-t-transparent mx-auto"></div>
                     <p className="mt-4 text-gray-600">Redirecting to dashboard...</p>
@@ -92,7 +92,7 @@ const LoginForm = () => {
     }
 
     return (
-        <div className="w-full max-w-md space-y-8 bg-white p-8 shadow-xl rounded-2xl border border-gray-100">
+        <div className="w-full max-w-md space-y-8 rounded-2xl border border-gray-100 bg-white p-5 shadow-xl sm:p-8">
             <div className="text-center">
                 <h2 className="mt-2 text-3xl font-bold tracking-tight text-gray-900">
                     Welcome back

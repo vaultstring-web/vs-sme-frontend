@@ -26,7 +26,7 @@ export const Header = ({ toggleSidebar }: { toggleSidebar: () => void }) => {
   return (
     <>
       <header
-      className={`sticky top-0 z-30 h-16 flex items-center justify-between px-4 sm:px-6 transition-all duration-300 ${
+      className={`relative sticky top-0 z-30 flex h-16 items-center justify-between px-4 transition-all duration-300 sm:px-6 ${
         scrolled
           ? 'bg-background/80 backdrop-blur-xl border-b border-border shadow-sm'
           : 'bg-background'
@@ -72,12 +72,12 @@ export const Header = ({ toggleSidebar }: { toggleSidebar: () => void }) => {
 
       {/* Mobile Dropdown Menu */}
       {isMobileMenuOpen && (
-        <div className="absolute top-full right-4 mt-2 w-48 bg-card border border-border rounded-xl shadow-lg z-40">
-          <div className="px-3 py-2 space-y-1">
-            <button className="w-full text-left px-3 py-2 rounded-lg text-sm hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-colors">
+        <div className="absolute right-2 left-2 top-full z-40 mt-2 w-auto max-w-[calc(100vw-1rem)] rounded-xl border border-border bg-card shadow-lg sm:left-auto sm:right-4 sm:w-56">
+          <div className="space-y-1 px-3 py-2">
+            <button className="min-h-10 w-full rounded-lg px-3 py-2.5 text-left text-sm transition-colors hover:bg-primary-50 dark:hover:bg-primary-900/20">
               My Profile
             </button>
-            <button className="w-full text-left px-3 py-2 rounded-lg text-sm hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-colors">
+            <button className="min-h-10 w-full rounded-lg px-3 py-2.5 text-left text-sm transition-colors hover:bg-primary-50 dark:hover:bg-primary-900/20">
               Settings
             </button>
             <button 
@@ -85,7 +85,7 @@ export const Header = ({ toggleSidebar }: { toggleSidebar: () => void }) => {
                 logout();
                 setIsMobileMenuOpen(false);
               }}
-              className="w-full text-left px-3 py-2 rounded-lg text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+              className="min-h-10 w-full rounded-lg px-3 py-2.5 text-left text-sm text-red-600 transition-colors hover:bg-red-50 dark:hover:bg-red-900/20"
             >
               Logout
             </button>
@@ -105,11 +105,11 @@ const ThemeToggle = ({ theme, toggleTheme }: { theme: string; toggleTheme: () =>
   return (
     <button
       onClick={toggleTheme}
-      className="relative w-12 h-6 rounded-full bg-slate-200 dark:bg-slate-800 transition-colors flex items-center px-1 hover:bg-slate-300 dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-primary-500"
+      className="relative flex h-10 w-12 items-center rounded-full bg-slate-200 px-1 transition-colors hover:bg-slate-300 focus:outline-none focus:ring-2 focus:ring-primary-500 dark:bg-slate-800 dark:hover:bg-slate-700 sm:h-6"
       aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
     >
       <div
-        className={`absolute w-4 h-4 rounded-full bg-white shadow-sm transform transition-transform duration-300 ${
+        className={`absolute h-4 w-4 rounded-full bg-white shadow-sm transition-transform duration-300 ${
           theme === 'dark' ? 'translate-x-6' : 'translate-x-0'
         }`}
       />

@@ -52,19 +52,19 @@ const LogDiff = ({ before, after }: { before?: Record<string, unknown>; after?: 
 
       {isOpen && (
         <div className="mt-3 space-y-2 overflow-hidden rounded-lg border border-border/50 bg-slate-50/50 dark:bg-zinc-900/50">
-          <div className="grid grid-cols-12 gap-2 p-2 bg-slate-100 dark:bg-zinc-800 text-[10px] font-bold uppercase tracking-tight text-foreground/50">
-            <div className="col-span-4">Field</div>
-            <div className="col-span-4 text-red-600">Before</div>
-            <div className="col-span-4 text-green-600">After</div>
+          <div className="grid grid-cols-1 gap-2 bg-slate-100 p-2 text-[10px] font-bold uppercase tracking-tight text-foreground/50 dark:bg-zinc-800 sm:grid-cols-12">
+            <div className="sm:col-span-4">Field</div>
+            <div className="sm:col-span-4 text-red-600">Before</div>
+            <div className="sm:col-span-4 text-green-600">After</div>
           </div>
           <div className="divide-y divide-border/30">
             {allKeys.map(key => (
-              <div key={key} className="grid grid-cols-12 gap-2 p-2 text-xs items-center hover:bg-white dark:hover:bg-zinc-800 transition-colors">
-                <div className="col-span-4 font-medium text-foreground/70 truncate" title={key}>{key}</div>
-                <div className="col-span-4 text-red-600/80 truncate italic" title={String(before?.[key] ?? 'N/A')}>
+              <div key={key} className="grid grid-cols-1 gap-2 p-2 text-xs transition-colors hover:bg-white dark:hover:bg-zinc-800 sm:grid-cols-12 sm:items-center">
+                <div className="break-words font-medium text-foreground/70 sm:col-span-4" title={key}>{key}</div>
+                <div className="break-words italic text-red-600/80 sm:col-span-4" title={String(before?.[key] ?? 'N/A')}>
                   {String(before?.[key] ?? 'N/A')}
                 </div>
-                <div className="col-span-4 text-green-600 font-bold truncate" title={String(after?.[key] ?? 'N/A')}>
+                <div className="break-words font-bold text-green-600 sm:col-span-4" title={String(after?.[key] ?? 'N/A')}>
                   {String(after?.[key] ?? 'N/A')}
                 </div>
               </div>
@@ -186,9 +186,11 @@ export default function AuditLogsPage() {
                         {log.comment || 'No additional details provided.'}
                       </p>
                       {log.application && (
-                        <div className="flex items-center gap-2 mt-2 text-xs text-primary-600 dark:text-primary-400 font-medium">
-                          <FileText className="w-3 h-3" />
-                          Application: {log.application.id} ({log.application.type})
+                        <div className="mt-2 flex flex-wrap items-center gap-2 text-xs font-medium text-primary-600 dark:text-primary-400">
+                          <FileText className="h-3 w-3 shrink-0" />
+                          <span className="break-all">
+                            Application: {log.application.id} ({log.application.type})
+                          </span>
                         </div>
                       )}
                       
@@ -198,12 +200,12 @@ export default function AuditLogsPage() {
                       )}
                     </div>
                   </div>
-                  <div className="text-right shrink-0">
-                    <div className="text-sm font-medium text-foreground/60 flex items-center gap-2 justify-end">
-                      <Calendar className="w-4 h-4" />
+                  <div className="shrink-0 text-left sm:text-right">
+                    <div className="flex items-center gap-2 text-sm font-medium text-foreground/60 sm:justify-end">
+                      <Calendar className="h-4 w-4 shrink-0" />
                       {new Date(log.timestamp).toLocaleDateString()}
                     </div>
-                    <div className="text-xs text-foreground/40 mt-1">
+                    <div className="mt-1 text-xs text-foreground/40">
                       {new Date(log.timestamp).toLocaleTimeString()}
                     </div>
                   </div>

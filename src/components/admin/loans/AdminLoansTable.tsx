@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import RecordPaymentModal from './RecordPaymentModal';
+import ResponsiveTable from '@/components/ui/ResponsiveTable';
 
 export default function AdminLoansTable() {
   const { loans, isLoading, fetchAllLoans } = useLoans();
@@ -82,8 +83,56 @@ export default function AdminLoansTable() {
 
       {/* Table */}
       <div className="bento-card overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left">
+        <ResponsiveTable
+          mobileCards={
+            <div className="space-y-3">
+              {isLoading ? (
+                <div className="p-6 text-center text-foreground/40">Loading loans...</div>
+              ) : filteredLoans.length === 0 ? (
+                <div className="p-6 text-center text-foreground/40">No loans found.</div>
+              ) : (
+                filteredLoans.map((loan) => (
+                  <div key={loan.id} className="space-y-2 rounded-xl border border-border p-4">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <p className="font-bold text-foreground">{loan.user?.fullName}</p>
+                        <p className="break-words text-[10px] font-mono uppercase text-foreground/40">{loan.id.slice(0, 8)}</p>
+                      </div>
+                      <div className="flex shrink-0 flex-wrap justify-end gap-2">
+                        <Link
+                          href={`/admin/loans/${loan.id}`}
+                          className="rounded-lg bg-slate-100 p-2 text-foreground/60 transition-colors hover:text-primary-600 dark:bg-zinc-800"
+                        >
+                          <Eye size={18} />
+                        </Link>
+                        {!isAuditor && loan.status !== 'REPAYED' && (
+                          <button
+                            type="button"
+                            onClick={() => setPaymentLoanId(loan.id)}
+                            className="rounded-lg bg-primary-50 p-2 text-primary-600 transition-colors hover:bg-primary-100 dark:bg-primary-900/20 dark:text-primary-400"
+                          >
+                            <Banknote size={18} />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                    <p className="text-sm font-bold">MWK {loan.totalPrincipal.toLocaleString()}</p>
+                    <p className="break-words text-[10px] font-bold uppercase tracking-widest text-foreground/40">
+                      {loan.interestRate * 100}% per month • {loan.application?.type}
+                    </p>
+                    <p className="text-sm font-bold text-primary-600 dark:text-primary-400">
+                      Balance MWK {loan.remainingBalance.toLocaleString()}
+                    </p>
+                    <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider ${getStatusColor(loan.status)}`}>
+                      {loan.status}
+                    </span>
+                  </div>
+                ))
+              )}
+            </div>
+          }
+          table={
+          <table className="hidden w-full min-w-[760px] text-left md:table">
             <thead>
               <tr className="border-b border-border bg-slate-50/50 dark:bg-zinc-900/50">
                 <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-foreground/40">Borrower</th>
@@ -124,7 +173,7 @@ export default function AdminLoansTable() {
                     <td className="px-6 py-4">
                       <div className="space-y-1">
                         <p className="text-sm font-bold text-foreground">MWK {loan.totalPrincipal.toLocaleString()}</p>
-                        <p className="text-[10px] font-bold text-foreground/40 uppercase tracking-widest">
+                        <p className="break-words text-[10px] font-bold uppercase tracking-widest text-foreground/40">
                           {loan.interestRate * 100}% per month • {loan.application?.type}
                         </p>
                       </div>
@@ -146,7 +195,7 @@ export default function AdminLoansTable() {
                       </span>
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <div className="flex justify-end gap-2">
+                      <div className="flex flex-wrap justify-end gap-2">
                         <Link
                           href={`/admin/loans/${loan.id}`}
                           className="p-2 rounded-lg bg-slate-100 dark:bg-zinc-800 text-foreground/60 hover:text-primary-600 transition-colors"
@@ -170,7 +219,8 @@ export default function AdminLoansTable() {
               )}
             </tbody>
           </table>
-        </div>
+          }
+        />
       </div>
 
       {paymentLoanId && (

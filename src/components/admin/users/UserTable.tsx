@@ -15,6 +15,7 @@ import {
 import apiClient from '@/lib/apiClient';
 import { Input, Select } from '@/components/ui/FormELements';
 import Link from 'next/link';
+import ResponsiveTable from '@/components/ui/ResponsiveTable';
 
 interface UserData {
   id: string;
@@ -116,8 +117,53 @@ export default function UserTable() {
 
       {/* Table */}
       <div className="bento-card overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm text-left">
+        <ResponsiveTable
+          mobileCards={
+            <div className="space-y-3">
+              {isLoading ? (
+                <div className="p-6 text-center text-foreground/50">Loading users...</div>
+              ) : users.length === 0 ? (
+                <div className="p-6 text-center text-foreground/50">No users found.</div>
+              ) : (
+                users.map((user) => (
+                  <div key={user.id} className="space-y-2 rounded-xl border border-border p-4">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex min-w-0 items-center gap-3">
+                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary-100 font-bold text-primary-600 dark:bg-primary-900/30 dark:text-primary-400">
+                          {user.fullName.charAt(0)}
+                        </div>
+                        <div className="min-w-0">
+                          <div className="font-medium text-foreground">{user.fullName}</div>
+                          <div className="truncate text-xs text-foreground/50">{user.id}</div>
+                        </div>
+                      </div>
+                      <Link
+                        href={`/admin/users/detail?id=${user.id}`}
+                        className="shrink-0 text-sm font-medium text-primary-600 dark:text-primary-400"
+                      >
+                        View
+                      </Link>
+                    </div>
+                    <div className="truncate text-xs text-foreground/60" title={user.email}>
+                      {user.email}
+                    </div>
+                    <div className="text-xs text-foreground/60">{user.primaryPhone}</div>
+                    <span
+                      className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                        user.role.startsWith('ADMIN')
+                          ? 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400'
+                          : 'bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-400'
+                      }`}
+                    >
+                      {user.role.replace('_', ' ')}
+                    </span>
+                  </div>
+                ))
+              )}
+            </div>
+          }
+          table={
+          <table className="hidden w-full min-w-[760px] text-left text-sm md:table">
             <thead className="text-xs text-foreground/50 uppercase bg-card/50">
               <tr>
                 <th className="px-6 py-3 font-medium">User</th>
@@ -156,9 +202,11 @@ export default function UserTable() {
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex flex-col gap-1 text-foreground/60">
-                        <div className="flex items-center gap-2 text-xs">
-                          <Mail className="w-3 h-3" />
-                          {user.email}
+                        <div className="flex max-w-[240px] items-center gap-2 text-xs sm:max-w-none">
+                          <Mail className="h-3 w-3 shrink-0" />
+                          <span className="truncate" title={user.email}>
+                            {user.email}
+                          </span>
                         </div>
                         <div className="flex items-center gap-2 text-xs">
                           <Phone className="w-3 h-3" />
@@ -181,7 +229,7 @@ export default function UserTable() {
                         {new Date(user.createdAt).toLocaleDateString()}
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-right">
+                    <td className="px-6 py-4 text-left md:text-right">
                       <Link 
                         href={`/admin/users/detail?id=${user.id}`}
                         className="inline-flex items-center gap-1.5 text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 font-medium transition-colors"
@@ -195,10 +243,11 @@ export default function UserTable() {
               )}
             </tbody>
           </table>
-        </div>
+          }
+        />
 
         {/* Pagination */}
-        <div className="flex items-center justify-between px-6 py-4 border-t border-border">
+        <div className="flex flex-col gap-3 border-t border-border px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="text-sm text-foreground/60">
             Showing <span className="font-medium">{(meta.page - 1) * meta.pageSize + 1}</span> to <span className="font-medium">{Math.min(meta.page * meta.pageSize, meta.total)}</span> of <span className="font-medium">{meta.total}</span> results
           </div>
