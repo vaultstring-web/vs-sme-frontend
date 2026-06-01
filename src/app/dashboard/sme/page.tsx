@@ -771,7 +771,7 @@ export default function SMELoanApplicationPage() {
         const totalDeductions = processingFee + insuranceFee;
         const amountReceived = loanAmount - totalDeductions;
 
-        const monthlyRate = 0.06 ; // 6% p.m.
+        const monthlyRate = 0.06; // 6% p.m.
         const months = formData.paybackPeriodMonths || 1;
         const monthlyPayment = months > 0 && loanAmount > 0
           ? loanAmount * monthlyRate / (1 - Math.pow(1 + monthlyRate, -months))
@@ -1464,10 +1464,10 @@ export default function SMELoanApplicationPage() {
               )}
 
               {/* RBM Regulatory Info */}
-              <Box sx={{ 
-                mt: 4, 
-                p: 2, 
-                borderRadius: '16px', 
+              <Box sx={{
+                mt: 4,
+                p: 2,
+                borderRadius: '16px',
                 bgcolor: isDarkMode ? 'rgba(132, 204, 22, 0.05)' : 'rgba(132, 204, 22, 0.03)',
                 border: `1px dashed ${isDarkMode ? 'rgba(132, 204, 22, 0.3)' : 'rgba(132, 204, 22, 0.2)'}`,
                 display: 'flex',
@@ -1590,75 +1590,75 @@ export default function SMELoanApplicationPage() {
 
         {/* Custom Stepper */}
         <Box sx={{ overflowX: 'auto', pb: 1, width: '100%' }}>
-        <Box sx={{
-          mb: 5,
-          display: 'flex',
-          minWidth: { xs: 520, sm: 'auto' },
-          justifyContent: 'space-between',
-          position: 'relative',
-          '&::before': {
-            content: '""',
-            position: 'absolute',
-            top: '24px',
-            left: '5%',
-            right: '5%',
-            height: '2px',
-            bgcolor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
-            zIndex: 0
-          }
-        }}>
-          {steps.map((step, index) => {
-            const Icon = step.icon;
-            const isActive = index === activeStep;
-            const isCompleted = index < activeStep;
+          <Box sx={{
+            mb: 5,
+            display: 'flex',
+            minWidth: { xs: 520, sm: 'auto' },
+            justifyContent: 'space-between',
+            position: 'relative',
+            '&::before': {
+              content: '""',
+              position: 'absolute',
+              top: '24px',
+              left: '5%',
+              right: '5%',
+              height: '2px',
+              bgcolor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+              zIndex: 0
+            }
+          }}>
+            {steps.map((step, index) => {
+              const Icon = step.icon;
+              const isActive = index === activeStep;
+              const isCompleted = index < activeStep;
 
-            return (
-              <Box
-                key={step.label}
-                sx={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  flex: { xs: '1 0 72px', sm: 1 },
-                  minWidth: 72,
-                  position: 'relative',
-                  zIndex: 1
-                }}
-              >
-                <Box sx={{
-                  width: '48px',
-                  height: '48px',
-                  borderRadius: '50%',
-                  bgcolor: isCompleted ? limeColors[500] : isActive ? alpha(limeColors[500], 0.15) : (isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)'),
-                  border: `2px solid ${isActive || isCompleted ? limeColors[500] : 'transparent'}`,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  mb: 1,
-                  transition: 'all 0.3s ease',
-                  boxShadow: isActive ? `0 0 20px ${alpha(limeColors[500], 0.4)}` : 'none'
-                }}>
-                  {isCompleted ? (
-                    <CheckCircle size={24} color="white" />
-                  ) : (
-                    <Icon size={24} color={isActive ? limeColors[500] : (isDarkMode ? '#52525b' : '#a1a1aa')} />
-                  )}
-                </Box>
-                <Typography
-                  variant="caption"
+              return (
+                <Box
+                  key={step.label}
                   sx={{
-                    color: isActive || isCompleted ? (isDarkMode ? 'white' : '#18181b') : (isDarkMode ? '#71717a' : '#a1a1aa'),
-                    fontWeight: isActive ? 600 : 400,
-                    textAlign: 'center',
-                    display: { xs: 'none', sm: 'block' }
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    flex: { xs: '1 0 72px', sm: 1 },
+                    minWidth: 72,
+                    position: 'relative',
+                    zIndex: 1
                   }}
                 >
-                  {step.label}
-                </Typography>
-              </Box>
-            );
-          })}
-        </Box>
+                  <Box sx={{
+                    width: '48px',
+                    height: '48px',
+                    borderRadius: '50%',
+                    bgcolor: isCompleted ? limeColors[500] : isActive ? alpha(limeColors[500], 0.15) : (isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)'),
+                    border: `2px solid ${isActive || isCompleted ? limeColors[500] : 'transparent'}`,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    mb: 1,
+                    transition: 'all 0.3s ease',
+                    boxShadow: isActive ? `0 0 20px ${alpha(limeColors[500], 0.4)}` : 'none'
+                  }}>
+                    {isCompleted ? (
+                      <CheckCircle size={24} color="white" />
+                    ) : (
+                      <Icon size={24} color={isActive ? limeColors[500] : (isDarkMode ? '#52525b' : '#a1a1aa')} />
+                    )}
+                  </Box>
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      color: isActive || isCompleted ? (isDarkMode ? 'white' : '#18181b') : (isDarkMode ? '#71717a' : '#a1a1aa'),
+                      fontWeight: isActive ? 600 : 400,
+                      textAlign: 'center',
+                      display: { xs: 'none', sm: 'block' }
+                    }}
+                  >
+                    {step.label}
+                  </Typography>
+                </Box>
+              );
+            })}
+          </Box>
         </Box>
 
         <Paper
@@ -1686,13 +1686,37 @@ export default function SMELoanApplicationPage() {
             }}
           >
             <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2, width: { xs: '100%', md: 'auto' } }}>
-            {activeStep > 0 && (
+              {activeStep > 0 && (
+                <Button
+                  onClick={handleBack}
+                  startIcon={<ArrowLeft size={18} />}
+                  sx={{
+                    color: isDarkMode ? 'white' : '#18181b',
+                    borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+                    borderRadius: '12px',
+                    textTransform: 'none',
+                    fontWeight: 600,
+                    px: 3,
+                    py: 1.5,
+                    width: { xs: '100%', sm: 'auto' },
+                    '&:hover': {
+                      borderColor: limeColors[500],
+                      bgcolor: alpha(limeColors[500], 0.05)
+                    }
+                  }}
+                  variant="outlined"
+                >
+                  Back
+                </Button>
+              )}
               <Button
-                onClick={handleBack}
-                startIcon={<ArrowLeft size={18} />}
+                onClick={handleSaveDraft}
+                startIcon={<Save size={18} />}
+                variant="outlined"
+                disabled={isLoading}
                 sx={{
-                  color: isDarkMode ? 'white' : '#18181b',
-                  borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+                  color: limeColors[500],
+                  borderColor: limeColors[500],
                   borderRadius: '12px',
                   textTransform: 'none',
                   fontWeight: 600,
@@ -1700,103 +1724,79 @@ export default function SMELoanApplicationPage() {
                   py: 1.5,
                   width: { xs: '100%', sm: 'auto' },
                   '&:hover': {
-                    borderColor: limeColors[500],
-                    bgcolor: alpha(limeColors[500], 0.05)
-                  }
-                }}
-                variant="outlined"
-              >
-                Back
-              </Button>
-            )}
-            <Button
-              onClick={handleSaveDraft}
-              startIcon={<Save size={18} />}
-              variant="outlined"
-              disabled={isLoading}
-              sx={{
-                color: limeColors[500],
-                borderColor: limeColors[500],
-                borderRadius: '12px',
-                textTransform: 'none',
-                fontWeight: 600,
-                px: 3,
-                py: 1.5,
-                width: { xs: '100%', sm: 'auto' },
-                '&:hover': {
-                  borderColor: limeColors[600],
-                  bgcolor: alpha(limeColors[500], 0.1)
-                },
-                '&.Mui-disabled': {
-                  borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
-                  color: isDarkMode ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.3)'
-                }
-              }}
-            >
-              {isLoading ? <CircularProgress size={20} /> : 'Save Draft'}
-            </Button>
-            </Box>
-            <Box sx={{ width: { xs: '100%', md: 'auto' } }}>
-            {activeStep === steps.length - 1 ? (
-              <Button
-                variant="contained"
-                onClick={handleSubmit}
-                disabled={isSubmitting}
-                fullWidth
-                endIcon={isSubmitting ? <CircularProgress size={20} sx={{ color: 'white' }} /> : <CheckCircle size={18} />}
-                sx={{
-                  bgcolor: limeColors[500],
-                  color: 'white',
-                  borderRadius: '12px',
-                  textTransform: 'none',
-                  fontWeight: 700,
-                  px: 4,
-                  py: 1.5,
-                  width: { xs: '100%', md: 'auto' },
-                  boxShadow: `0 4px 20px ${alpha(limeColors[500], 0.4)}`,
-                  '&:hover': {
-                    bgcolor: limeColors[600],
-                    boxShadow: `0 6px 25px ${alpha(limeColors[500], 0.5)}`
+                    borderColor: limeColors[600],
+                    bgcolor: alpha(limeColors[500], 0.1)
                   },
                   '&.Mui-disabled': {
-                    bgcolor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+                    borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
                     color: isDarkMode ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.3)'
                   }
                 }}
               >
-                {isSubmitting ? 'Submitting...' : 'Submit Application'}
+                {isLoading ? <CircularProgress size={20} /> : 'Save Draft'}
               </Button>
-            ) : (
-              <Button
-                variant="contained"
-                onClick={handleNext}
-                fullWidth
-                endIcon={<ArrowRight size={18} />}
-                sx={{
-                  bgcolor: limeColors[500],
-                  color: 'white',
-                  borderRadius: '12px',
-                  textTransform: 'none',
-                  fontWeight: 700,
-                  px: 4,
-                  py: 1.5,
-                  width: { xs: '100%', md: 'auto' },
-                  boxShadow: `0 4px 20px ${alpha(limeColors[500], 0.4)}`,
-                  '&:hover': {
-                    bgcolor: limeColors[600],
-                    boxShadow: `0 6px 25px ${alpha(limeColors[500], 0.5)}`
-                  }
-                }}
-              >
-                Continue
-              </Button>
-            )}
+            </Box>
+            <Box sx={{ width: { xs: '100%', md: 'auto' } }}>
+              {activeStep === steps.length - 1 ? (
+                <Button
+                  variant="contained"
+                  onClick={handleSubmit}
+                  disabled={isSubmitting}
+                  fullWidth
+                  endIcon={isSubmitting ? <CircularProgress size={20} sx={{ color: 'white' }} /> : <CheckCircle size={18} />}
+                  sx={{
+                    bgcolor: limeColors[500],
+                    color: 'white',
+                    borderRadius: '12px',
+                    textTransform: 'none',
+                    fontWeight: 700,
+                    px: 4,
+                    py: 1.5,
+                    width: { xs: '100%', md: 'auto' },
+                    boxShadow: `0 4px 20px ${alpha(limeColors[500], 0.4)}`,
+                    '&:hover': {
+                      bgcolor: limeColors[600],
+                      boxShadow: `0 6px 25px ${alpha(limeColors[500], 0.5)}`
+                    },
+                    '&.Mui-disabled': {
+                      bgcolor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+                      color: isDarkMode ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.3)'
+                    }
+                  }}
+                >
+                  {isSubmitting ? 'Submitting...' : 'Submit Application'}
+                </Button>
+              ) : (
+                <Button
+                  variant="contained"
+                  onClick={handleNext}
+                  fullWidth
+                  endIcon={<ArrowRight size={18} />}
+                  sx={{
+                    bgcolor: limeColors[500],
+                    color: 'white',
+                    borderRadius: '12px',
+                    textTransform: 'none',
+                    fontWeight: 700,
+                    px: 4,
+                    py: 1.5,
+                    width: { xs: '100%', md: 'auto' },
+                    boxShadow: `0 4px 20px ${alpha(limeColors[500], 0.4)}`,
+                    '&:hover': {
+                      bgcolor: limeColors[600],
+                      boxShadow: `0 6px 25px ${alpha(limeColors[500], 0.5)}`
+                    }
+                  }}
+                >
+                  Continue
+                </Button>
+              )}
             </Box>
           </Box>
           {/* RBM Regulatory Info */}
-          <Box sx={{ 
-            p: 2, 
-            borderRadius: '16px', 
+          <Box sx={{
+            p: 2,
+            borderRadius: '16px',
             bgcolor: isDarkMode ? 'rgba(132, 204, 22, 0.05)' : 'rgba(132, 204, 22, 0.03)',
             border: `1px dashed ${isDarkMode ? 'rgba(132, 204, 22, 0.3)' : 'rgba(132, 204, 22, 0.2)'}`,
             display: 'flex',
