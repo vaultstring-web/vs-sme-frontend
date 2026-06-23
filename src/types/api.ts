@@ -294,6 +294,24 @@ export interface ActivityListResponse {
   };
 }
 
+export type MpambaTransactionType = 'PAYOUT' | 'INVOICE';
+export type MpambaTransactionStatus = 'INITIATED' | 'PENDING' | 'COMPLETED' | 'FAILED';
+
+export interface MpambaTransaction {
+  id: string;
+  loanId: string;
+  type: MpambaTransactionType;
+  msisdn: string;
+  amount: number;
+  transactionId: string;
+  mpambaReceiptNumber?: string;
+  status: MpambaTransactionStatus;
+  callbackPayload?: Record<string, unknown>;
+  initiatedBy?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface StatsResponse {
   byStatus: Array<{
     status: ApplicationStatus;

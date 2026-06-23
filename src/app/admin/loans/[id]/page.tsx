@@ -17,6 +17,8 @@ import {
 } from 'lucide-react';
 import RecordPaymentModal from '@/components/admin/loans/RecordPaymentModal';
 import RestructureLoanModal from '@/components/admin/loans/RestructureLoanModal';
+import MpambaDisbursementButton from '@/components/admin/loans/MpambaDisbursementButton';
+import MpambaRepaymentButton from '@/components/admin/loans/MpambaRepaymentButton';
 import ResponsiveTable from '@/components/ui/ResponsiveTable';
 import PageHeader from '@/components/ui/PageHeader';
 
@@ -75,7 +77,7 @@ export default function AdminLoanDetail() {
         subtitle={`ID: ${loan.id}`}
         actions={!isAuditor && loan.status !== 'REPAYED' ? (
           <>
-            <button 
+            <button
               type="button"
               onClick={() => setIsRestructureModalOpen(true)}
               className="flex w-full items-center justify-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-6 py-2.5 text-sm font-bold text-amber-700 shadow-sm transition-all dark:border-amber-900/30 dark:bg-amber-900/10 dark:text-amber-400 sm:w-auto"
@@ -83,7 +85,23 @@ export default function AdminLoanDetail() {
               <RefreshCcw size={18} />
               Restructure
             </button>
-            <button 
+            {(currentUser?.role === 'SUPER_ADMIN' || currentUser?.role === 'ACCOUNTANT') && (
+              <MpambaDisbursementButton
+                loanId={loan.id}
+                borrowerName={loan.user?.fullName ?? ''}
+                borrowerPhone={loan.user?.primaryPhone ?? ''}
+                amount={loan.totalPrincipal}
+                onSuccess={loadData}
+              />
+            )}
+            <MpambaRepaymentButton
+              loanId={loan.id}
+              borrowerName={loan.user?.fullName ?? ''}
+              borrowerPhone={loan.user?.primaryPhone ?? ''}
+              remainingBalance={loan.remainingBalance}
+              onSuccess={loadData}
+            />
+            <button
               type="button"
               onClick={() => setIsPaymentModalOpen(true)}
               className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary-600 px-6 py-2.5 text-sm font-bold text-white shadow-lg shadow-primary-500/20 transition-colors hover:bg-primary-700 sm:w-auto"
