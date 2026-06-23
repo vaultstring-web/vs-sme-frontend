@@ -12,7 +12,6 @@
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
     "@hookform/resolvers": "^5.2.2",
-    "@lottiefiles/dotlottie-react": "^0.19.4",
     "@mui/icons-material": "^7.3.7",
     "@mui/material": "^7.3.7",
     "@mui/x-date-pickers": "^9.0.2",

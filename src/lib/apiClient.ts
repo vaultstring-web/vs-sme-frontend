@@ -18,7 +18,7 @@ function resolveApiBase(): string {
     const port = window.location.port;
     // If running the Next dev server on 3001 or on a private/local host, target local backend
     if (port === '3001' || isPrivateIp(host)) {
-      return 'http://localhost:3001';
+      return 'http://localhost:3000';
     }
   }
   return process.env.NEXT_PUBLIC_API_BASE_URL || 'https://api-thrive.vaultstring.com';
