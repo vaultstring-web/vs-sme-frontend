@@ -69,11 +69,14 @@ export function useLoans() {
     }
   }, []);
 
-  const disburseLoan = useCallback(async (applicationId: string) => {
+  const disburseLoan = useCallback(async (
+    applicationId: string,
+    disbursementMethod: 'MPAMBA' | 'CASH' | 'BANK_TRANSFER' = 'CASH'
+  ) => {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await apiClient.post('/admin/loans/disburse', { applicationId });
+      const response = await apiClient.post('/admin/loans/disburse', { applicationId, disbursementMethod });
       return response.data;
     } catch (err: unknown) {
       const error = err as { response?: { data?: { message?: string } }; message?: string };

@@ -2,17 +2,19 @@
 
 import { useState } from 'react';
 import { useLoans } from '@/hooks/useLoans';
-import { 
-  ArrowLeft, 
-  Calendar, 
-  Clock, 
-  CheckCircle2, 
+import {
+  ArrowLeft,
+  Calendar,
+  Clock,
+  CheckCircle2,
   AlertCircle,
   TrendingUp,
   Banknote,
   Receipt,
+  Smartphone,
 } from 'lucide-react';
 import ResponsiveTable from '@/components/ui/ResponsiveTable';
+import ApplicantRepaymentModal from './ApplicantRepaymentModal';
 
 interface LoanDetailsProps {
   loanId: string;
@@ -21,6 +23,7 @@ interface LoanDetailsProps {
 
 export default function LoanDetails({ loanId, onBack }: LoanDetailsProps) {
   const { currentLoan: loan, isLoading, fetchLoanById } = useLoans();
+  const [isRepayModalOpen, setIsRepayModalOpen] = useState(false);
 
   // Load details on mount
   useState(() => {
@@ -71,6 +74,26 @@ export default function LoanDetails({ loanId, onBack }: LoanDetailsProps) {
           <p className="break-all text-xs font-bold uppercase tracking-widest text-foreground/40">Reference: {loan.id.slice(0, 8).toUpperCase()}</p>
         </div>
       </div>
+
+      {/* Repayment Action — only for active/restructured loans with a balance */}
+      {(loan.status === 'ACTIVE' || loan.status === 'RESTRUCTURED') && loan.remainingBalance > 0 && (
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between rounded-2xl border border-primary-200 bg-primary-50 dark:border-primary-900/30 dark:bg-primary-900/10 px-5 py-4">
+          <div>
+            <p className="text-sm font-bold text-primary-700 dark:text-primary-300">Ready to make a payment?</p>
+            <p className="text-xs text-primary-600/70 dark:text-primary-400/70 mt-0.5">
+              Pay your installment or any partial amount directly from your Mpamba wallet.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setIsRepayModalOpen(true)}
+            className="flex shrink-0 items-center justify-center gap-2 rounded-xl bg-primary-600 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-primary-500/20 transition-colors hover:bg-primary-700"
+          >
+            <Smartphone size={16} />
+            Pay via Mpamba
+          </button>
+        </div>
+      )}
 
       {/* Overview Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -211,6 +234,18 @@ export default function LoanDetails({ loanId, onBack }: LoanDetailsProps) {
           </div>
         </div>
       </div>
+
+      <ApplicantRepaymentModal
+        isOpen={isRepayModalOpen}
+        onClose={() => setIsRepayModalOpen(false)}
+        loanId={loanId}
+        remainingBalance={loan.remainingBalance}
+        suggestedAmount={loan.schedule?.find(s => s.status !== 'PAID')?.amountDue}
+        onSuccess={() => {
+          setIsRepayModalOpen(false);
+          fetchLoanById(loanId);
+        }}
+      />
     </div>
   );
 }

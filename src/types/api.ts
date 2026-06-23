@@ -180,12 +180,14 @@ export interface Loan {
   remainingBalance: number;
   /** Monthly interest as decimal (e.g. 0.045 = 4.5% per month) */
   interestRate: number;
+  disbursementMethod?: 'MPAMBA' | 'CASH' | 'BANK_TRANSFER';
   status: LoanStatus;
   startDate: string;
   endDate?: string;
   application?: {
     id: string;
     type: ApplicationType;
+    status?: string;
   };
   schedule?: PaymentSchedule[];
   payments?: LoanPayment[];

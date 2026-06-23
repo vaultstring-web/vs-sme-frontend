@@ -85,15 +85,18 @@ export default function AdminLoanDetail() {
               <RefreshCcw size={18} />
               Restructure
             </button>
-            {(currentUser?.role === 'SUPER_ADMIN' || currentUser?.role === 'ACCOUNTANT') && (
-              <MpambaDisbursementButton
-                loanId={loan.id}
-                borrowerName={loan.user?.fullName ?? ''}
-                borrowerPhone={loan.user?.primaryPhone ?? ''}
-                amount={loan.totalPrincipal}
-                onSuccess={loadData}
-              />
-            )}
+            {/* Retry payout — only for MPAMBA loans that haven't confirmed disbursement yet */}
+            {(currentUser?.role === 'SUPER_ADMIN' || currentUser?.role === 'ACCOUNTANT') &&
+              loan.disbursementMethod === 'MPAMBA' &&
+              loan.application?.status === 'PENDING_DISBURSEMENT' && (
+                <MpambaDisbursementButton
+                  loanId={loan.id}
+                  borrowerName={loan.user?.fullName ?? ''}
+                  borrowerPhone={loan.user?.primaryPhone ?? ''}
+                  amount={loan.totalPrincipal}
+                  onSuccess={loadData}
+                />
+              )}
             <MpambaRepaymentButton
               loanId={loan.id}
               borrowerName={loan.user?.fullName ?? ''}

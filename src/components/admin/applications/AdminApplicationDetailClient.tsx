@@ -11,16 +11,15 @@ import {
   Eye,
   FileText,
   Wallet,
-  Loader2,
 } from "lucide-react";
 import EditableField from "./EditableField";
 import StatusChangeModal from "./StatusChangeModal";
 import ApplicationTimeline from "./ApplicationTimeline";
 import { useApplications } from "@/hooks/useApplications"; // adjust path as needed
-import { useLoans } from "@/hooks/useLoans";
 import DocumentViewer from "@/components/shared/DocumentViewer";
 import { API_BASE_URL } from "@/lib/apiClient";
 import { useAuth } from "@/hooks/useAuth";
+import DisburseWithMethodModal from "@/components/admin/loans/DisburseWithMethodModal";
 
 interface AdminApplicationDetailClientProps {
   id: string;
@@ -39,7 +38,6 @@ export default function AdminApplicationDetailClient({
     updateAdminApplicationData,
     clearAdminError,
   } = useApplications();
-  const { disburseLoan, isLoading: isDisbursing } = useLoans();
   const { user: currentUser } = useAuth();
   const isAuditor = currentUser?.role === 'AUDITOR';
   const canDisburse =
@@ -47,6 +45,7 @@ export default function AdminApplicationDetailClient({
 
   const [isEditMode, setIsEditMode] = useState(false);
   const [isStatusModalOpen, setIsStatusModalOpen] = useState(false);
+  const [isDisburseModalOpen, setIsDisburseModalOpen] = useState(false);
   const [isViewerOpen, setIsViewerOpen] = useState(false);
   const [viewerIndex, setViewerIndex] = useState(0);
   
@@ -126,16 +125,10 @@ export default function AdminApplicationDetailClient({
           {canDisburse && app.status === 'APPROVED' && (
             <button
               type="button"
-              onClick={async () => {
-                if (confirm('Are you sure you want to disburse this loan? This will create a repayment schedule.')) {
-                  await disburseLoan(app.id);
-                  fetchAdminApplicationById(app.id);
-                }
-              }}
-              disabled={isDisbursing}
-              className="flex w-full items-center justify-center gap-2 rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-green-700 disabled:opacity-50 sm:w-auto"
+              onClick={() => setIsDisburseModalOpen(true)}
+              className="flex w-full items-center justify-center gap-2 rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-green-700 sm:w-auto"
             >
-              {isDisbursing ? <Loader2 className="animate-spin w-4 h-4" /> : <Wallet size={16} />}
+              <Wallet size={16} />
               Disburse Loan
             </button>
           )}
@@ -320,6 +313,20 @@ export default function AdminApplicationDetailClient({
         onConfirm={handleStatusUpdate}
         currentStatus={app.status}
       />
+
+      <DisburseWithMethodModal
+        isOpen={isDisburseModalOpen}
+        onClose={() => setIsDisburseModalOpen(false)}
+        applicationId={app.id}
+        borrowerName={app.user.fullName}
+        borrowerPhone={app.user.primaryPhone}
+        amount={data?.loanAmount ?? 0}
+        onSuccess={() => {
+          setIsDisburseModalOpen(false);
+          fetchAdminApplicationById(id);
+        }}
+      />
+
       {isViewerOpen && app && (
         <DocumentViewer
           documents={app.documents.map((d) => ({ id: d.id, name: d.fileName, fileUrl: d.fileUrl, documentType: d.documentType }))}
