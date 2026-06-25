@@ -13,7 +13,13 @@ import {
   Phone,
   Mail,
   Plus,
-  RefreshCcw
+  RefreshCcw,
+  Shield,
+  Package,
+  FileText,
+  CheckCircle2,
+  AlertCircle,
+  Clock,
 } from 'lucide-react';
 import RecordPaymentModal from '@/components/admin/loans/RecordPaymentModal';
 import RestructureLoanModal from '@/components/admin/loans/RestructureLoanModal';
@@ -21,6 +27,121 @@ import MpambaDisbursementButton from '@/components/admin/loans/MpambaDisbursemen
 import MpambaRepaymentButton from '@/components/admin/loans/MpambaRepaymentButton';
 import ResponsiveTable from '@/components/ui/ResponsiveTable';
 import PageHeader from '@/components/ui/PageHeader';
+import apiClient from '@/lib/apiClient';
+
+// ── Collateral ────────────────────────────────────────────────────────────────
+
+interface Collateral {
+  id: string;
+  type: string;
+  description: string;
+  estimatedValue: number;
+  status: string;
+  verifiedAt?: string;
+  createdAt: string;
+}
+
+function CollateralSection({ applicationId }: { applicationId: string }) {
+  const [collaterals, setCollaterals] = useState<Collateral[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchCollateral = useCallback(async () => {
+    try {
+      setLoading(true);
+      const res = await apiClient.get(`/collateral/application/${applicationId}`);
+      const data = res.data.data ?? res.data;
+      setCollaterals(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error('Failed to fetch collateral:', err);
+      setCollaterals([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [applicationId]);
+
+  useEffect(() => {
+    fetchCollateral();
+  }, [fetchCollateral]);
+
+  const getStatusClass = (status: string) => {
+    switch (status?.toUpperCase()) {
+      case 'VERIFIED':  return 'bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400';
+      case 'RELEASED':  return 'bg-slate-50 text-slate-500 dark:bg-zinc-800 dark:text-zinc-400';
+      case 'REJECTED':  return 'bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400';
+      default:          return 'bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400';
+    }
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status?.toUpperCase()) {
+      case 'VERIFIED': return <CheckCircle2 size={11} />;
+      case 'REJECTED': return <AlertCircle size={11} />;
+      default:         return <Clock size={11} />;
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
+        <Shield className="w-5 h-5 text-primary-600" />
+        Collateral
+      </h3>
+
+      {loading ? (
+        <div className="bento-card p-8 flex items-center justify-center gap-3 text-foreground/40">
+          <div className="w-5 h-5 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" />
+          <span className="text-sm">Loading collateral…</span>
+        </div>
+      ) : collaterals.length === 0 ? (
+        <div className="bento-card p-10 text-center">
+          <Package size={32} className="mx-auto text-foreground/10 mb-3" />
+          <p className="text-sm font-medium text-foreground/40">No collateral recorded for this loan.</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {collaterals.map((c) => (
+            <div key={c.id} className="bento-card p-4 space-y-3">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-9 h-9 rounded-xl bg-primary-50 dark:bg-primary-900/20 flex items-center justify-center shrink-0">
+                    <FileText size={16} className="text-primary-600 dark:text-primary-400" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-bold text-foreground truncate">{c.type}</p>
+                    <p className="text-xs text-foreground/50 mt-0.5 line-clamp-2">{c.description}</p>
+                  </div>
+                </div>
+                <span className={`shrink-0 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${getStatusClass(c.status)}`}>
+                  {getStatusIcon(c.status)}
+                  {c.status}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 pt-2 border-t border-border">
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-foreground/30 mb-0.5">Est. Value</p>
+                  <p className="text-sm font-bold text-foreground">MWK {c.estimatedValue.toLocaleString()}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-foreground/30 mb-0.5">
+                    {c.verifiedAt ? 'Verified' : 'Recorded'}
+                  </p>
+                  <p className="text-sm font-semibold text-foreground">
+                    {new Date(c.verifiedAt ?? c.createdAt).toLocaleDateString('en-GB', {
+                      day: 'numeric', month: 'short', year: 'numeric',
+                    })}
+                  </p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Main Page ─────────────────────────────────────────────────────────────────
 
 export default function AdminLoanDetail() {
   const { id } = useParams();
@@ -53,10 +174,10 @@ export default function AdminLoanDetail() {
 
   const getScheduleStatusClass = (status: string) => {
     switch (status) {
-      case 'PAID': return 'bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400';
-      case 'LATE': return 'bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400';
+      case 'PAID':    return 'bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400';
+      case 'LATE':    return 'bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400';
       case 'PARTIAL': return 'bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400';
-      default: return 'bg-slate-50 text-slate-600 dark:bg-zinc-800 dark:text-zinc-400';
+      default:        return 'bg-slate-50 text-slate-600 dark:bg-zinc-800 dark:text-zinc-400';
     }
   };
 
@@ -85,7 +206,6 @@ export default function AdminLoanDetail() {
               <RefreshCcw size={18} />
               Restructure
             </button>
-            {/* Retry payout — only for MPAMBA loans that haven't confirmed disbursement yet */}
             {(currentUser?.role === 'SUPER_ADMIN' || currentUser?.role === 'ACCOUNTANT') &&
               loan.disbursementMethod === 'MPAMBA' &&
               loan.application?.status === 'PENDING_DISBURSEMENT' && (
@@ -117,7 +237,7 @@ export default function AdminLoanDetail() {
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Left Column: Summary & Borrower */}
+        {/* Left Column: Borrower + Financial Summary */}
         <div className="lg:col-span-1 space-y-8">
           {/* Borrower Card */}
           <div className="bento-card p-6">
@@ -181,9 +301,9 @@ export default function AdminLoanDetail() {
           </div>
         </div>
 
-        {/* Right Column: Schedule & Payments */}
+        {/* Right Column: Schedule, Payments, Collateral */}
         <div className="lg:col-span-2 space-y-8">
-          {/* Payment Schedule */}
+          {/* Repayment Schedule */}
           <div className="space-y-4">
             <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
               <Calendar className="w-5 h-5 text-primary-600" />
@@ -207,40 +327,40 @@ export default function AdminLoanDetail() {
                   </div>
                 }
                 table={
-              <table className="hidden w-full min-w-[700px] text-left md:table">
-                <thead>
-                  <tr className="border-b border-border bg-slate-50/50 dark:bg-zinc-900/50">
-                    <th className="px-6 py-4 text-xs font-bold uppercase text-foreground/40">Due Date</th>
-                    <th className="px-6 py-4 text-xs font-bold uppercase text-foreground/40">Principal</th>
-                    <th className="px-6 py-4 text-xs font-bold uppercase text-foreground/40">Interest</th>
-                    <th className="px-6 py-4 text-xs font-bold uppercase text-foreground/40">Total Due</th>
-                    <th className="px-6 py-4 text-right text-xs font-bold uppercase text-foreground/40">Status</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {loan.schedule?.map((item) => (
-                    <tr key={item.id} className="transition-colors hover:bg-slate-50 dark:hover:bg-zinc-800/50">
-                      <td className="px-6 py-4 text-sm font-medium text-foreground">
-                        {new Date(item.dueDate).toLocaleDateString()}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-foreground/70">MWK {item.principalDue.toLocaleString()}</td>
-                      <td className="px-6 py-4 text-sm text-foreground/70">MWK {item.interestDue.toLocaleString()}</td>
-                      <td className="px-6 py-4 text-sm font-bold text-foreground">MWK {item.amountDue.toLocaleString()}</td>
-                      <td className="px-6 py-4 text-right">
-                        <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider ${getScheduleStatusClass(item.status)}`}>
-                          {item.status}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                  <table className="hidden w-full min-w-[700px] text-left md:table">
+                    <thead>
+                      <tr className="border-b border-border bg-slate-50/50 dark:bg-zinc-900/50">
+                        <th className="px-6 py-4 text-xs font-bold uppercase text-foreground/40">Due Date</th>
+                        <th className="px-6 py-4 text-xs font-bold uppercase text-foreground/40">Principal</th>
+                        <th className="px-6 py-4 text-xs font-bold uppercase text-foreground/40">Interest</th>
+                        <th className="px-6 py-4 text-xs font-bold uppercase text-foreground/40">Total Due</th>
+                        <th className="px-6 py-4 text-right text-xs font-bold uppercase text-foreground/40">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border">
+                      {loan.schedule?.map((item) => (
+                        <tr key={item.id} className="transition-colors hover:bg-slate-50 dark:hover:bg-zinc-800/50">
+                          <td className="px-6 py-4 text-sm font-medium text-foreground">
+                            {new Date(item.dueDate).toLocaleDateString()}
+                          </td>
+                          <td className="px-6 py-4 text-sm text-foreground/70">MWK {item.principalDue.toLocaleString()}</td>
+                          <td className="px-6 py-4 text-sm text-foreground/70">MWK {item.interestDue.toLocaleString()}</td>
+                          <td className="px-6 py-4 text-sm font-bold text-foreground">MWK {item.amountDue.toLocaleString()}</td>
+                          <td className="px-6 py-4 text-right">
+                            <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider ${getScheduleStatusClass(item.status)}`}>
+                              {item.status}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 }
               />
             </div>
           </div>
 
-          {/* Payment History */}
+          {/* Payment Records */}
           <div className="space-y-4">
             <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
               <Receipt className="w-5 h-5 text-primary-600" />
@@ -279,10 +399,14 @@ export default function AdminLoanDetail() {
               )}
             </div>
           </div>
+
+          {/* Collateral */}
+          {loan.applicationId && (
+            <CollateralSection applicationId={loan.applicationId} />
+          )}
         </div>
       </div>
 
-      {/* Record Payment Modal */}
       <RecordPaymentModal 
         isOpen={isPaymentModalOpen}
         onClose={() => setIsPaymentModalOpen(false)}

@@ -48,6 +48,9 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
   ],
   
   ACCOUNTANT: [
+    // Applications
+    'applications:view:all',  // ← added
+
     // Loans
     'loans:view:all',
     'loans:disburse',

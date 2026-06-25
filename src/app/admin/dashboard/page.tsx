@@ -15,7 +15,7 @@ export default function AdminDashboardPage() {
           Admin Dashboard
         </h1>
         <p className="text-foreground/60">
-          Welcome back, <span className="font-semibold text-primary-600 dark:text-primary-400">{user?.fullName}</span>. Here's what's happening today.
+          Welcome back, <span className="font-semibold text-primary-600 dark:text-primary-400">{user?.fullName}</span>. Here&apos;s what&apos;s happening today.
         </p>
       </div>
 

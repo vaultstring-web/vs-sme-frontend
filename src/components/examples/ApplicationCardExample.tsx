@@ -32,7 +32,7 @@ export function ApplicationCard({
   onApprove,
   onReject,
 }: ApplicationCardProps) {
-  const { user, isSuperAdmin } = useAuth();
+  const { user, isSuperAdmin, isLoanManager } = useAuth();
   const permission = usePermission();
   const [isLoading, setIsLoading] = React.useState(false);
 
@@ -210,7 +210,7 @@ export function ApplicationCard({
 
       {/* Additional Info Section (visible based on permissions) */}
       <div className="mt-6 pt-6 border-t border-gray-200">
-        <Can 
+        <Can
           permission={['applications:view:all']}
           fallback={
             <p className="text-sm text-gray-500 italic">
@@ -225,12 +225,12 @@ export function ApplicationCard({
                 {application.documents?.length || 0}
               </span>
             </p>
-            {permission.isSuperAdmin && (
+            {(permission.isSuperAdmin || permission.isLoanManager) ? (
               <p>
                 <span className="font-medium text-gray-700">User ID:</span>{' '}
                 <span className="text-gray-900 font-mono text-xs">{application.userId}</span>
               </p>
-            )}
+            ) : null}
           </div>
         </Can>
       </div>
@@ -242,8 +242,9 @@ export function ApplicationCard({
           <pre className="mt-2 overflow-auto bg-white p-2 rounded border border-gray-200">
             {JSON.stringify({
               userRole: user?.role,
-              userPermissions: user?.permissions?.slice(0, 3), // Show first 3 permissions
+              userPermissions: user?.permissions?.slice(0, 3),
               isSuperAdmin,
+              isLoanManager,
               hasApprovePerm: permission.can('applications:approve'),
               hasRejectPerm: permission.can('applications:reject'),
             }, null, 2)}
@@ -262,17 +263,14 @@ export function ApplicationList({ applications }: { applications: Application[] 
 
   // Filter applications based on user role
   const visibleApplications = applications.filter(app => {
-    if (permission.isSuperAdmin) {
-      return true; // Super admins see all
-    }
-    if (permission.isLoanManager && (app.status === 'SUBMITTED' || app.status === 'UNDER_REVIEW')) {
-      return true; // Loan managers see submitted/under review applications
+    if (permission.isSuperAdmin || permission.isLoanManager) {
+      return true;
     }
     if (permission.isLoanOfficer) {
-      return true; // Loan officers see assigned applications
+      return true;
     }
     if (permission.isApplicant) {
-      return app.userId === 'currentUserId'; // Applicants only see their own
+      return app.userId === 'currentUserId';
     }
     return false;
   });

@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import apiClient from '@/lib/apiClient'
 
 export interface Notification {
@@ -26,20 +26,82 @@ export interface PaginatedNotifications {
   unreadCount: number
 }
 
-/**
- * Hook to manage user notifications
- */
+// ── Singleton store ────────────────────────────────────────────────────────────
+// Shared across all useNotifications() consumers so only ONE poller ever runs.
+
+type Listener = (count: number) => void
+
+let _unreadCount = 0
+let _listeners: Listener[] = []
+let _intervalId: ReturnType<typeof setInterval> | null = null
+let _fetchInFlight = false
+
+function notifyListeners() {
+  _listeners.forEach(fn => fn(_unreadCount))
+}
+
+function subscribe(fn: Listener): () => void {
+  _listeners.push(fn)
+  // Immediately give the new subscriber the current value
+  fn(_unreadCount)
+  return () => {
+    _listeners = _listeners.filter(l => l !== fn)
+  }
+}
+
+async function fetchUnreadCount() {
+  if (_fetchInFlight) return
+  _fetchInFlight = true
+  try {
+    const response = await apiClient.get('/notifications/unread/count')
+    _unreadCount = response.data?.unreadCount ?? 0
+    notifyListeners()
+  } catch (err) {
+    console.error('Failed to fetch unread count:', err)
+  } finally {
+    _fetchInFlight = false
+  }
+}
+
+function startPoller() {
+  if (_intervalId !== null) return // already running
+  void fetchUnreadCount() // immediate first fetch
+  _intervalId = setInterval(() => void fetchUnreadCount(), 30_000)
+}
+
+function stopPoller() {
+  if (_listeners.length > 0) return // still have consumers
+  if (_intervalId !== null) {
+    clearInterval(_intervalId)
+    _intervalId = null
+  }
+}
+
+// ── Hook ──────────────────────────────────────────────────────────────────────
+
 export function useNotifications() {
   const [notifications, setNotifications] = useState<Notification[]>([])
-  const [unreadCount, setUnreadCount] = useState(0)
+  const [unreadCount, setUnreadCount] = useState(_unreadCount)
   const [total, setTotal] = useState(0)
   const [pages, setPages] = useState(0)
   const [page, setPage] = useState(1)
   const [limit] = useState(20)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const notificationsRef = useRef(notifications)
+  notificationsRef.current = notifications
 
-  // Fetch notifications
+  // Subscribe to singleton unread count + start/stop the shared poller
+  useEffect(() => {
+    startPoller()
+    const unsub = subscribe(setUnreadCount)
+    return () => {
+      unsub()
+      stopPoller()
+    }
+  }, [])
+
+  // Fetch paginated notifications
   const fetchNotifications = useCallback(
     async (pageNum = 1) => {
       try {
@@ -47,9 +109,9 @@ export function useNotifications() {
         setError(null)
         const response = await apiClient.get(`/notifications?page=${pageNum}&limit=${limit}`)
         const data: PaginatedNotifications = response.data
-        
         setNotifications(data.data)
-        setUnreadCount(data.unreadCount)
+        _unreadCount = data.unreadCount
+        notifyListeners()
         setTotal(data.pagination.total)
         setPages(data.pagination.pages)
         setPage(pageNum)
@@ -62,35 +124,26 @@ export function useNotifications() {
     [limit]
   )
 
-  // Fetch unread notifications
+  // Fetch unread notifications list
   const fetchUnread = useCallback(async () => {
     try {
       const response = await apiClient.get('/notifications/unread')
       const data = response.data
       setNotifications(data.data)
-      setUnreadCount(data.unreadCount)
+      _unreadCount = data.unreadCount
+      notifyListeners()
     } catch (err) {
       console.error('Failed to fetch unread notifications:', err)
     }
   }, [])
 
-  // Get unread count
-  const getUnreadCount = useCallback(async () => {
-    try {
-      const response = await apiClient.get('/notifications/unread/count')
-      const data = response.data
-      setUnreadCount(data.unreadCount)
-    } catch (err) {
-      console.error('Failed to fetch unread count:', err)
-    }
-  }, [])
+  // Manual trigger (still exported for compatibility)
+  const getUnreadCount = useCallback(() => fetchUnreadCount(), [])
 
-  // Mark as read
+  // Mark single as read
   const markAsRead = useCallback(async (notificationId: string) => {
     try {
       await apiClient.patch(`/notifications/${notificationId}/read`)
-
-      // Update local state
       setNotifications(prev =>
         prev.map(n =>
           n.id === notificationId
@@ -98,7 +151,8 @@ export function useNotifications() {
             : n
         )
       )
-      setUnreadCount(prev => Math.max(0, prev - 1))
+      _unreadCount = Math.max(0, _unreadCount - 1)
+      notifyListeners()
     } catch (err) {
       console.error('Failed to mark as read:', err)
     }
@@ -108,8 +162,6 @@ export function useNotifications() {
   const markMultipleAsRead = useCallback(async (notificationIds: string[]) => {
     try {
       await apiClient.patch('/notifications/read-multiple', { ids: notificationIds })
-
-      // Update local state
       setNotifications(prev =>
         prev.map(n =>
           notificationIds.includes(n.id)
@@ -117,59 +169,43 @@ export function useNotifications() {
             : n
         )
       )
-      
       const readCount = notificationIds.filter(id =>
-        notifications.find(n => n.id === id && !n.isRead)
+        notificationsRef.current.find(n => n.id === id && !n.isRead)
       ).length
-      setUnreadCount(prev => Math.max(0, prev - readCount))
+      _unreadCount = Math.max(0, _unreadCount - readCount)
+      notifyListeners()
     } catch (err) {
       console.error('Failed to mark as read:', err)
     }
-  }, [notifications])
+  }, [])
 
   // Delete notification
   const deleteNotification = useCallback(async (notificationId: string) => {
     try {
       await apiClient.delete(`/notifications/${notificationId}`)
-
-      // Update local state
+      const wasUnread = notificationsRef.current.find(n => n.id === notificationId)?.isRead === false
       setNotifications(prev => prev.filter(n => n.id !== notificationId))
-      
-      const wasUnread = notifications.find(n => n.id === notificationId)?.isRead === false
       if (wasUnread) {
-        setUnreadCount(prev => Math.max(0, prev - 1))
+        _unreadCount = Math.max(0, _unreadCount - 1)
+        notifyListeners()
       }
     } catch (err) {
       console.error('Failed to delete notification:', err)
     }
-  }, [notifications])
+  }, [])
 
   // Clear all
   const clearAll = useCallback(async () => {
     try {
       await apiClient.delete('/notifications')
-
       setNotifications([])
-      setUnreadCount(0)
       setTotal(0)
+      _unreadCount = 0
+      notifyListeners()
     } catch (err) {
       console.error('Failed to clear notifications:', err)
     }
   }, [])
-
-  // Initial fetch on mount
-  useEffect(() => {
-    void getUnreadCount()
-  }, [getUnreadCount])
-
-  // Set up polling for unread count (check every 30 seconds)
-  useEffect(() => {
-    const interval = setInterval(() => {
-      void getUnreadCount()
-    }, 30000)
-
-    return () => clearInterval(interval)
-  }, [getUnreadCount])
 
   return {
     notifications,

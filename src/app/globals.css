@@ -1,4 +1,6 @@
 @import "tailwindcss";
+@import "tailwindcss";
+@variant dark (&:where(.dark, .dark *));
 
 /* 1. Define Variables for Light Mode (Default) */
 :root {

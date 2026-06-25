@@ -1,4 +1,3 @@
-// src/app/dashboard/applications/page.tsx
 'use client';
 
 import { FileText, Clock, CheckCircle2, XCircle, Search, Filter, ChevronDown, AlertCircle, Loader2 } from 'lucide-react';
@@ -7,53 +6,75 @@ import { useState, useMemo, useEffect } from 'react';
 import { useApplications } from '@/hooks/useApplications';
 import type { ApplicationStatus, Application } from '@/context/ApplicationsContext';
 import NewApplicationModal from '@/components/modals/NewApplicationModal';
+import { LoanDueAlertModal } from '@/components/admin/dashboard/AdminRecentApplications';
+import apiClient from '@/lib/apiClient';
 
-// Map backend status to frontend display config
-const statusConfig = {
-  APPROVED: { 
-    label: "Approved", 
-    color: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400", 
-    icon: CheckCircle2 
+// ── Local types (mirrors what AdminRecentApplications exports) ────────────────
+interface DueLoan {
+  id: string;
+  dueDate: string;
+  remainingBalance: number;
+  totalRepayable: number;
+  status: string;
+  daysUntilDue: number;
+  user?: { fullName: string };
+}
+
+function getDaysUntilDue(dueDate: string): number {
+  const now = new Date();
+  now.setHours(0, 0, 0, 0);
+  const due = new Date(dueDate);
+  due.setHours(0, 0, 0, 0);
+  return Math.round((due.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+}
+
+// ── Status config ─────────────────────────────────────────────────────────────
+const statusConfig: Record<ApplicationStatus, { label: string; color: string; icon: React.ElementType }> = {
+  APPROVED: {
+    label: 'Approved',
+    color: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
+    icon: CheckCircle2,
   },
-  DISBURSED: { 
-    label: "Disbursed", 
-    color: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400", 
-    icon: CheckCircle2 
+  DISBURSED: {
+    label: 'Disbursed',
+    color: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
+    icon: CheckCircle2,
   },
-  SUBMITTED: { 
-    label: "Submitted", 
-    color: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400", 
-    icon: Clock 
+  SUBMITTED: {
+    label: 'Submitted',
+    color: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400',
+    icon: Clock,
   },
-  UNDER_REVIEW: { 
-    label: "Under Review", 
-    color: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400", 
-    icon: Clock 
+  UNDER_REVIEW: {
+    label: 'Under Review',
+    color: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400',
+    icon: Clock,
   },
-  DRAFT: { 
-    label: "Draft", 
-    color: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400", 
-    icon: FileText 
+  DRAFT: {
+    label: 'Draft',
+    color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400',
+    icon: FileText,
   },
-  REJECTED: { 
-    label: "Rejected", 
-    color: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400", 
-    icon: XCircle 
+  REJECTED: {
+    label: 'Rejected',
+    color: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
+    icon: XCircle,
   },
-  REPAYED: { 
-    label: "Repaid", 
-    color: "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400", 
-    icon: CheckCircle2 
+  REPAYED: {
+    label: 'Repaid',
+    color: 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400',
+    icon: CheckCircle2,
   },
-  DEFAULTED: { 
-    label: "Defaulted", 
-    color: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400", 
-    icon: XCircle 
+  DEFAULTED: {
+    label: 'Defaulted',
+    color: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
+    icon: XCircle,
   },
 };
 
 type FilterType = ApplicationStatus | 'all';
 
+// ── Page ──────────────────────────────────────────────────────────────────────
 export default function ApplicationsPage() {
   const {
     applications,
@@ -69,57 +90,82 @@ export default function ApplicationsPage() {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  // Due loan alert state
+  const [dueLoans, setDueLoans] = useState<DueLoan[]>([]);
+  const [showDueAlert, setShowDueAlert] = useState(false);
+
   // Fetch applications on mount
   useEffect(() => {
     fetchApplications({ page: 1, limit: 100 });
   }, [fetchApplications]);
 
+  // Fetch due loans on mount
+  useEffect(() => {
+    const fetchDueLoans = async () => {
+      try {
+        const response = await apiClient.get('/loans/my-loans?status=ACTIVE');
+        const loans: DueLoan[] = response.data.data ?? response.data;
+
+        const alertLoans = loans
+          .filter((l) => l.dueDate)
+          .map((l) => ({ ...l, daysUntilDue: getDaysUntilDue(l.dueDate) }))
+          .filter((l) => l.daysUntilDue <= 7)
+          .sort((a, b) => a.daysUntilDue - b.daysUntilDue);
+
+        if (alertLoans.length > 0) {
+          setDueLoans(alertLoans);
+          setShowDueAlert(true);
+        }
+      } catch (err) {
+        console.error('Failed to fetch due loans:', err);
+      }
+    };
+
+    fetchDueLoans();
+  }, []);
+
   // Extract unique types for filter
   const applicationTypes = useMemo(() => {
-    const types = applications.map(app => app.type);
+    const types = applications.map((app) => app.type);
     return ['all', ...Array.from(new Set(types))];
   }, [applications]);
 
-  // Filter applications based on search (client-side for name search)
+  // Filter applications
   const filteredApplications = useMemo(() => {
-    return applications.filter(app => {
-      // Search filter - search in business name, employer name, or type
+    return applications.filter((app) => {
       const searchTerm = searchQuery.toLowerCase();
-      const matchesSearch = searchQuery === '' || 
-        (app.smeData?.businessName?.toLowerCase().includes(searchTerm)) ||
-        (app.payrollData?.employerName?.toLowerCase().includes(searchTerm)) ||
-        (app.user?.fullName?.toLowerCase().includes(searchTerm)) ||
+      const matchesSearch =
+        searchQuery === '' ||
+        app.smeData?.businessName?.toLowerCase().includes(searchTerm) ||
+        app.payrollData?.employerName?.toLowerCase().includes(searchTerm) ||
+        app.user?.fullName?.toLowerCase().includes(searchTerm) ||
         app.type.toLowerCase().includes(searchTerm);
 
-      // Status filter
       const matchesStatus = statusFilter === 'all' || app.status === statusFilter;
-
-      // Type filter
       const matchesType = typeFilter === 'all' || app.type === typeFilter;
 
       return matchesSearch && matchesStatus && matchesType;
     });
   }, [applications, searchQuery, statusFilter, typeFilter]);
 
-  // Calculate stats based on filtered results
+  // Stats
   const stats = useMemo(() => {
     const total = filteredApplications.length;
-    const inReview = filteredApplications.filter(app => 
-      app.status === 'SUBMITTED' || app.status === 'UNDER_REVIEW'
+    const inReview = filteredApplications.filter(
+      (app) => app.status === 'SUBMITTED' || app.status === 'UNDER_REVIEW'
     ).length;
-    const approved = filteredApplications.filter(app => 
-      app.status === 'APPROVED' || app.status === 'DISBURSED'
+    const approved = filteredApplications.filter(
+      (app) => app.status === 'APPROVED' || app.status === 'DISBURSED'
     ).length;
     const totalAmount = filteredApplications.reduce((sum, app) => {
-      const amount = app.smeData?.loanAmount || app.payrollData?.loanAmount || 0;
-      return sum + amount;
+      return sum + (app.smeData?.loanAmount || app.payrollData?.loanAmount || 0);
     }, 0);
 
     return {
       total,
       inReview,
       approved,
-      totalAmount: `MWK ${(totalAmount / 1000000).toFixed(1)}M`
+      totalAmount: `MWK ${(totalAmount / 1000000).toFixed(1)}M`,
     };
   }, [filteredApplications]);
 
@@ -129,54 +175,50 @@ export default function ApplicationsPage() {
     setTypeFilter('all');
   };
 
-  // Calculate progress based on status
   const getProgress = (status: ApplicationStatus): number => {
     switch (status) {
-      case 'DRAFT': return 20;
-      case 'SUBMITTED': return 40;
+      case 'DRAFT':        return 20;
+      case 'SUBMITTED':    return 40;
       case 'UNDER_REVIEW': return 60;
-      case 'APPROVED': return 80;
-      case 'DISBURSED': return 100;
-      case 'REPAYED': return 100;
-      case 'REJECTED': return 100;
-      case 'DEFAULTED': return 100;
-      default: return 0;
+      case 'APPROVED':     return 80;
+      case 'DISBURSED':    return 100;
+      case 'REPAYED':      return 100;
+      case 'REJECTED':     return 100;
+      case 'DEFAULTED':    return 100;
+      default:             return 0;
     }
   };
 
-  // Format amount for display
-  const formatAmount = (amount: number): string => {
-    return `MWK ${amount.toLocaleString()}`;
-  };
+  const formatAmount = (amount: number): string => `MWK ${amount.toLocaleString()}`;
 
-  // Get application name
   const getApplicationName = (app: Application): string => {
-    if (app.type === 'SME') {
-      return app.smeData?.businessName || 'SME Application';
-    } else {
-      return app.user?.fullName || app.payrollData?.employerName || 'Payroll Application';
-    }
+    if (app.type === 'SME') return app.smeData?.businessName || 'SME Application';
+    return app.user?.fullName || app.payrollData?.employerName || 'Payroll Application';
   };
 
-  // Get application amount
-  const getApplicationAmount = (app: Application): number => {
-    return app.smeData?.loanAmount || app.payrollData?.loanAmount || 0;
-  };
+  const getApplicationAmount = (app: Application): number =>
+    app.smeData?.loanAmount || app.payrollData?.loanAmount || 0;
 
-  // Format date
-  const formatDate = (dateString: string): string => {
-    return new Date(dateString).toLocaleDateString('en-GB');
-  };
+  const formatDate = (dateString: string): string =>
+    new Date(dateString).toLocaleDateString('en-GB');
 
   return (
     <div className="space-y-6">
+
+      {/* ── Due loan alert modal ── */}
+      {showDueAlert && dueLoans.length > 0 && (
+        <LoanDueAlertModal
+          loans={dueLoans}
+          onClose={() => setShowDueAlert(false)}
+          isAdmin={false}
+        />
+      )}
+
       {/* Page Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold text-foreground">Applications</h1>
-          <p className="text-foreground/60 mt-1">
-            Manage and track all your loan applications
-          </p>
+          <p className="text-foreground/60 mt-1">Manage and track all your loan applications</p>
         </div>
         <Link
           href="/dashboard"
@@ -207,7 +249,7 @@ export default function ApplicationsPage() {
         </div>
       )}
 
-      {/* Stats Summary */}
+      {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="bento-card p-4">
           <div className="flex items-center justify-between">
@@ -250,7 +292,6 @@ export default function ApplicationsPage() {
       {/* Search and Filters */}
       <div className="bento-card p-4">
         <div className="flex flex-col md:flex-row gap-4">
-          {/* Search */}
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-foreground/40" />
             <input
@@ -262,7 +303,6 @@ export default function ApplicationsPage() {
             />
           </div>
 
-          {/* Filter Button */}
           <div className="relative">
             <button
               onClick={() => setIsFilterOpen(!isFilterOpen)}
@@ -273,19 +313,13 @@ export default function ApplicationsPage() {
               <ChevronDown className={`w-4 h-4 transition-transform ${isFilterOpen ? 'rotate-180' : ''}`} />
             </button>
 
-            {/* Filter Dropdown */}
             {isFilterOpen && (
               <>
-                <div 
-                  className="fixed inset-0 z-10"
-                  onClick={() => setIsFilterOpen(false)}
-                />
+                <div className="fixed inset-0 z-10" onClick={() => setIsFilterOpen(false)} />
                 <div className="absolute left-0 right-0 z-20 mt-2 w-[min(18rem,calc(100vw-2rem))] rounded-lg border border-border bg-background shadow-xl sm:left-auto sm:right-0 sm:w-72">
                   <div className="p-4 space-y-4">
                     <div>
-                      <label className="block text-sm font-medium text-foreground mb-2">
-                        Status
-                      </label>
+                      <label className="block text-sm font-medium text-foreground mb-2">Status</label>
                       <div className="space-y-2">
                         <label className="flex items-center gap-2 cursor-pointer">
                           <input
@@ -315,9 +349,7 @@ export default function ApplicationsPage() {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-foreground mb-2">
-                        Loan Type
-                      </label>
+                      <label className="block text-sm font-medium text-foreground mb-2">Loan Type</label>
                       <select
                         value={typeFilter}
                         onChange={(e) => setTypeFilter(e.target.value)}
@@ -345,7 +377,7 @@ export default function ApplicationsPage() {
             )}
           </div>
 
-          <button 
+          <button
             onClick={() => setIsModalOpen(true)}
             className="px-4 py-2.5 bg-primary-600 text-white rounded-lg font-medium hover:bg-primary-700 transition-colors"
           >
@@ -354,47 +386,32 @@ export default function ApplicationsPage() {
         </div>
       </div>
 
-      {/* Active Filters Display */}
+      {/* Active Filters */}
       {(statusFilter !== 'all' || typeFilter !== 'all' || searchQuery) && (
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-sm text-foreground/60">Active filters:</span>
-          
+
           {statusFilter !== 'all' && (
             <div className="flex items-center gap-1 px-3 py-1 bg-primary-500/10 text-primary-600 rounded-full text-sm">
               <span>Status: {statusConfig[statusFilter as ApplicationStatus].label}</span>
-              <button
-                onClick={() => setStatusFilter('all')}
-                className="ml-1 hover:text-primary-700"
-              >
-                ×
-              </button>
+              <button onClick={() => setStatusFilter('all')} className="ml-1 hover:text-primary-700">×</button>
             </div>
           )}
-          
+
           {typeFilter !== 'all' && (
             <div className="flex items-center gap-1 px-3 py-1 bg-blue-500/10 text-blue-600 rounded-full text-sm">
               <span>Type: {typeFilter}</span>
-              <button
-                onClick={() => setTypeFilter('all')}
-                className="ml-1 hover:text-blue-700"
-              >
-                ×
-              </button>
+              <button onClick={() => setTypeFilter('all')} className="ml-1 hover:text-blue-700">×</button>
             </div>
           )}
-          
+
           {searchQuery && (
             <div className="flex items-center gap-1 px-3 py-1 bg-green-500/10 text-green-600 rounded-full text-sm">
               <span>Search: &quot;{searchQuery}&quot;</span>
-              <button
-                onClick={() => setSearchQuery('')}
-                className="ml-1 hover:text-green-700"
-              >
-                ×
-              </button>
+              <button onClick={() => setSearchQuery('')} className="ml-1 hover:text-green-700">×</button>
             </div>
           )}
-          
+
           <button
             onClick={handleClearFilters}
             className="text-sm text-foreground/60 hover:text-foreground underline"
@@ -430,7 +447,7 @@ export default function ApplicationsPage() {
                     filteredApplications.map((app) => {
                       const StatusIcon = statusConfig[app.status].icon;
                       const progress = getProgress(app.status);
-                      
+
                       return (
                         <tr key={app.id} className="hover:bg-card/50 transition-colors">
                           <td className="py-4 px-4">
@@ -461,7 +478,7 @@ export default function ApplicationsPage() {
                           <td className="py-4 px-4">
                             <div className="flex items-center gap-3">
                               <div className="flex-1 h-2 bg-border rounded-full overflow-hidden">
-                                <div 
+                                <div
                                   className="h-full bg-primary-500 rounded-full transition-all"
                                   style={{ width: `${progress}%` }}
                                 ></div>
@@ -471,13 +488,13 @@ export default function ApplicationsPage() {
                           </td>
                           <td className="py-4 px-4">
                             <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
-                              <Link 
+                              <Link
                                 href={`/dashboard/applications/${app.id}`}
                                 className="rounded px-3 py-1 text-center text-sm text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/20"
                               >
                                 View
                               </Link>
-                              {app.status === "DRAFT" && (
+                              {app.status === 'DRAFT' && (
                                 <Link
                                   href={`/dashboard/applications/${app.id}/edit`}
                                   className="rounded bg-primary-600 px-3 py-1 text-center text-sm text-white hover:bg-primary-700"
@@ -497,16 +514,15 @@ export default function ApplicationsPage() {
                           <FileText className="w-12 h-12 text-foreground/20 mb-4" />
                           <p className="text-foreground/60">No applications found</p>
                           <p className="text-sm text-foreground/40 mt-1">
-                            {applications.length === 0 
+                            {applications.length === 0
                               ? "You haven't created any applications yet"
-                              : "Try adjusting your search or filters"
-                            }
+                              : 'Try adjusting your search or filters'}
                           </p>
                           <button
                             onClick={handleClearFilters}
                             className="mt-4 px-4 py-2 text-sm text-primary-600 hover:text-primary-700 hover:bg-primary-50 rounded-lg"
                           >
-                            {applications.length === 0 ? "Create Application" : "Clear all filters"}
+                            {applications.length === 0 ? 'Create Application' : 'Clear all filters'}
                           </button>
                         </div>
                       </td>
@@ -523,18 +539,17 @@ export default function ApplicationsPage() {
                   Showing {filteredApplications.length} of {applications.length} applications
                 </span>
                 {filteredApplications.length > 0 && (
-                  <button className="text-primary-600 hover:underline">
-                    Export Results
-                  </button>
+                  <button className="text-primary-600 hover:underline">Export Results</button>
                 )}
               </div>
             </div>
           </>
         )}
       </div>
-      <NewApplicationModal 
-        isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
+
+      <NewApplicationModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
       />
     </div>
   );
