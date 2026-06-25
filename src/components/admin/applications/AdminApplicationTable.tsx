@@ -57,7 +57,7 @@ interface Collateral {
   createdAt: string;
 }
 
-// ── Collateral Modal ──────────────────────────────────────────────────────────
+// Collateral Modal
 function CollateralModal({ applicationId, onClose }: {
   applicationId: string;
   onClose: () => void;
@@ -73,6 +73,7 @@ function CollateralModal({ applicationId, onClose }: {
   const fetchCollaterals = useCallback(async () => {
     try {
       setLoading(true);
+      // FIXED: added /collateral prefix to match backend route
       const res = await apiClient.get(`/collateral/application/${applicationId}`);
       setCollaterals(res.data.data ?? res.data);
     } catch (err) {
@@ -326,7 +327,7 @@ function CollateralModal({ applicationId, onClose }: {
   );
 }
 
-// ── Main Table ────────────────────────────────────────────────────────────────
+// Main Table
 export default function AdminApplicationTable() {
   const [applications, setApplications] = useState<Application[]>([]);
   const [meta, setMeta] = useState<Meta>({ page: 1, pageSize: 10, total: 0, totalPages: 0 });

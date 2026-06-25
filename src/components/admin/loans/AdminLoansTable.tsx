@@ -38,7 +38,11 @@ interface Loan {
 }
 
 // ── Download helpers ──────────────────────────────────────────────────────────
-function buildRows(loans: Loan[]) {
+function buildRows(
+  loans: Loan[],
+  collateralsMap: Record<string, string> = {},
+  dueDateMap: Record<string, string> = {}
+) {
   return loans.map((loan) => ({
     'Loan ID': loan.id,
     Borrower: loan.user?.fullName ?? '—',
@@ -47,8 +51,9 @@ function buildRows(loans: Loan[]) {
     Type: loan.application?.type ?? '—',
     'Remaining Balance (MWK)': loan.remainingBalance,
     'Total Repayable (MWK)': loan.totalRepayable,
-    'Due Date': loan.dueDate ?? '—',
     Status: loan.status,
+    'Next Due Date': dueDateMap[loan.id] ?? '—',
+    Collateral: collateralsMap[loan.id] ?? 'None',
   }));
 }
 
@@ -236,7 +241,6 @@ function MobileLoanCard({
 }) {
   return (
     <div className="space-y-2 rounded-xl border border-border p-4">
-      {/* Header row */}
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
           <p className="font-bold text-foreground">{loan.user?.fullName}</p>
@@ -315,24 +319,101 @@ export default function AdminLoansTable() {
     }
   };
 
-  const activeSingleLoan = activePicker?.scope === 'single' && activePicker.loanId
-    ? filteredLoans.find((l) => l.id === activePicker.loanId) ?? null
-    : null;
+  // ── Helper: Fetch collateral summary for a loan ──────────────────────────
+  async function fetchCollateralsForLoan(loan: Loan): Promise<string> {
+    const appId = loan.application?.id;
+    if (!appId) return 'None';
+    try {
+      const res = await apiClient.get(`/collateral/application/${appId}`);
+      const collaterals = res.data.data ?? res.data;
+      if (Array.isArray(collaterals) && collaterals.length > 0) {
+        return collaterals
+          .map((c: any) => `${c.type} (MWK ${c.estimatedValue.toLocaleString()})`)
+          .join('; ');
+      }
+      return 'None';
+    } catch (err) {
+      console.error('Failed to fetch collateral for loan', loan.id, err);
+      return 'Error fetching';
+    }
+  }
 
-  const handleDownload = (fmt: DownloadFormat) => {
+  // ── Helper: Fetch the next due date from the loan schedule ──────────────
+  async function fetchNextDueDate(loanId: string): Promise<string> {
+    try {
+      const res = await apiClient.get(`/admin/loans/${loanId}`);
+      const loanDetail = res.data.data ?? res.data;
+      const schedule = loanDetail.schedule || [];
+      if (!schedule.length) return 'No schedule';
+
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      // Filter unpaid items with due date today or in future, sort ascending
+      const upcoming = schedule
+        .filter((item: any) => {
+          const dueDate = new Date(item.dueDate);
+          dueDate.setHours(0, 0, 0, 0);
+          // treat as unpaid if status is not 'PAID' (or if status is 'PARTIAL', 'LATE', 'PENDING')
+          const isPaid = item.status === 'PAID';
+          return !isPaid && dueDate >= today;
+        })
+        .sort((a: any, b: any) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
+
+      if (upcoming.length > 0) {
+        return new Date(upcoming[0].dueDate).toLocaleDateString();
+      }
+      return 'No upcoming';
+    } catch (err) {
+      console.error('Failed to fetch next due date for loan', loanId, err);
+      return 'Error fetching';
+    }
+  }
+
+  // ── Download handler ────────────────────────────────────────────────────────
+  const handleDownload = async (fmt: DownloadFormat) => {
     if (!activePicker) return;
+    let selectedLoans: Loan[] = [];
     if (activePicker.scope === 'all') {
-      const rows = buildRows(filteredLoans);
-      if (!rows.length) return;
+      selectedLoans = filteredLoans;
+    } else if (activePicker.scope === 'single' && activePicker.loanId) {
+      const loan = filteredLoans.find((l) => l.id === activePicker.loanId);
+      if (loan) selectedLoans = [loan];
+    }
+
+    if (selectedLoans.length === 0) {
+      setActivePicker(null);
+      return;
+    }
+
+    // Fetch collateral summaries and next due dates in parallel
+    const collateralsMap: Record<string, string> = {};
+    const dueDateMap: Record<string, string> = {};
+    await Promise.all(
+      selectedLoans.map(async (loan) => {
+        const [collateralSummary, dueDate] = await Promise.all([
+          fetchCollateralsForLoan(loan),
+          fetchNextDueDate(loan.id),
+        ]);
+        collateralsMap[loan.id] = collateralSummary;
+        dueDateMap[loan.id] = dueDate;
+      })
+    );
+
+    const rows = buildRows(selectedLoans, collateralsMap, dueDateMap);
+    if (rows.length === 0) {
+      setActivePicker(null);
+      return;
+    }
+
+    if (activePicker.scope === 'all') {
       if (fmt === 'excel') {
         downloadCSV(rows, 'thrive-loans-all');
       } else {
         downloadPDF(rows, 'thrive-loans-all', 'Thrive Microfinance — All Loans');
       }
     } else if (activePicker.scope === 'single' && activePicker.loanId) {
-      const loan = filteredLoans.find((l) => l.id === activePicker.loanId);
-      if (!loan) return;
-      const rows = buildRows([loan]);
+      const loan = selectedLoans[0];
       const name = loan.user?.fullName?.replace(/\s+/g, '-').toLowerCase() ?? loan.id.slice(0, 8);
       if (fmt === 'excel') {
         downloadCSV(rows, `loan-${name}`);
@@ -342,6 +423,10 @@ export default function AdminLoansTable() {
     }
     setActivePicker(null);
   };
+
+  const activeSingleLoan = activePicker?.scope === 'single' && activePicker.loanId
+    ? filteredLoans.find((l) => l.id === activePicker.loanId) ?? null
+    : null;
 
   return (
     <div className="space-y-6">

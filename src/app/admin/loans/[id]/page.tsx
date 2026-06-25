@@ -48,6 +48,7 @@ function CollateralSection({ applicationId }: { applicationId: string }) {
   const fetchCollateral = useCallback(async () => {
     try {
       setLoading(true);
+      // Fixed: added /collateral prefix to match backend route
       const res = await apiClient.get(`/collateral/application/${applicationId}`);
       const data = res.data.data ?? res.data;
       setCollaterals(Array.isArray(data) ? data : []);

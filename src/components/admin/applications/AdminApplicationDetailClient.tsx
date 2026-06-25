@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
@@ -11,15 +11,338 @@ import {
   Eye,
   FileText,
   Wallet,
+  Shield,
+  Plus,
+  Pencil,
+  Trash2,
+  Upload,
+  X,
+  ShieldCheck as ShieldCheckIcon,
+  ShieldOff,
 } from "lucide-react";
 import EditableField from "./EditableField";
 import StatusChangeModal from "./StatusChangeModal";
 import ApplicationTimeline from "./ApplicationTimeline";
-import { useApplications } from "@/hooks/useApplications"; // adjust path as needed
+import { useApplications } from "@/hooks/useApplications";
 import DocumentViewer from "@/components/shared/DocumentViewer";
 import { API_BASE_URL } from "@/lib/apiClient";
 import { useAuth } from "@/hooks/useAuth";
 import DisburseWithMethodModal from "@/components/admin/loans/DisburseWithMethodModal";
+import apiClient from "@/lib/apiClient";
+
+// ── Collateral Section (embedded) ──────────────────────────────────────────────
+
+interface Collateral {
+  id: string;
+  type: string;
+  description: string;
+  estimatedValue: number;
+  status: "PENDING" | "VERIFIED" | "RELEASED";
+  createdAt: string;
+}
+
+function CollateralSectionDetail({ applicationId }: { applicationId: string }) {
+  const [collaterals, setCollaterals] = useState<Collateral[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [uploadingId, setUploadingId] = useState<string | null>(null);
+  const [form, setForm] = useState({ type: "", description: "", estimatedValue: "" });
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
+  const { user: currentUser } = useAuth();
+  const isAuditor = currentUser?.role === "AUDITOR";
+
+  const fetchCollaterals = useCallback(async () => {
+    try {
+      setLoading(true);
+      const res = await apiClient.get(`/collateral/application/${applicationId}`);
+      setCollaterals(res.data.data ?? res.data);
+    } catch (err) {
+      console.error("Failed to fetch collaterals:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, [applicationId]);
+
+  useEffect(() => {
+    fetchCollaterals();
+  }, [fetchCollaterals]);
+
+  const handleSubmit = async () => {
+    if (!form.type || !form.description || !form.estimatedValue) return;
+    try {
+      setSubmitting(true);
+      if (editingId) {
+        await apiClient.put(`/collateral/${editingId}`, {
+          type: form.type,
+          description: form.description,
+          estimatedValue: Number(form.estimatedValue),
+        });
+      } else {
+        await apiClient.post(`/collateral/application/${applicationId}`, {
+          type: form.type,
+          description: form.description,
+          estimatedValue: Number(form.estimatedValue),
+        });
+      }
+      setForm({ type: "", description: "", estimatedValue: "" });
+      setEditingId(null);
+      fetchCollaterals();
+    } catch (err) {
+      console.error("Failed to save collateral:", err);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("Delete this collateral item?")) return;
+    try {
+      await apiClient.delete(`/collateral/${id}`);
+      fetchCollaterals();
+    } catch (err) {
+      console.error("Failed to delete collateral:", err);
+    }
+  };
+
+  const handleVerify = async (id: string) => {
+    try {
+      await apiClient.patch(`/collateral/${id}/verify`);
+      fetchCollaterals();
+    } catch (err) {
+      console.error("Failed to verify collateral:", err);
+    }
+  };
+
+  const handleRelease = async (id: string) => {
+    try {
+      await apiClient.patch(`/collateral/${id}/release`);
+      fetchCollaterals();
+    } catch (err) {
+      console.error("Failed to release collateral:", err);
+    }
+  };
+
+  const handleUpload = async (id: string, file: File) => {
+    try {
+      setUploadingId(id);
+      const formData = new FormData();
+      formData.append("file", file);
+      await apiClient.post(`/collateral/${id}/upload`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      fetchCollaterals();
+    } catch (err) {
+      console.error("Failed to upload file:", err);
+    } finally {
+      setUploadingId(null);
+    }
+  };
+
+  const startEdit = (c: Collateral) => {
+    setEditingId(c.id);
+    setForm({ type: c.type, description: c.description, estimatedValue: String(c.estimatedValue) });
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
+    setForm({ type: "", description: "", estimatedValue: "" });
+  };
+
+  const statusBadge = (status: Collateral["status"]) => {
+    const map = {
+      PENDING:  "bg-yellow-50 text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-400",
+      VERIFIED: "bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400",
+      RELEASED: "bg-slate-100 text-slate-500 dark:bg-zinc-800 dark:text-zinc-400",
+    };
+    return map[status] ?? map.PENDING;
+  };
+
+  return (
+    <div className="bento-card p-6 space-y-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Shield className="w-5 h-5 text-primary-600" />
+          <h3 className="text-lg font-bold text-foreground">Collateral</h3>
+          {!isAuditor && (
+            <span className="text-xs text-foreground/40 bg-slate-100 px-2 py-0.5 rounded-full ml-2">
+              Manage
+            </span>
+          )}
+        </div>
+        {!isAuditor && !editingId && (
+          <button
+            onClick={() => setEditingId("new")}
+            className="flex items-center gap-1.5 text-sm font-medium text-primary-600 hover:text-primary-700"
+          >
+            <Plus size={16} />
+            Add Collateral
+          </button>
+        )}
+        {editingId === "new" && (
+          <button onClick={cancelEdit} className="text-sm text-foreground/40 hover:text-foreground">
+            Cancel
+          </button>
+        )}
+      </div>
+
+      {/* Add / Edit Form (inline) */}
+      {(editingId === "new" || editingId !== null) && !isAuditor && (
+        <div className="bg-slate-50 dark:bg-zinc-900/40 rounded-lg p-4 border border-border space-y-3">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-foreground/30">
+            {editingId === "new" ? "Add collateral item" : "Edit collateral item"}
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <input
+              placeholder="Type (e.g. Land, Vehicle)"
+              value={form.type}
+              onChange={(e) => setForm((f) => ({ ...f, type: e.target.value }))}
+              className="px-3 py-2 rounded-lg border border-border bg-card text-sm text-foreground placeholder:text-foreground/30 focus:ring-2 focus:ring-primary-500/20 outline-none"
+            />
+            <input
+              placeholder="Description"
+              value={form.description}
+              onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+              className="px-3 py-2 rounded-lg border border-border bg-card text-sm text-foreground placeholder:text-foreground/30 focus:ring-2 focus:ring-primary-500/20 outline-none"
+            />
+            <input
+              type="number"
+              placeholder="Estimated value (MWK)"
+              value={form.estimatedValue}
+              onChange={(e) => setForm((f) => ({ ...f, estimatedValue: e.target.value }))}
+              className="px-3 py-2 rounded-lg border border-border bg-card text-sm text-foreground placeholder:text-foreground/30 focus:ring-2 focus:ring-primary-500/20 outline-none"
+            />
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={handleSubmit}
+              disabled={submitting}
+              className="flex items-center gap-2 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg text-sm font-semibold transition-colors disabled:opacity-60"
+            >
+              <Plus size={15} />
+              {submitting ? "Saving…" : editingId === "new" ? "Add" : "Update"}
+            </button>
+            <button
+              onClick={cancelEdit}
+              className="px-4 py-2 rounded-lg text-sm text-foreground/50 hover:text-foreground hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* List */}
+      {loading ? (
+        <div className="p-8 text-center text-foreground/40 text-sm">Loading collaterals…</div>
+      ) : collaterals.length === 0 ? (
+        <div className="p-8 text-center border border-dashed border-border rounded-lg">
+          <Shield size={32} className="mx-auto text-foreground/10 mb-2" />
+          <p className="text-sm text-foreground/40">No collateral items recorded.</p>
+        </div>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="w-full text-left">
+            <thead className="bg-slate-50/60 dark:bg-zinc-900/50 border-b border-border">
+              <tr>
+                {["Type", "Description", "Est. Value", "Status", "Actions"].map((h) => (
+                  <th key={h} className="px-5 py-3 text-[10px] font-bold uppercase tracking-wider text-foreground/40">
+                    {h}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {collaterals.map((c) => (
+                <tr key={c.id} className="hover:bg-slate-50 dark:hover:bg-zinc-800/40 transition-colors">
+                  <td className="px-5 py-3 text-sm font-semibold text-foreground">{c.type}</td>
+                  <td className="px-5 py-3 text-sm text-foreground/70">{c.description}</td>
+                  <td className="px-5 py-3 text-sm font-bold text-foreground">MWK {c.estimatedValue.toLocaleString()}</td>
+                  <td className="px-5 py-3">
+                    <span
+                      className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${statusBadge(
+                        c.status
+                      )}`}
+                    >
+                      {c.status}
+                    </span>
+                  </td>
+                  <td className="px-5 py-3">
+                    {!isAuditor ? (
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          onClick={() => startEdit(c)}
+                          title="Edit"
+                          className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-zinc-700 text-foreground/40 hover:text-foreground transition-colors"
+                        >
+                          <Pencil size={14} />
+                        </button>
+                        <button
+                          onClick={() => {
+                            if (fileRef.current) {
+                              (fileRef.current as HTMLInputElement & { _targetId: string })._targetId = c.id;
+                              fileRef.current.click();
+                            }
+                          }}
+                          title="Upload document"
+                          disabled={uploadingId === c.id}
+                          className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-zinc-700 text-foreground/40 hover:text-blue-600 transition-colors disabled:opacity-40"
+                        >
+                          <Upload size={14} />
+                        </button>
+                        {c.status === "PENDING" && (
+                          <button
+                            onClick={() => handleVerify(c.id)}
+                            title="Verify"
+                            className="p-1.5 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/20 text-foreground/40 hover:text-green-600 transition-colors"
+                          >
+                            <ShieldCheckIcon size={14} />
+                          </button>
+                        )}
+                        {c.status === "VERIFIED" && (
+                          <button
+                            onClick={() => handleRelease(c.id)}
+                            title="Release"
+                            className="p-1.5 rounded-lg hover:bg-yellow-50 dark:hover:bg-yellow-900/20 text-foreground/40 hover:text-yellow-600 transition-colors"
+                          >
+                            <ShieldOff size={14} />
+                          </button>
+                        )}
+                        <button
+                          onClick={() => handleDelete(c.id)}
+                          title="Delete"
+                          className="p-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 text-foreground/40 hover:text-red-600 transition-colors"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    ) : (
+                      <span className="text-xs text-foreground/30">View only</span>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      <input
+        ref={fileRef}
+        type="file"
+        className="hidden"
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          const id = (e.target as HTMLInputElement & { _targetId: string })._targetId;
+          if (file && id) handleUpload(id, file);
+          e.target.value = "";
+        }}
+      />
+    </div>
+  );
+}
+
+// ── Main Detail Component ──────────────────────────────────────────────────────
 
 interface AdminApplicationDetailClientProps {
   id: string;
@@ -39,26 +362,23 @@ export default function AdminApplicationDetailClient({
     clearAdminError,
   } = useApplications();
   const { user: currentUser } = useAuth();
-  const isAuditor = currentUser?.role === 'AUDITOR';
+  const isAuditor = currentUser?.role === "AUDITOR";
   const canDisburse =
-    currentUser?.role === 'SUPER_ADMIN' || currentUser?.role === 'ACCOUNTANT';
+    currentUser?.role === "SUPER_ADMIN" || currentUser?.role === "ACCOUNTANT";
 
   const [isEditMode, setIsEditMode] = useState(false);
   const [isStatusModalOpen, setIsStatusModalOpen] = useState(false);
   const [isDisburseModalOpen, setIsDisburseModalOpen] = useState(false);
   const [isViewerOpen, setIsViewerOpen] = useState(false);
   const [viewerIndex, setViewerIndex] = useState(0);
-  
 
   useEffect(() => {
     fetchAdminApplicationById(id);
   }, [id, fetchAdminApplicationById]);
 
-  // Handle error (optional: show toast)
   useEffect(() => {
     if (adminError) {
       console.error("Admin application error:", adminError);
-      // You could show a toast here
       clearAdminError();
     }
   }, [adminError, clearAdminError]);
@@ -67,7 +387,7 @@ export default function AdminApplicationDetailClient({
     try {
       await updateAdminApplicationStatus(id, status, comment);
     } catch (error) {
-      throw error; // let modal handle error display
+      throw error;
     }
   };
 
@@ -80,7 +400,7 @@ export default function AdminApplicationDetailClient({
           : { payrollData: { [field]: value }, comment: `Updated ${field}` };
       await updateAdminApplicationData(id, payload);
     } catch (error) {
-      throw error; // let EditableField handle error
+      throw error;
     }
   };
 
@@ -95,7 +415,7 @@ export default function AdminApplicationDetailClient({
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
-      {/* Header Actions - unchanged */}
+      {/* Header Actions */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <button
           onClick={() => router.back()}
@@ -122,7 +442,7 @@ export default function AdminApplicationDetailClient({
             </button>
           )}
 
-          {canDisburse && app.status === 'APPROVED' && (
+          {canDisburse && app.status === "APPROVED" && (
             <button
               type="button"
               onClick={() => setIsDisburseModalOpen(true)}
@@ -147,7 +467,7 @@ export default function AdminApplicationDetailClient({
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Main Content - mostly unchanged, but ensure app.auditLogs is used */}
+        {/* Main Content */}
         <div className="lg:col-span-2 space-y-6">
           {/* Status Banner */}
           <div
@@ -168,7 +488,7 @@ export default function AdminApplicationDetailClient({
                 </p>
                 <p className="text-xs opacity-80">
                   Last updated:{" "}
-                  {new Date( app.createdAt).toLocaleString()}
+                  {new Date(app.createdAt).toLocaleString()}
                 </p>
               </div>
             </div>
@@ -294,6 +614,9 @@ export default function AdminApplicationDetailClient({
               </div>
             )}
           </div>
+
+          {/* ── Collateral Section ── */}
+          <CollateralSectionDetail applicationId={app.id} />
         </div>
 
         {/* Sidebar */}
@@ -329,7 +652,12 @@ export default function AdminApplicationDetailClient({
 
       {isViewerOpen && app && (
         <DocumentViewer
-          documents={app.documents.map((d) => ({ id: d.id, name: d.fileName, fileUrl: d.fileUrl, documentType: d.documentType }))}
+          documents={app.documents.map((d) => ({
+            id: d.id,
+            name: d.fileName,
+            fileUrl: d.fileUrl,
+            documentType: d.documentType,
+          }))}
           initialIndex={viewerIndex}
           onClose={() => setIsViewerOpen(false)}
         />

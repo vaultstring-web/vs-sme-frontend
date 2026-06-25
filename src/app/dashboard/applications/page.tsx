@@ -103,10 +103,14 @@ export default function ApplicationsPage() {
   useEffect(() => {
     const fetchDueLoans = async () => {
       try {
-        const response = await apiClient.get('/loans/my-loans?status=ACTIVE');
+        // Fixed: correct backend path is '/loans/my' (not '/loans/my-loans')
+        const response = await apiClient.get('/loans/my');
         const loans: DueLoan[] = response.data.data ?? response.data;
 
-        const alertLoans = loans
+        // Filter to only ACTIVE loans (backend might return all)
+        const activeLoans = loans.filter((l) => l.status === 'ACTIVE');
+
+        const alertLoans = activeLoans
           .filter((l) => l.dueDate)
           .map((l) => ({ ...l, daysUntilDue: getDaysUntilDue(l.dueDate) }))
           .filter((l) => l.daysUntilDue <= 7)

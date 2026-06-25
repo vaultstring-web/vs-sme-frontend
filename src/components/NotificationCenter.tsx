@@ -8,9 +8,6 @@ interface NotificationCenterProps {
   onClose: () => void
 }
 
-/**
- * Notification center panel showing all notifications
- */
 export default function NotificationCenter({ open, onClose }: NotificationCenterProps) {
   const { user } = useAuth()
   const {
@@ -34,10 +31,10 @@ export default function NotificationCenter({ open, onClose }: NotificationCenter
 
   return (
     <>
-      {/* Backdrop */}
+      {/* Transparent click-catcher — no dark overlay */}
       {open && (
         <div
-          className="fixed inset-0 z-30 bg-black bg-opacity-50"
+          className="fixed inset-0 z-30"
           onClick={onClose}
           role="presentation"
         />
@@ -52,13 +49,9 @@ export default function NotificationCenter({ open, onClose }: NotificationCenter
         {/* Header */}
         <div className="sticky top-0 z-10 flex shrink-0 items-center justify-between border-b border-border bg-card p-3 sm:p-4">
           <div>
-            <h2 className="text-lg font-semibold text-foreground">
-              Notifications
-            </h2>
+            <h2 className="text-lg font-semibold text-foreground">Notifications</h2>
             {unreadCount > 0 && (
-              <p className="text-sm text-foreground/60">
-                {unreadCount} unread
-              </p>
+              <p className="text-sm text-foreground/60">{unreadCount} unread</p>
             )}
           </div>
           <button
@@ -82,18 +75,8 @@ export default function NotificationCenter({ open, onClose }: NotificationCenter
 
           {!loading && notifications.length === 0 && (
             <div className="flex flex-col items-center justify-center h-32 text-foreground/40">
-              <svg
-                className="w-12 h-12 mb-2 opacity-30"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={1.5}
-                  d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-                />
+              <svg className="w-12 h-12 mb-2 opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
               </svg>
               <p className="text-sm">No notifications yet</p>
             </div>
@@ -121,9 +104,7 @@ export default function NotificationCenter({ open, onClose }: NotificationCenter
             <button
               onClick={() => {
                 const unreadIds = notifications.filter(n => !n.isRead).map(n => n.id)
-                if (unreadIds.length > 0) {
-                  void markMultipleAsRead(unreadIds)
-                }
+                if (unreadIds.length > 0) void markMultipleAsRead(unreadIds)
               }}
               className="min-h-10 flex-1 rounded-lg bg-foreground/5 px-3 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-foreground/10"
             >
@@ -142,9 +123,6 @@ export default function NotificationCenter({ open, onClose }: NotificationCenter
   )
 }
 
-/**
- * Individual notification item
- */
 function NotificationItem({
   notification,
   userRole,
@@ -161,23 +139,19 @@ function NotificationItem({
   const router = useRouter()
 
   const handleNotificationClick = async () => {
-    // 1. Mark as read
-    if (!notification.isRead) {
-      await onMarkRead(notification.id)
-    }
+    if (!notification.isRead) await onMarkRead(notification.id)
 
-    // 2. Navigate
     if (notification.relatedType && notification.relatedId) {
       const isAdmin = ['SUPER_ADMIN', 'LOAN_MANAGER', 'LOAN_OFFICER', 'ACCOUNTANT', 'AUDITOR'].includes(userRole)
       let path = ''
 
       if (notification.relatedType === 'application') {
-        path = isAdmin 
-          ? `/admin/applications/detail?id=${notification.relatedId}` 
+        path = isAdmin
+          ? `/admin/applications/detail?id=${notification.relatedId}`
           : `/dashboard/applications/${notification.relatedId}`
       } else if (notification.relatedType === 'loan') {
-        path = isAdmin 
-          ? `/admin/loans/${notification.relatedId}` 
+        path = isAdmin
+          ? `/admin/loans/${notification.relatedId}`
           : `/dashboard/loans`
       }
 
@@ -193,33 +167,23 @@ function NotificationItem({
     const now = new Date()
     const diffMs = now.getTime() - date.getTime()
     const diffMins = Math.floor(diffMs / 60000)
-
     if (diffMins < 1) return 'Just now'
     if (diffMins < 60) return `${diffMins}m ago`
-
     const diffHours = Math.floor(diffMins / 60)
     if (diffHours < 24) return `${diffHours}h ago`
-
     const diffDays = Math.floor(diffHours / 24)
     if (diffDays < 7) return `${diffDays}d ago`
-
     return date.toLocaleDateString()
   }
 
   const getTypeIcon = (type: string) => {
     switch (type) {
-      case 'application.status':
-        return '📋'
-      case 'payment.recorded':
-        return '💳'
-      case 'loan.disbursed':
-        return '💰'
-      case 'loan.restructured':
-        return '🔄'
-      case 'application.data.edited':
-        return '✏️'
-      default:
-        return '🔔'
+      case 'application.status':   return '📋'
+      case 'payment.recorded':     return '💳'
+      case 'loan.disbursed':       return '💰'
+      case 'loan.restructured':    return '🔄'
+      case 'application.data.edited': return '✏️'
+      default:                     return '🔔'
     }
   }
 
@@ -231,10 +195,7 @@ function NotificationItem({
       }`}
     >
       <div className="flex gap-3">
-        {/* Icon */}
         <div className="flex-shrink-0 text-2xl">{getTypeIcon(notification.type)}</div>
-
-        {/* Content */}
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2">
             <div>
@@ -245,14 +206,9 @@ function NotificationItem({
                 {notification.message}
               </p>
             </div>
-
-            {/* Actions */}
             <div className="ml-2 flex shrink-0 gap-1 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
               <button
-                onClick={(e) => {
-                  e.stopPropagation()
-                  void onDelete(notification.id)
-                }}
+                onClick={(e) => { e.stopPropagation(); void onDelete(notification.id) }}
                 className="inline-flex min-h-10 min-w-10 items-center justify-center rounded-lg p-2 text-foreground/30 transition-colors hover:text-red-500"
                 title="Delete"
               >
@@ -262,14 +218,9 @@ function NotificationItem({
               </button>
             </div>
           </div>
-
           <div className="mt-2 flex items-center justify-between">
-            <span className="text-[10px] text-foreground/40 font-medium">
-              {formatTime(notification.createdAt)}
-            </span>
-            {!notification.isRead && (
-              <span className="w-2 h-2 bg-primary-500 rounded-full"></span>
-            )}
+            <span className="text-[10px] text-foreground/40 font-medium">{formatTime(notification.createdAt)}</span>
+            {!notification.isRead && <span className="w-2 h-2 bg-primary-500 rounded-full" />}
           </div>
         </div>
       </div>
