@@ -1,14 +1,11 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useLoans } from '@/hooks/useLoans';
 import { useAuth } from '@/hooks/useAuth';
 import {
   Search, Eye, Banknote, User as UserIcon, Plus, Download,
   FileSpreadsheet, FileText, X,
-  ClipboardList,
-  Trash2,
-  CheckCircle2, Bell, BellRing, Send,
 } from 'lucide-react';
 import Link from 'next/link';
 import React from 'react';
@@ -35,6 +32,16 @@ interface Loan {
   dueDate?: string;
   user?: { fullName: string };
   application?: { type: string; id: string };
+}
+
+interface Collateral {
+  type: string;
+  estimatedValue: number;
+}
+
+interface ScheduleItem {
+  dueDate: string;
+  status: 'PAID' | 'UNPAID' | 'PARTIAL' | 'LATE' | 'PENDING'; // adjust as needed
 }
 
 // ── Download helpers ──────────────────────────────────────────────────────────
@@ -328,7 +335,7 @@ export default function AdminLoansTable() {
       const collaterals = res.data.data ?? res.data;
       if (Array.isArray(collaterals) && collaterals.length > 0) {
         return collaterals
-          .map((c: any) => `${c.type} (MWK ${c.estimatedValue.toLocaleString()})`)
+          .map((c: Collateral) => `${c.type} (MWK ${c.estimatedValue.toLocaleString()})`)
           .join('; ');
       }
       return 'None';
@@ -343,7 +350,7 @@ export default function AdminLoansTable() {
     try {
       const res = await apiClient.get(`/admin/loans/${loanId}`);
       const loanDetail = res.data.data ?? res.data;
-      const schedule = loanDetail.schedule || [];
+      const schedule: ScheduleItem[] = loanDetail.schedule || [];
       if (!schedule.length) return 'No schedule';
 
       const today = new Date();
@@ -351,14 +358,14 @@ export default function AdminLoansTable() {
 
       // Filter unpaid items with due date today or in future, sort ascending
       const upcoming = schedule
-        .filter((item: any) => {
+        .filter((item) => {
           const dueDate = new Date(item.dueDate);
           dueDate.setHours(0, 0, 0, 0);
           // treat as unpaid if status is not 'PAID' (or if status is 'PARTIAL', 'LATE', 'PENDING')
           const isPaid = item.status === 'PAID';
           return !isPaid && dueDate >= today;
         })
-        .sort((a: any, b: any) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
+        .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
 
       if (upcoming.length > 0) {
         return new Date(upcoming[0].dueDate).toLocaleDateString();
