@@ -108,7 +108,7 @@ export default function ApplicationTimeline({
               value={searchQuery}
               onChange={(e) => {
                 setSearchQuery(e.target.value);
-                setDisplayedCount(10); // Reset pagination on search
+                setDisplayedCount(10);
               }}
               className="pl-8 h-8 text-sm"
             />
@@ -153,7 +153,7 @@ export default function ApplicationTimeline({
           </div>
         ) : (
           displayedLogs.map((log) => (
-            <div key={log.id} className="relative">
+            <div key={log.id} className="relative pl-8">
               {/* Dot */}
               <div
                 className={`absolute -left-4 top-1 flex h-8 w-8 items-center justify-center rounded-full border-4 border-card shadow-sm sm:-left-5 ${getColor(log.action)}`}
@@ -167,7 +167,7 @@ export default function ApplicationTimeline({
                     {log.action.replace("_", " ")}
                   </span>
                   <span className="text-xs text-foreground/50 sm:shrink-0 sm:text-right">
-                    {new Date(log.createdAt).toLocaleString()}
+                    {log.createdAt ? new Date(log.createdAt).toLocaleString() : 'Date not recorded'}
                   </span>
                 </div>
 
