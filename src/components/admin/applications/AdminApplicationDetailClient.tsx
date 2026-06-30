@@ -17,8 +17,6 @@ import {
   Trash2,
   Upload,
   X,
-  ShieldCheck as ShieldCheckIcon,
-  ShieldOff,
 } from "lucide-react";
 import EditableField from "./EditableField";
 import StatusChangeModal from "./StatusChangeModal";
@@ -37,7 +35,7 @@ interface Collateral {
   type: string;
   description: string;
   estimatedValue: number;
-  status: "PENDING" | "VERIFIED" | "RELEASED";
+  status: "AVAILABLE" | "SOLD";
   createdAt: string;
 }
 
@@ -46,6 +44,7 @@ function CollateralSectionDetail({ applicationId }: { applicationId: string }) {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [uploadingId, setUploadingId] = useState<string | null>(null);
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [form, setForm] = useState({ type: "", description: "", estimatedValue: "" });
   const [editingId, setEditingId] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -105,21 +104,15 @@ function CollateralSectionDetail({ applicationId }: { applicationId: string }) {
     }
   };
 
-  const handleVerify = async (id: string) => {
+  const handleStatusChange = async (id: string, status: Collateral["status"]) => {
     try {
-      await apiClient.patch(`/collateral/${id}/verify`);
+      setUpdatingId(id);
+      await apiClient.patch(`/collateral/${id}/status`, { status });
       fetchCollaterals();
     } catch (err) {
-      console.error("Failed to verify collateral:", err);
-    }
-  };
-
-  const handleRelease = async (id: string) => {
-    try {
-      await apiClient.patch(`/collateral/${id}/release`);
-      fetchCollaterals();
-    } catch (err) {
-      console.error("Failed to release collateral:", err);
+      console.error("Failed to update collateral status:", err);
+    } finally {
+      setUpdatingId(null);
     }
   };
 
@@ -149,13 +142,12 @@ function CollateralSectionDetail({ applicationId }: { applicationId: string }) {
     setForm({ type: "", description: "", estimatedValue: "" });
   };
 
-  const statusBadge = (status: Collateral["status"]) => {
+  const statusBadgeClass = (status: Collateral["status"]) => {
     const map = {
-      PENDING:  "bg-yellow-50 text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-400",
-      VERIFIED: "bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400",
-      RELEASED: "bg-slate-100 text-slate-500 dark:bg-zinc-800 dark:text-zinc-400",
+      AVAILABLE: "bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400",
+      SOLD:      "bg-purple-50 text-purple-700 dark:bg-purple-900/20 dark:text-purple-400",
     };
-    return map[status] ?? map.PENDING;
+    return map[status] ?? map.AVAILABLE;
   };
 
   return (
@@ -259,13 +251,29 @@ function CollateralSectionDetail({ applicationId }: { applicationId: string }) {
                   <td className="px-5 py-3 text-sm text-foreground/70">{c.description}</td>
                   <td className="px-5 py-3 text-sm font-bold text-foreground">MWK {c.estimatedValue.toLocaleString()}</td>
                   <td className="px-5 py-3">
-                    <span
-                      className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${statusBadge(
-                        c.status
-                      )}`}
-                    >
-                      {c.status}
-                    </span>
+                    {!isAuditor ? (
+                      <select
+                        value={c.status}
+                        disabled={updatingId === c.id}
+                        onChange={(e) =>
+                          handleStatusChange(c.id, e.target.value as Collateral["status"])
+                        }
+                        className={`text-[11px] font-bold uppercase tracking-wider rounded-full px-2.5 py-1 border-0 outline-none cursor-pointer disabled:opacity-50 ${statusBadgeClass(
+                          c.status
+                        )}`}
+                      >
+                        <option value="AVAILABLE">Available</option>
+                        <option value="SOLD">Sold</option>
+                      </select>
+                    ) : (
+                      <span
+                        className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${statusBadgeClass(
+                          c.status
+                        )}`}
+                      >
+                        {c.status}
+                      </span>
+                    )}
                   </td>
                   <td className="px-5 py-3">
                     {!isAuditor ? (
@@ -290,24 +298,6 @@ function CollateralSectionDetail({ applicationId }: { applicationId: string }) {
                         >
                           <Upload size={14} />
                         </button>
-                        {c.status === "PENDING" && (
-                          <button
-                            onClick={() => handleVerify(c.id)}
-                            title="Verify"
-                            className="p-1.5 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/20 text-foreground/40 hover:text-green-600 transition-colors"
-                          >
-                            <ShieldCheckIcon size={14} />
-                          </button>
-                        )}
-                        {c.status === "VERIFIED" && (
-                          <button
-                            onClick={() => handleRelease(c.id)}
-                            title="Release"
-                            className="p-1.5 rounded-lg hover:bg-yellow-50 dark:hover:bg-yellow-900/20 text-foreground/40 hover:text-yellow-600 transition-colors"
-                          >
-                            <ShieldOff size={14} />
-                          </button>
-                        )}
                         <button
                           onClick={() => handleDelete(c.id)}
                           title="Delete"
